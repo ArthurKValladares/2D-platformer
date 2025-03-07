@@ -23,6 +23,11 @@ foreach(PIXEL_SHADER ${PIXEL_SHADERS})
   set_property(SOURCE ${PIXEL_SHADER} PROPERTY VS_SHADER_TYPE "Pixel")
 endforeach(PIXEL_SHADER)
 
+# Set working dirs
+if ( MSVC )
+  set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)")
+endif ( MSVC )
+
 ### Vulkan setup
 find_package(Vulkan REQUIRED)
 

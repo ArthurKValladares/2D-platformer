@@ -10,33 +10,73 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 
 namespace {
-    static inline void chk(VkResult result) {
+    inline void chk(VkResult result) {
         if (result != VK_SUCCESS) {
             std::cerr << "Vulkan call returned an error\n";
             exit(result);
         }
     }
-    static inline void chk(bool result) {
+    inline void chk(bool result) {
         if (!result) {
             std::cerr << "Call returned an error\n";
             exit(result);
         }
     }
-    static inline void chk(HRESULT result) {
+    inline void chk(HRESULT result) {
         if (FAILED(result)) {
             std::cerr << "Call returned an error\n";
             exit(result);
         }
     }
 
-    static inline void chk_sdl(bool result) {
+    inline void chk_sdl(bool result) {
         if (!result) {
             std::cerr << SDL_GetError() << std::endl;
             exit(result);
         }
     }
+
+    std::vector<std::byte> read_file_bytes(const std::string& path) {
+        std::string actual_path;
+
+        if (!std::filesystem::exists(path)) {
+            std::cerr << "file: " << path << " does not exist" << std::endl;
+            exit(-1);
+        }
+
+        std::ifstream source_file{ path, std::ios::binary };
+        if (!source_file.good()) {
+            std::cerr << "Could not open file: " << path << std::endl;
+            exit(-1);
+        }
+
+        const std::uintmax_t file_size = std::filesystem::file_size(path);
+
+        std::vector<std::byte> buffer(file_size);
+        source_file.read(reinterpret_cast<char*>(buffer.data()), static_cast<long>(file_size));
+        
+        return buffer;
+    }
+
+    VkPipelineShaderStageCreateInfo create_shader(VkDevice device, const std::vector<std::byte>& shader_bytes, VkShaderStageFlagBits shaderStage) {
+        VkShaderModuleCreateInfo shaderModule_ci = {
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .codeSize = shader_bytes.size(),
+            .pCode = (uint32_t*)&shader_bytes
+        };
+        VkShaderModule shader_module;
+        vkCreateShaderModule(device, &shaderModule_ci, nullptr, &shader_module);
+        return VkPipelineShaderStageCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = shaderStage,
+            .module = shader_module,
+            .pName = "main"
+        };
+    };
 };
 
 int main(int argc, char *argv[]) {
@@ -98,7 +138,7 @@ int main(int argc, char *argv[]) {
 
     // External libs
     volkInitialize();
-    
+
     // Instance
 	VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -253,7 +293,7 @@ int main(int argc, char *argv[]) {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         .queueFamilyIndex = q_family_idx
-};
+    };
     chk(vkCreateCommandPool(device, &command_pool_ci, nullptr, &command_pool));
 
     // Sync objects
@@ -267,6 +307,94 @@ int main(int argc, char *argv[]) {
         chk(vkCreateSemaphore(device, &semaphore_ci, nullptr, &render_semaphores[i]));
     }
 
+    // Pipeline
+	VkPipelineLayoutCreateInfo pipeline_layout_ci = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
+    };
+	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
+    const std::vector<std::byte> vert_shader_bytes = read_file_bytes("triangle.vert.cso");
+    const std::vector<std::byte> frag_shader_bytes = read_file_bytes("triangle.frag.cso");
+	std::vector<VkPipelineShaderStageCreateInfo> stages = {
+        create_shader(device, vert_shader_bytes, VK_SHADER_STAGE_VERTEX_BIT),
+        create_shader(device, frag_shader_bytes, VK_SHADER_STAGE_FRAGMENT_BIT)
+    };
+	VkVertexInputBindingDescription vertex_binding = {
+        .binding = 0,
+        .stride = sizeof(float) * 6,
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+    };
+	std::vector<VkVertexInputAttributeDescription> vertex_attributes = {
+		{.location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT},
+		{.location = 1, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = sizeof(float) * 3},
+	};
+	VkPipelineVertexInputStateCreateInfo vertex_input_state = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &vertex_binding,
+		.vertexAttributeDescriptionCount = 2,
+		.pVertexAttributeDescriptions = vertex_attributes.data(),
+	};
+	VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+    };
+	VkPipelineViewportStateCreateInfo viewport_state = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .viewportCount = 1,
+        .scissorCount = 1
+    };
+	VkPipelineRasterizationStateCreateInfo rasterization_state = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .lineWidth = 1.0f
+    };
+	VkPipelineMultisampleStateCreateInfo multisample_state = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .rasterizationSamples = sample_count
+    };
+	VkPipelineDepthStencilStateCreateInfo depth_stencil_state = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO
+    };
+	VkPipelineColorBlendAttachmentState blend_attachment = {
+        .colorWriteMask = 0xF
+    };
+	VkPipelineColorBlendStateCreateInfo color_blend_state = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .attachmentCount = 1,
+        .pAttachments = &blend_attachment
+    };
+	std::vector<VkDynamicState> dynamic_states = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+	VkPipelineDynamicStateCreateInfo dynamic_state_ci = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = 2,
+        .pDynamicStates = dynamic_states.data()
+    };
+	VkPipelineRenderingCreateInfo rendering_ci = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = &image_format
+    };
+	VkGraphicsPipelineCreateInfo pipeline_ci = {
+		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+		.pNext = &rendering_ci,
+		.stageCount = 2,
+		.pStages = stages.data(),
+		.pVertexInputState = &vertex_input_state,
+		.pInputAssemblyState = &input_assembly_state,
+		.pViewportState = &viewport_state,
+		.pRasterizationState = &rasterization_state,
+		.pMultisampleState = &multisample_state,
+		.pDepthStencilState = &depth_stencil_state,
+		.pColorBlendState = &color_blend_state,
+		.pDynamicState = &dynamic_state_ci,
+		.layout = pipeline_layout,
+	};
+	chk(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_ci, nullptr, &pipeline));
+	vkDestroyShaderModule(device, stages[0].module, nullptr);
+	vkDestroyShaderModule(device, stages[1].module, nullptr);
+    
     //
     // Main loop
     //
@@ -300,8 +428,8 @@ int main(int argc, char *argv[]) {
     }
     vmaDestroyBuffer(allocator, v_buffer, v_buffer_allocation);
     vkDestroyCommandPool(device, command_pool, nullptr);
-    //vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
-    //vkDestroyPipeline(device, pipeline, nullptr);
+    vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
+    vkDestroyPipeline(device, pipeline, nullptr);
     vkDestroySwapchainKHR(device, swapchain, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
