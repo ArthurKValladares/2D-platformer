@@ -5,28 +5,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ### Create Executable
-set(VERTEX_SHADERS
-  shaders/triangle.vert.hlsl)
-set(PIXEL_SHADERS
-  shaders/triangle.frag.hlsl)
-
 add_executable(${PROJECT_NAME}
     src/main.cpp
-    ${VERTEX_SHADERS}
-    ${PIXEL_SHADERS}
 )
-foreach(VERTEX_SHADER ${VERTEX_SHADERS})
-  set_property(SOURCE ${VERTEX_SHADER} PROPERTY VS_SHADER_TYPE "Vertex")
-endforeach(VERTEX_SHADER)
-
-foreach(PIXEL_SHADER ${PIXEL_SHADERS})
-  set_property(SOURCE ${PIXEL_SHADER} PROPERTY VS_SHADER_TYPE "Pixel")
-endforeach(PIXEL_SHADER)
-
-# Set working dirs
-if ( MSVC )
-  set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)")
-endif ( MSVC )
 
 ### Vulkan setup
 find_package(Vulkan REQUIRED)
@@ -60,3 +41,26 @@ target_link_libraries(${PROJECT_NAME}
     GPUOpen::VulkanMemoryAllocator
     volk
     SDL3::SDL3)
+
+# Compile shaders
+find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
+
+file(GLOB_RECURSE GLSL_SOURCE_FILES
+    "${PROJECT_SOURCE_DIR}/shaders/*.frag"
+    "${PROJECT_SOURCE_DIR}/shaders/*.vert"
+    "${PROJECT_SOURCE_DIR}/shaders/*.comp"
+    )
+
+message("\n------- Compiling Shaders Step Start -------")
+make_directory(${PROJECT_SOURCE_DIR}/build/shaders)
+message(STATUS "GLSL Validador Path:\n" ${GLSL_VALIDATOR})
+foreach(GLSL ${GLSL_SOURCE_FILES})
+  get_filename_component(FILE_NAME ${GLSL} NAME)
+  set(SPIRV "${PROJECT_SOURCE_DIR}/build/shaders/${FILE_NAME}.spv")
+
+  message(STATUS "Compiling Shader:\n" ${GLSL})
+  message(STATUS "Compile Command:\n" ${GLSL_VALIDATOR} " " -V " " ${GLSL} " " -o " " ${SPIRV})
+
+  execute_process(COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV})
+endforeach(GLSL)
+message("------- Compiling Shaders Step End -------\n")

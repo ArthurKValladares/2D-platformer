@@ -13,6 +13,12 @@
 #include <fstream>
 #include <filesystem>
 
+#ifdef NDEBUG
+constexpr bool enable_validation_layers = false;
+#else
+constexpr bool enable_validation_layers = true;
+#endif
+
 namespace {
     inline void chk(VkResult result) {
         if (result != VK_SUCCESS) {
@@ -40,33 +46,70 @@ namespace {
         }
     }
 
-    std::vector<std::byte> read_file_bytes(const std::string& path) {
-        std::string actual_path;
-
+    template<class T>
+    std::vector<T> read_file_to_buffer(const std::string& path) {
         if (!std::filesystem::exists(path)) {
             std::cerr << "file: " << path << " does not exist" << std::endl;
             exit(-1);
         }
 
-        std::ifstream source_file{ path, std::ios::binary };
-        if (!source_file.good()) {
+        std::ifstream source_file(path, std::ios::ate | std::ios::binary);
+        if (!source_file.is_open()) {
             std::cerr << "Could not open file: " << path << std::endl;
             exit(-1);
         }
 
-        const std::uintmax_t file_size = std::filesystem::file_size(path);
+        const size_t file_size_bytes = (size_t) source_file.tellg();
+        std::vector<uint32_t> buffer(file_size_bytes / sizeof(T));
 
-        std::vector<std::byte> buffer(file_size);
-        source_file.read(reinterpret_cast<char*>(buffer.data()), static_cast<long>(file_size));
+        source_file.seekg(0);
+        source_file.read((char*)buffer.data(), file_size_bytes);
+        source_file.close();
         
         return buffer;
     }
 
-    VkPipelineShaderStageCreateInfo create_shader(VkDevice device, const std::vector<std::byte>& shader_bytes, VkShaderStageFlagBits shaderStage) {
+    bool check_validation_layer_support(const std::vector<const char*>& validation_layers) {
+        uint32_t layer_count;
+        vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+
+        std::vector<VkLayerProperties> available_layers(layer_count);
+        vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
+
+        for (const char* layerName : validation_layers) {
+            bool layer_found = false;
+
+            for (const auto& layerProperties : available_layers) {
+                if (strcmp(layerName, layerProperties.layerName) == 0) {
+                    layer_found = true;
+                    break;
+                }
+            }
+
+            if (!layer_found) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData)
+    {
+        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+        return VK_FALSE;
+    }
+
+    VkPipelineShaderStageCreateInfo create_shader(VkDevice device, const std::vector<uint32_t>& shader_bytes, VkShaderStageFlagBits shaderStage) {
         VkShaderModuleCreateInfo shaderModule_ci = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            .codeSize = shader_bytes.size(),
-            .pCode = (uint32_t*)&shader_bytes
+            .codeSize = shader_bytes.size() * sizeof(uint32_t),
+            .pCode = shader_bytes.data()
         };
         VkShaderModule shader_module;
         vkCreateShaderModule(device, &shaderModule_ci, nullptr, &shader_module);
@@ -108,6 +151,7 @@ int main(int argc, char *argv[]) {
     uint32_t frame_index = 0;
 
     VkInstance instance = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT debug_messenger = VK_NULL_HANDLE;
     VkDevice device = VK_NULL_HANDLE;
     VkQueue queue = VK_NULL_HANDLE;
 
@@ -147,7 +191,8 @@ int main(int argc, char *argv[]) {
     };
 	const std::vector<const char*> instance_extensions = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+        VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
     };
 	VkInstanceCreateInfo instance_ci = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -155,8 +200,27 @@ int main(int argc, char *argv[]) {
 		.enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
 		.ppEnabledExtensionNames = instance_extensions.data(),
 	};
+    const std::vector<const char*> validation_layers = {
+        "VK_LAYER_KHRONOS_validation"
+    };
+    if (enable_validation_layers && !check_validation_layer_support(validation_layers)) {
+        std::cerr << "validation layers requested, but not available!" << std::endl;
+        exit(-1);
+    }
+    if (enable_validation_layers) {
+        instance_ci.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
+        instance_ci.ppEnabledLayerNames = validation_layers.data();
+    }
 	chk(vkCreateInstance(&instance_ci, nullptr, &instance));
 	volkLoadInstance(instance);
+
+    VkDebugUtilsMessengerCreateInfoEXT debug_messenger_ci = {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        .pfnUserCallback = debug_callback
+    };
+    vkCreateDebugUtilsMessengerEXT(instance, &debug_messenger_ci, nullptr, &debug_messenger);
 
     // Device
     uint32_t device_count = 0;
@@ -312,8 +376,8 @@ int main(int argc, char *argv[]) {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
     };
 	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
-    const std::vector<std::byte> vert_shader_bytes = read_file_bytes("triangle.vert.cso");
-    const std::vector<std::byte> frag_shader_bytes = read_file_bytes("triangle.frag.cso");
+    const std::vector<uint32_t> vert_shader_bytes = read_file_to_buffer<uint32_t>("shaders/triangle.vert.spv");
+    const std::vector<uint32_t> frag_shader_bytes = read_file_to_buffer<uint32_t>("shaders/triangle.frag.spv");
 	std::vector<VkPipelineShaderStageCreateInfo> stages = {
         create_shader(device, vert_shader_bytes, VK_SHADER_STAGE_VERTEX_BIT),
         create_shader(device, frag_shader_bytes, VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -434,6 +498,7 @@ int main(int argc, char *argv[]) {
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
     vkDestroyDevice(device, nullptr);
+    vkDestroyDebugUtilsMessengerEXT(instance, debug_messenger, nullptr);
     vkDestroyInstance(instance, nullptr);
 
     //
