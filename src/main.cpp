@@ -19,6 +19,11 @@ constexpr bool enable_validation_layers = false;
 constexpr bool enable_validation_layers = true;
 #endif
 
+struct Size2D {
+    int width;
+    int height;
+};
+
 namespace {
     inline void chk(VkResult result) {
         if (result != VK_SUCCESS) {
@@ -120,6 +125,12 @@ namespace {
             .pName = "main"
         };
     };
+
+    Size2D get_window_size(SDL_Window* window) {
+        Size2D size;
+        SDL_GetWindowSize(window, &size.width, &size.height);
+        return size;
+    }
 };
 
 int main(int argc, char *argv[]) {
@@ -270,9 +281,7 @@ int main(int argc, char *argv[]) {
 
     // Presentation
     chk_sdl(SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface));
-    int window_width;
-    int window_height;
-    SDL_GetWindowSize(window, &window_width, &window_height);
+    Size2D window_size = get_window_size(window);
     const VkFormat image_format = VK_FORMAT_B8G8R8A8_SRGB;
     const VkColorSpaceKHR color_space = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
     VkSwapchainCreateInfoKHR swapchainCI = {
@@ -281,7 +290,7 @@ int main(int argc, char *argv[]) {
         .minImageCount = 2,
         .imageFormat = image_format,
         .imageColorSpace = color_space,
-        .imageExtent = {.width = (uint32_t) window_width, .height = (uint32_t) window_height},
+        .imageExtent = {.width = (uint32_t)window_size.width, .height = (uint32_t)window_size.height},
         .imageArrayLayers = 1,
         .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
         .queueFamilyIndexCount = q_family_idx,
@@ -300,7 +309,7 @@ int main(int argc, char *argv[]) {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = image_format,
-        .extent = {.width = (uint32_t) window_width, .height = (uint32_t) window_height, .depth = 1 },
+        .extent = {.width = (uint32_t)window_size.width, .height = (uint32_t)window_size.height, .depth = 1 },
         .mipLevels = 1,
         .arrayLayers = 1,
         .samples = sample_count,
@@ -474,7 +483,172 @@ int main(int argc, char *argv[]) {
                 if (e.key.key == SDLK_ESCAPE) {
                     quit = true;
                 }
+            } else if (e.type = SDL_EVENT_WINDOW_RESIZED) {
+                vkDeviceWaitIdle(device);
+
+                Size2D window_size = get_window_size(window);
+                swapchainCI.oldSwapchain = swapchain;
+                swapchainCI.imageExtent = {
+                    .width = static_cast<uint32_t>(window_size.width),
+                    .height = static_cast<uint32_t>(window_size.height)
+                };
+                chk(vkCreateSwapchainKHR(device, &swapchainCI, nullptr, &swapchain));
+
+                auto old_image_count = image_count;
+                vkGetSwapchainImagesKHR(device, swapchain, &image_count, nullptr);
+                swapchain_images.resize(image_count);
+                vkGetSwapchainImagesKHR(device, swapchain, &image_count, swapchain_images.data());
+
+                vmaDestroyImage(allocator, render_image, render_image_allocation);
+                vkDestroyImageView(device, render_image_view, nullptr);
+
+                for (auto i = 0; i < swapchain_image_views.size(); i++) {
+                    vkDestroyImageView(device, swapchain_image_views[i], nullptr);
+                }
+                swapchain_image_views.resize(image_count);
+
+                renderImageCI.extent = {
+                    .width = static_cast<uint32_t>(window_size.width),
+                    .height = static_cast<uint32_t>(window_size.height),
+                    .depth = 1
+                };
+                VmaAllocationCreateInfo allocCI = {
+                    .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+                    .usage = VMA_MEMORY_USAGE_AUTO,
+                    .priority = 1.0f
+                };
+                chk(vmaCreateImage(allocator, &renderImageCI, &allocCI, &render_image, &render_image_allocation, nullptr));
+                VkImageViewCreateInfo viewCI = {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                    .image = render_image,
+                    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                    .format = image_format,
+                    .subresourceRange = {
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .levelCount = 1,
+                        .layerCount = 1
+                    }
+                };
+                chk(vkCreateImageView(device, &viewCI, nullptr, &render_image_view));
+                for (auto i = 0; i < image_count; i++) {
+                    viewCI.image = swapchain_images[i];
+                    chk(vkCreateImageView(device, &viewCI, nullptr, &swapchain_image_views[i]));
+                }
+                vkDestroySwapchainKHR(device, swapchainCI.oldSwapchain, nullptr);
             }
+        }
+
+        vkWaitForFences(device, 1, &fences[frame_index], true, UINT64_MAX);
+        vkResetFences(device, 1, &fences[frame_index]);
+
+        vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, present_semaphores[frame_index], VK_NULL_HANDLE, &image_index);
+
+        VkCommandBuffer& cb = command_buffers[frame_index];
+        VkCommandBufferBeginInfo cb_bi{
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+        };
+        vkResetCommandBuffer(cb, 0);
+        vkBeginCommandBuffer(cb, &cb_bi);
+
+        VkImageMemoryBarrier barrier0 = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .image = render_image,
+            .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1 }
+        };
+        vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier0);
+
+        VkRenderingAttachmentInfo colorAttachmentInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .imageView = render_image_view,
+            .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+            .resolveImageView = swapchain_image_views[image_index],
+            .resolveImageLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue = {.color = { 0.0f, 0.0f, 0.2f, 1.0f }}
+        };
+        Size2D window_size = get_window_size(window);
+        VkRenderingInfo renderingInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+            .renderArea = {.extent = {.width = (uint32_t) window_size.width, .height = (uint32_t) window_size.height }},
+            .layerCount = 1,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = &colorAttachmentInfo,
+        };
+        vkCmdBeginRendering(cb, &renderingInfo);
+
+        VkViewport vp = {
+            .width = static_cast<float>(window_size.width),
+            .height = static_cast<float>(window_size.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f
+        };
+        vkCmdSetViewport(cb, 0, 1, &vp);
+        VkRect2D scissor = {
+            .extent = {
+                .width = (uint32_t) window_size.width,
+                .height = (uint32_t) window_size.height
+            }
+        };
+        vkCmdSetScissor(cb, 0, 1, &scissor);
+
+        vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+        VkDeviceSize v_offset = 0;
+        vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer, &v_offset);
+
+        vkCmdDraw(cb, 6, 1, 0, 0);
+
+        vkCmdEndRendering(cb);
+
+        VkImageMemoryBarrier barrier1 = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = 0,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .image = swapchain_images[image_index],
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .levelCount = 1,
+                .layerCount = 1
+            }
+        };
+        vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier1);
+
+        vkEndCommandBuffer(cb);
+
+        VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        VkSubmitInfo submit_info = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &present_semaphores[frame_index],
+            .pWaitDstStageMask = &wait_stages,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &cb,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &render_semaphores[frame_index],
+        };
+        vkQueueSubmit(queue, 1, &submit_info, fences[frame_index]);
+        VkPresentInfoKHR present_info = {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &render_semaphores[frame_index],
+            .swapchainCount = 1,
+            .pSwapchains = &swapchain,
+            .pImageIndices = &image_index
+        };
+        chk(vkQueuePresentKHR(queue, &present_info));
+
+        ++frame_index;
+        if (frame_index >= max_frames_in_flight) {
+            frame_index = 0;
         }
     }
 
