@@ -5,9 +5,23 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ### Create Executable
+set(VERTEX_SHADERS
+  shaders/triangle.vert.hlsl)
+set(PIXEL_SHADERS
+  shaders/triangle.frag.hlsl)
+
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    ${VERTEX_SHADERS}
+    ${PIXEL_SHADERS}
 )
+foreach(VERTEX_SHADER ${VERTEX_SHADERS})
+  set_property(SOURCE ${VERTEX_SHADER} PROPERTY VS_SHADER_TYPE "Vertex")
+endforeach(VERTEX_SHADER)
+
+foreach(PIXEL_SHADER ${PIXEL_SHADERS})
+  set_property(SOURCE ${PIXEL_SHADER} PROPERTY VS_SHADER_TYPE "Pixel")
+endforeach(PIXEL_SHADER)
 
 ### Vulkan setup
 find_package(Vulkan REQUIRED)
@@ -41,4 +55,3 @@ target_link_libraries(${PROJECT_NAME}
     GPUOpen::VulkanMemoryAllocator
     volk
     SDL3::SDL3)
-

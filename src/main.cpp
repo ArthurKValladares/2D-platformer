@@ -96,8 +96,10 @@ int main(int argc, char *argv[]) {
     VkPipeline pipeline = VK_NULL_HANDLE;
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
 
-    // Instance
+    // External libs
     volkInitialize();
+    
+    // Instance
 	VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pApplicationName = "2D-Platformer",
