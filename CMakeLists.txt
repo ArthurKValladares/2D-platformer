@@ -6,11 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ### Create Executable
 add_executable(${PROJECT_NAME}
-  src/vk_renderer.cpp
+  src/renderer/renderer.cpp
+  src/renderer/buffer.cpp
+  src/renderer/texture.cpp
   src/window.cpp
   src/util.cpp
   src/main.cpp
 )
+target_include_directories(${PROJECT_NAME} PRIVATE
+  third-party/stb)
 
 ### Vulkan setup
 find_package(Vulkan REQUIRED)
@@ -67,3 +71,6 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
   execute_process(COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV})
 endforeach(GLSL)
 message("------- Compiling Shaders Step End -------\n")
+
+# Copy necessary data to project source, better way to do this later?
+file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${PROJECT_SOURCE_DIR}/build)

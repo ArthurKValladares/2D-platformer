@@ -4,13 +4,17 @@
 #include <fstream>
 #include <filesystem>
 
-#include "vk_renderer.h"
+#include "renderer/renderer.h"
+#include "renderer/texture.h"
+
 #include "window.h"
 #include "util.h"
 
 int main(int argc, char *argv[]) {
+    ImageData test_image = ImageData("assets/textures/akv.png");
+
     Window window = Window();
-    VkRenderer renderer(window);
+    Renderer renderer(window);
     
     SDL_Event e;
     SDL_zero(e);

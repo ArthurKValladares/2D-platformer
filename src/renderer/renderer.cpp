@@ -4,12 +4,12 @@
 #include "volk.h"
 
 #define VMA_IMPLEMENTATION
-#include "vk_renderer.h"
+#include "renderer.h"
 
 #include <SDL3/SDL_vulkan.h>
 
-#include "util.h"
-#include "window.h"
+#include "../util.h"
+#include "../window.h"
 
 #ifdef NDEBUG
 constexpr bool enable_validation_layers = false;
@@ -71,11 +71,7 @@ namespace {
     };
 };
 
-void Buffer::destroy(VmaAllocator allocator) {
-    vmaDestroyBuffer(allocator, raw, allocation);
-}
-
-VkSwapchainCreateInfoKHR VkRenderer::get_swapchain_ci(uint32_t width, uint32_t height) {
+VkSwapchainCreateInfoKHR Renderer::get_swapchain_ci(uint32_t width, uint32_t height) {
     return VkSwapchainCreateInfoKHR {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surface,
@@ -95,7 +91,7 @@ VkSwapchainCreateInfoKHR VkRenderer::get_swapchain_ci(uint32_t width, uint32_t h
     };
 }
 
-VkImageCreateInfo VkRenderer::get_render_image_ci(uint32_t width, uint32_t height) {
+VkImageCreateInfo Renderer::get_render_image_ci(uint32_t width, uint32_t height) {
     return VkImageCreateInfo  {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
@@ -114,7 +110,7 @@ VkImageCreateInfo VkRenderer::get_render_image_ci(uint32_t width, uint32_t heigh
     };
 }
 
-VkRenderer::VkRenderer(Window& window) {
+Renderer::Renderer(Window& window) {
     command_buffers.resize(MAX_FRAMES_IN_FLIGHT);
     fences.resize(MAX_FRAMES_IN_FLIGHT);
     present_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -364,7 +360,7 @@ VkRenderer::VkRenderer(Window& window) {
 	vkDestroyShaderModule(device, stages[1].module, nullptr);
 }
 
-VkRenderer::~VkRenderer() {
+Renderer::~Renderer() {
     vkDeviceWaitIdle(device);
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyFence(device, fences[i], nullptr);
@@ -389,7 +385,7 @@ VkRenderer::~VkRenderer() {
     vkDestroyInstance(instance, nullptr);
 }
 
-void VkRenderer::resize_swapchain(Window& window) {
+void Renderer::resize_swapchain(Window& window) {
     vkDeviceWaitIdle(device);
 
     Size2D window_size = window.get_size();
@@ -436,7 +432,7 @@ void VkRenderer::resize_swapchain(Window& window) {
     vkDestroySwapchainKHR(device, swapchain_ci.oldSwapchain, nullptr);
 }
 
-void VkRenderer::render(Window& window) {
+void Renderer::render(Window& window) {
     vkWaitForFences(device, 1, &fences[frame_index], true, UINT64_MAX);
     vkResetFences(device, 1, &fences[frame_index]);
 
