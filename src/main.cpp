@@ -5,14 +5,11 @@
 #include <filesystem>
 
 #include "renderer/renderer.h"
-#include "renderer/texture.h"
 
 #include "window.h"
 #include "util.h"
 
 int main(int argc, char *argv[]) {
-    ImageData test_image = ImageData("assets/textures/akv.png");
-
     Window window = Window();
     Renderer renderer(window);
     

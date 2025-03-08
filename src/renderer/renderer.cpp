@@ -243,14 +243,35 @@ Renderer::Renderer(Window& window) {
          -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
           0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f,
     };
-    v_buffer = Buffer(allocator, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertices);
+    v_buffer = Buffer(
+        allocator,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        vertices
+    );
 
     // index buffer
     const std::vector<uint32_t> indices = {
         0, 1, 2,
         0, 3, 1
     };
-    i_buffer = Buffer(allocator, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indices);
+    num_indices = indices.size();
+    i_buffer = Buffer(
+        allocator,
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        indices
+    );
+
+    // Texture
+    ImageData test_image = ImageData("assets/textures/akv.png");
+    texture = Texture(allocator, TextureCreateInfo{
+        .buffer = test_image.img,
+        .buffer_size = test_image.size,
+        .width = static_cast<uint32_t>(test_image.width),
+        .height = static_cast<uint32_t>(test_image.height),
+        .format = VK_FORMAT_R8G8B8A8_SRGB,
+    });
 
     // Command Pool
     VkCommandPoolCreateInfo command_pool_ci = {
@@ -504,7 +525,7 @@ void Renderer::render(Window& window) {
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer.raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdDrawIndexed(cb, i_buffer.length, 1, 0, 0, 0);
+    vkCmdDrawIndexed(cb, num_indices, 1, 0, 0, 0);
 
     vkCmdEndRendering(cb);
 

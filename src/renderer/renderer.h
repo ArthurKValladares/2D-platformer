@@ -7,6 +7,7 @@
 #define MAX_FRAMES_IN_FLIGHT 2
 
 #include "buffer.h"
+#include "texture.h"
 
 struct Window;
 struct Renderer {
@@ -50,6 +51,9 @@ private:
     Buffer v_buffer;
 
     Buffer i_buffer;
+    uint64_t num_indices;
+
+    Texture texture;
 
     VkCommandPool command_pool = VK_NULL_HANDLE;
 
