@@ -15,6 +15,10 @@ struct VkRenderer {
 
     void render(Window& window);
 
+private:
+    VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
+    VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
+
     const VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_4_BIT;
     uint32_t image_index = 0;
     uint32_t frame_index = 0;

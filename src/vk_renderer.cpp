@@ -69,46 +69,46 @@ namespace {
             .pName = "main"
         };
     };
-
-    VkSwapchainCreateInfoKHR get_swapchain_ci(VkRenderer* renderer, uint32_t width, uint32_t height) {
-        return VkSwapchainCreateInfoKHR {
-            .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-            .surface = renderer->surface,
-            .minImageCount = 2,
-            .imageFormat = renderer->image_format,
-            .imageColorSpace = renderer->color_space,
-            .imageExtent = {
-                .width = width,
-                .height = height
-            },
-            .imageArrayLayers = 1,
-            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-            .queueFamilyIndexCount = renderer->q_family_idx,
-            .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
-            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-            .presentMode = VK_PRESENT_MODE_FIFO_KHR
-        };
-    }
-
-    VkImageCreateInfo get_render_image_ci(VkRenderer* renderer, uint32_t width, uint32_t height) {
-        return VkImageCreateInfo  {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .imageType = VK_IMAGE_TYPE_2D,
-            .format = renderer->image_format,
-            .extent = {
-                .width = width,
-                .height = height, 
-                .depth = 1
-            },
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = renderer->sample_count,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        };
-    }
 };
+
+VkSwapchainCreateInfoKHR VkRenderer::get_swapchain_ci(uint32_t width, uint32_t height) {
+    return VkSwapchainCreateInfoKHR {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .surface = surface,
+        .minImageCount = 2,
+        .imageFormat = image_format,
+        .imageColorSpace = color_space,
+        .imageExtent = {
+            .width = width,
+            .height = height
+        },
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+        .queueFamilyIndexCount = q_family_idx,
+        .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode = VK_PRESENT_MODE_FIFO_KHR
+    };
+}
+
+VkImageCreateInfo VkRenderer::get_render_image_ci(uint32_t width, uint32_t height) {
+    return VkImageCreateInfo  {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = image_format,
+        .extent = {
+            .width = width,
+            .height = height, 
+            .depth = 1
+        },
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = sample_count,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+}
 
 VkRenderer::VkRenderer(Window& window) {
     command_buffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -206,13 +206,13 @@ VkRenderer::VkRenderer(Window& window) {
     // Presentation
     chk_sdl(SDL_Vulkan_CreateSurface(window.raw, instance, nullptr, &surface));
     Size2D window_size = window.get_size();
-    VkSwapchainCreateInfoKHR swapchain_ci = get_swapchain_ci(this, (uint32_t)window_size.width, (uint32_t)window_size.height);
+    VkSwapchainCreateInfoKHR swapchain_ci = get_swapchain_ci((uint32_t)window_size.width, (uint32_t)window_size.height);
     chk(vkCreateSwapchainKHR(device, &swapchain_ci, nullptr, &swapchain));
     vkGetSwapchainImagesKHR(device, swapchain, &image_count, nullptr);
     swapchain_images.resize(image_count);
     vkGetSwapchainImagesKHR(device, swapchain, &image_count, swapchain_images.data());
     swapchain_image_views.resize(image_count);
-    VkImageCreateInfo render_image_ci = get_render_image_ci(this, (uint32_t)window_size.width, (uint32_t)window_size.height);
+    VkImageCreateInfo render_image_ci = get_render_image_ci((uint32_t)window_size.width, (uint32_t)window_size.height);
     VmaAllocationCreateInfo alloc_ci = {
         .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
         .usage = VMA_MEMORY_USAGE_AUTO,
@@ -393,7 +393,7 @@ void VkRenderer::resize_swapchain(Window& window) {
     vkDeviceWaitIdle(device);
 
     Size2D window_size = window.get_size();
-    VkSwapchainCreateInfoKHR swapchain_ci = get_swapchain_ci(this, (uint32_t)window_size.width, (uint32_t)window_size.height);
+    VkSwapchainCreateInfoKHR swapchain_ci = get_swapchain_ci((uint32_t)window_size.width, (uint32_t)window_size.height);
     swapchain_ci.oldSwapchain = swapchain;
     chk(vkCreateSwapchainKHR(device, &swapchain_ci, nullptr, &swapchain));
 
@@ -410,7 +410,7 @@ void VkRenderer::resize_swapchain(Window& window) {
     }
     swapchain_image_views.resize(image_count);
 
-    VkImageCreateInfo render_image_ci = get_render_image_ci(this, (uint32_t)window_size.width, (uint32_t)window_size.height);
+    VkImageCreateInfo render_image_ci = get_render_image_ci((uint32_t)window_size.width, (uint32_t)window_size.height);
     VmaAllocationCreateInfo alloc_ci = {
         .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
         .usage = VMA_MEMORY_USAGE_AUTO,
