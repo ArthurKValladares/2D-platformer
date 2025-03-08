@@ -6,7 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ### Create Executable
 add_executable(${PROJECT_NAME}
-    src/main.cpp
+  src/vk_renderer.cpp
+  src/window.cpp
+  src/util.cpp
+  src/main.cpp
 )
 
 ### Vulkan setup
