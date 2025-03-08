@@ -32,19 +32,19 @@ struct TextureCreateInfo {
     VkSamplerAddressMode address_mode_w = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 };
 
+class Renderer;
 struct Texture {
     Texture() {}
-    Texture(VmaAllocator allocator, TextureCreateInfo ci);
+    Texture(Renderer* renderer, TextureCreateInfo ci);
 
     ~Texture();
-    
+
     VmaAllocation img_allocation;
-    VkImage image = VK_NULL_HANDLE;
+    VkImage image;
     VkImageLayout image_layout;
     VkDeviceMemory device_memory;
     VkImageView view;
     uint32_t width, height;
-    uint32_t mip_levels;
     uint32_t layer_count;
     VkDescriptorImageInfo descriptor;
     VkSampler sampler;

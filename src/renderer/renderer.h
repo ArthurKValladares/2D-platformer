@@ -64,4 +64,6 @@ private:
 
     VkPipeline pipeline = VK_NULL_HANDLE;
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
+
+    friend class Texture;
 };

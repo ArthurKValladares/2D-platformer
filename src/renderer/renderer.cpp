@@ -18,14 +18,15 @@ constexpr bool enable_validation_layers = true;
 #endif
 
 namespace {
-    bool check_validation_layer_support(const std::vector<const char*>& validation_layers) {
+    bool check_validation_layer_support(const char** validation_layers, uint64_t size) {
         uint32_t layer_count;
         vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
 
         std::vector<VkLayerProperties> available_layers(layer_count);
         vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
 
-        for (const char* layerName : validation_layers) {
+        for (uint64_t i = 0; i < size; ++i) {
+            const char* layerName = validation_layers[i];
             bool layer_found = false;
 
             for (const auto& layerProperties : available_layers) {
@@ -125,27 +126,43 @@ Renderer::Renderer(Window& window) {
         .pApplicationName = "2D-Platformer",
         .apiVersion = VK_API_VERSION_1_3
     };
-	const std::vector<const char*> instance_extensions = {
+	std::vector<const char*> instance_extensions = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME
     };
+
+#if defined(_WIN32)
+    instance_extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
+    instance_extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+#elif defined(_DIRECT2DISPLAY)
+    instance_extensions.push_back(VK_KHR_DISPLAY_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
+    instance_extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+    instance_extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_IOS_MVK)
+    instance_extensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+    instance_extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+#endif
+
 	VkInstanceCreateInfo instance_ci = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 		.pApplicationInfo = &app_info,
 		.enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
 		.ppEnabledExtensionNames = instance_extensions.data(),
 	};
-    const std::vector<const char*> validation_layers = {
-        "VK_LAYER_KHRONOS_validation"
-    };
-    if (enable_validation_layers && !check_validation_layer_support(validation_layers)) {
-        std::cerr << "validation layers requested, but not available!" << std::endl;
-        exit(-1);
-    }
+
     if (enable_validation_layers) {
-        instance_ci.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
-        instance_ci.ppEnabledLayerNames = validation_layers.data();
+        const char* validation_layers[1] = {"VK_LAYER_KHRONOS_validation"};
+
+        if (!check_validation_layer_support(validation_layers, ArrayCount(validation_layers))) {
+            std::cerr << "validation layers requested, but not available!" << std::endl;
+            exit(-1);
+        }
+        instance_ci.enabledLayerCount = ArrayCount(validation_layers);
+        instance_ci.ppEnabledLayerNames = &validation_layers[0];
     }
 	chk(vkCreateInstance(&instance_ci, nullptr, &instance));
 	volkLoadInstance(instance);
@@ -265,7 +282,7 @@ Renderer::Renderer(Window& window) {
 
     // Texture
     ImageData test_image = ImageData("assets/textures/akv.png");
-    texture = Texture(allocator, TextureCreateInfo{
+    texture = Texture(this, TextureCreateInfo{
         .buffer = test_image.img,
         .buffer_size = test_image.size,
         .width = static_cast<uint32_t>(test_image.width),

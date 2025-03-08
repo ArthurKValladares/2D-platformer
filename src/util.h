@@ -7,6 +7,8 @@
 
 #include <vulkan/vulkan.h>
 
+#define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
+
 void chk(VkResult result);
 void chk(bool result);
 void chk_sdl(bool result);

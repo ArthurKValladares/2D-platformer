@@ -10,7 +10,7 @@ constexpr int SCREEN_HEIGHT = 800;
 Window::Window() {
     chk_sdl(SDL_Init(SDL_INIT_VIDEO));
 
-    const int window_flags = SDL_WINDOW_VULKAN;
+    const SDL_WindowFlags window_flags = (SDL_WindowFlags) SDL_WINDOW_VULKAN;
     raw = SDL_CreateWindow("2D-Platformer", SCREEN_WIDTH, SCREEN_HEIGHT, window_flags);
     if(raw == NULL) {
         SDL_Log("Window could not be created! SDL error: %s\n", SDL_GetError());
