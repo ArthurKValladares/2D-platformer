@@ -238,24 +238,45 @@ VkRenderer::VkRenderer(Window& window) {
 
     // Vertexbuffer (Pos 3f, Col 3f)
     const std::vector<float> vertices = {
-        0.0f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+          0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+         -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
+          0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f,
     };
-    VkBufferCreateInfo buffer_ci = {
+    VkBufferCreateInfo v_buffer_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = sizeof(float) * vertices.size(),
         .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
     };
-    VmaAllocationCreateInfo buffer_alloc_ci = {
+    VmaAllocationCreateInfo v_buffer_alloc_ci = {
         .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
         .usage = VMA_MEMORY_USAGE_AUTO
     };
-    chk(vmaCreateBuffer(allocator, &buffer_ci, &buffer_alloc_ci, &v_buffer, &v_buffer_allocation, nullptr));
-    void* buffer_ptr = nullptr;
-    vmaMapMemory(allocator, v_buffer_allocation, &buffer_ptr);
-    memcpy(buffer_ptr, vertices.data(), sizeof(float)* vertices.size());
+    chk(vmaCreateBuffer(allocator, &v_buffer_ci, &v_buffer_alloc_ci, &v_buffer, &v_buffer_allocation, nullptr));
+    void* v_buffer_ptr = nullptr;
+    vmaMapMemory(allocator, v_buffer_allocation, &v_buffer_ptr);
+    memcpy(v_buffer_ptr, vertices.data(), sizeof(float)* vertices.size());
     vmaUnmapMemory(allocator, v_buffer_allocation);
+
+    // index buffer
+    const std::vector<uint32_t> indices = {
+        0, 1, 2,
+        0, 3, 1
+    };
+    VkBufferCreateInfo i_buffer_ci = {
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .size = sizeof(uint32_t) * indices.size(),
+        .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+    };
+    VmaAllocationCreateInfo i_buffer_alloc_ci = {
+        .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        .usage = VMA_MEMORY_USAGE_AUTO
+    };
+    chk(vmaCreateBuffer(allocator, &i_buffer_ci, &i_buffer_alloc_ci, &i_buffer, &i_buffer_allocation, nullptr));
+    void* i_buffer_ptr = nullptr;
+    vmaMapMemory(allocator, i_buffer_allocation, &i_buffer_ptr);
+    memcpy(i_buffer_ptr, indices.data(), sizeof(uint32_t) * indices.size());
+    vmaUnmapMemory(allocator, i_buffer_allocation);
 
     // Command Pool
     VkCommandPoolCreateInfo command_pool_ci = {
@@ -378,6 +399,7 @@ VkRenderer::~VkRenderer() {
         vkDestroyImageView(device, swapchain_image_views[i], nullptr);
     }
     vmaDestroyBuffer(allocator, v_buffer, v_buffer_allocation);
+    vmaDestroyBuffer(allocator, i_buffer, i_buffer_allocation);
     vkDestroyCommandPool(device, command_pool, nullptr);
     vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
     vkDestroyPipeline(device, pipeline, nullptr);
@@ -506,8 +528,9 @@ void VkRenderer::render(Window& window) {
 
     VkDeviceSize v_offset = 0;
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer, &v_offset);
+    vkCmdBindIndexBuffer(cb, i_buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdDraw(cb, 6, 1, 0, 0);
+    vkCmdDrawIndexed(cb, 6, 1, 0, 0, 0);
 
     vkCmdEndRendering(cb);
 

@@ -48,6 +48,9 @@ private:
     VmaAllocation v_buffer_allocation = VK_NULL_HANDLE;
     VkBuffer v_buffer = VK_NULL_HANDLE;
 
+    VmaAllocation i_buffer_allocation = VK_NULL_HANDLE;
+    VkBuffer i_buffer = VK_NULL_HANDLE;
+
     VkCommandPool command_pool = VK_NULL_HANDLE;
 
     std::vector<VkCommandBuffer> command_buffers;
