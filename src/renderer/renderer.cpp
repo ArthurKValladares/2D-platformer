@@ -1,60 +1,21 @@
 #include <iostream>
 
-#define VOLK_IMPLEMENTATION
-#include "volk.h"
-
 #define VMA_IMPLEMENTATION
 #include "renderer.h"
 
 #include <SDL3/SDL_vulkan.h>
+#include <VkBootstrap.h>
 
 #include "../util.h"
 #include "../window.h"
 
 #ifdef NDEBUG
-constexpr bool enable_validation_layers = false;
+constexpr bool USE_VALIDATION_LAYERS = false;
 #else
-constexpr bool enable_validation_layers = true;
+constexpr bool USE_VALIDATION_LAYERS = true;
 #endif
 
 namespace {
-    bool check_validation_layer_support(const char** validation_layers, uint64_t size) {
-        uint32_t layer_count;
-        vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-
-        std::vector<VkLayerProperties> available_layers(layer_count);
-        vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-
-        for (uint64_t i = 0; i < size; ++i) {
-            const char* layerName = validation_layers[i];
-            bool layer_found = false;
-
-            for (const auto& layerProperties : available_layers) {
-                if (strcmp(layerName, layerProperties.layerName) == 0) {
-                    layer_found = true;
-                    break;
-                }
-            }
-
-            if (!layer_found) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData)
-    {
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-        return VK_FALSE;
-    }
-
     VkPipelineShaderStageCreateInfo create_shader(VkDevice device, const std::vector<uint32_t>& shader_bytes, VkShaderStageFlagBits shaderStage) {
         VkShaderModuleCreateInfo shaderModule_ci = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -117,63 +78,21 @@ Renderer::Renderer(Window& window) {
     present_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
     render_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
 
-    // External libs
-    volkInitialize();
-
     // Instance
-	VkApplicationInfo app_info = {
-        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pApplicationName = "2D-Platformer",
-        .apiVersion = VK_API_VERSION_1_3
-    };
-	std::vector<const char*> instance_extensions = {
-        VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-    };
-
-#if defined(_WIN32)
-    instance_extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-    instance_extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-#elif defined(_DIRECT2DISPLAY)
-    instance_extensions.push_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-    instance_extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-    instance_extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_IOS_MVK)
-    instance_extensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-    instance_extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-#endif
-
-	VkInstanceCreateInfo instance_ci = {
-		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-		.pApplicationInfo = &app_info,
-		.enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
-		.ppEnabledExtensionNames = instance_extensions.data(),
-	};
-
-    if (enable_validation_layers) {
-        const char* validation_layers[1] = {"VK_LAYER_KHRONOS_validation"};
-
-        if (!check_validation_layer_support(validation_layers, ArrayCount(validation_layers))) {
-            std::cerr << "validation layers requested, but not available!" << std::endl;
-            exit(-1);
-        }
-        instance_ci.enabledLayerCount = ArrayCount(validation_layers);
-        instance_ci.ppEnabledLayerNames = &validation_layers[0];
+    vkb::InstanceBuilder builder;
+    vkb::Result<vkb::Instance> vkb_instance_result = builder.set_app_name("2D-Platformer")
+        .request_validation_layers(USE_VALIDATION_LAYERS)
+        .use_default_debug_messenger()
+        .require_api_version(1, 3, 0)
+        .build();
+    if (!vkb_instance_result.has_value()) {
+        std::cerr << "Could not initialize instance with vk-bootstrap" << std::endl;
+        exit(-1);
     }
-	chk(vkCreateInstance(&instance_ci, nullptr, &instance));
-	volkLoadInstance(instance);
+    vkb::Instance vkb_instance = vkb_instance_result.value();
 
-    VkDebugUtilsMessengerCreateInfoEXT debug_messenger_ci = {
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-        .pfnUserCallback = debug_callback
-    };
-    vkCreateDebugUtilsMessengerEXT(instance, &debug_messenger_ci, nullptr, &debug_messenger);
+    instance = vkb_instance.instance;
+    debug_messenger = vkb_instance.debug_messenger;
 
     // Device
     uint32_t device_count = 0;
@@ -282,7 +201,7 @@ Renderer::Renderer(Window& window) {
 
     // Texture
     ImageData test_image = ImageData("assets/textures/akv.png");
-    texture = Texture(this, TextureCreateInfo{
+    texture = Texture(device, allocator, TextureCreateInfo{
         .buffer = test_image.img,
         .buffer_size = test_image.size,
         .width = static_cast<uint32_t>(test_image.width),
@@ -412,6 +331,7 @@ Renderer::~Renderer() {
     }
     v_buffer.destroy(allocator);
     i_buffer.destroy(allocator);
+    texture.destroy(device);
     vkDestroyCommandPool(device, command_pool, nullptr);
     vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
     vkDestroyPipeline(device, pipeline, nullptr);
@@ -419,7 +339,7 @@ Renderer::~Renderer() {
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
     vkDestroyDevice(device, nullptr);
-    vkDestroyDebugUtilsMessengerEXT(instance, debug_messenger, nullptr);
+    vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);
 }
 

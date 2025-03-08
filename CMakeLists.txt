@@ -22,19 +22,8 @@ find_package(Vulkan REQUIRED)
 ### VMA setup
 add_subdirectory(third-party/VulkanMemoryAllocator)
 
-### Volk setup
-if(APPLE)
-  set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_METAL_EXT)
-elseif(UNIX)
-  if(USE_WAYLAND)
-    set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WAYLAND_KHR)
-  else()
-    set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_XLIB_KHR)
-  endif()
-elseif(WIN32)
-  set(VOLK_STATIC_DEFINES "VK_USE_PLATFORM_WIN32_KHR")
-endif()
-add_subdirectory(third-party/volk)
+### vk-boostrap
+add_subdirectory(third-party/vk-bootstrap)
 
 ### SDL setup
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
@@ -46,7 +35,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     Vulkan::Vulkan
     GPUOpen::VulkanMemoryAllocator
-    volk
+    vk-bootstrap::vk-bootstrap
     SDL3::SDL3)
 
 # Compile shaders

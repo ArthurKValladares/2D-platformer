@@ -17,11 +17,11 @@ ImageData::~ImageData() {
     stbi_image_free(img);
 }
 
-Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
+Texture::Texture(VkDevice device, VmaAllocator allocator, TextureCreateInfo ci) {
     assert(ci.buffer);
 
     Buffer staging_buffer = Buffer(
-        renderer->allocator,
+        allocator,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
         ci.buffer,
@@ -46,10 +46,11 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
         .depth = 1
     };
     image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    chk(vkCreateImage(renderer->device, &image_create_info, nullptr, &image));
+    chk(vkCreateImage(device, &image_create_info, nullptr, &image));
 
-    staging_buffer.destroy(renderer->allocator);
+    staging_buffer.destroy(allocator);
 }
 
-Texture::~Texture() {
+void Texture::destroy(VkDevice device) {
+    vkDestroyImage(device, image, nullptr);
 }

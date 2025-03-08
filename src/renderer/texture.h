@@ -32,12 +32,11 @@ struct TextureCreateInfo {
     VkSamplerAddressMode address_mode_w = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 };
 
-class Renderer;
 struct Texture {
     Texture() {}
-    Texture(Renderer* renderer, TextureCreateInfo ci);
+    Texture(VkDevice device, VmaAllocator allocator, TextureCreateInfo ci);
 
-    ~Texture();
+    void destroy(VkDevice device);
 
     VmaAllocation img_allocation;
     VkImage image;
