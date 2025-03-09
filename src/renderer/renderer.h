@@ -25,6 +25,11 @@ struct Renderer {
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
     void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
 
+    inline static VkPhysicalDeviceFeatures enabled_features{};
+	inline static VkPhysicalDeviceVulkan11Features enabled_features11{};
+	inline static VkPhysicalDeviceVulkan12Features enabled_features12{};
+	inline static VkPhysicalDeviceVulkan13Features enabled_features13{};
+    
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
@@ -36,6 +41,9 @@ private:
     VkInstance instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT debug_messenger = VK_NULL_HANDLE;
     VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+    VkPhysicalDeviceProperties properties{};
+    VkPhysicalDeviceFeatures features{};
+    VkPhysicalDeviceMemoryProperties memory_properties{};
     VkDevice device = VK_NULL_HANDLE;
     uint32_t graphics_queue_family;
     VkQueue graphics_queue = VK_NULL_HANDLE;

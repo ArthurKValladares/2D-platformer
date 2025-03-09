@@ -37,7 +37,7 @@ struct Texture {
     Texture() {}
     Texture(Renderer* renderer, TextureCreateInfo ci);
 
-    void destroy(VmaAllocator allocator);
+    void destroy(Renderer* renderer);
 
     VmaAllocation img_allocation;
     VkImage image;

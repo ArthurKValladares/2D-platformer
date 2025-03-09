@@ -111,8 +111,46 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     renderer->flush_command_buffer(copy_cmd, copy_queue, true);
    
     staging_buffer.destroy(renderer->allocator);
+
+    VkImageViewCreateInfo view_create_info = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = ci.format,
+        .components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A },
+        .subresourceRange = { 
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = mip_levels,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        },
+    };
+    chk(vkCreateImageView(renderer->device, &view_create_info, nullptr, &view));
+
+    VkSamplerCreateInfo sampler_create_info = initializers::sampler_create_info();
+    sampler_create_info.magFilter = ci.mag_filter;
+    sampler_create_info.minFilter = ci.min_filter;
+    sampler_create_info.mipmapMode = ci.mipmap_mode;
+    sampler_create_info.addressModeU = ci.address_mode_u;
+    sampler_create_info.addressModeV = ci.address_mode_v;
+    sampler_create_info.addressModeW = ci.address_mode_v;
+    sampler_create_info.mipLodBias = 0.0f;
+    sampler_create_info.compareOp = VK_COMPARE_OP_NEVER;
+    sampler_create_info.minLod = 0.0f;
+    sampler_create_info.maxLod = (float) mip_levels;
+    sampler_create_info.maxAnisotropy = renderer->properties.limits.maxSamplerAnisotropy;
+    sampler_create_info.anisotropyEnable = renderer->enabled_features.samplerAnisotropy;
+    chk(vkCreateSampler(renderer->device, &sampler_create_info, nullptr, &sampler));
+
+    descriptor.sampler = sampler;
+    descriptor.imageView = view;
+    descriptor.imageLayout = image_layout;
 }
 
-void Texture::destroy(VmaAllocator allocator) {
-    vmaDestroyImage(allocator, image, img_allocation);
+void Texture::destroy(Renderer* renderer) {
+    vkDestroySampler(renderer->device, sampler, nullptr);
+    vkDestroyImageView(renderer->device, view, nullptr);
+
+    vmaDestroyImage(renderer->allocator, image, img_allocation);
 }

@@ -10,6 +10,7 @@
 #include "util.h"
 
 int main(int argc, char *argv[]) {
+    Renderer::enabled_features13.dynamicRendering = true;
     Window window = Window();
     Renderer renderer(window);
     

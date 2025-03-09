@@ -48,4 +48,11 @@ namespace initializers {
             .flags = flags
         };
     }
+
+    inline VkSamplerCreateInfo sampler_create_info() {
+        return VkSamplerCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .maxAnisotropy = 1.0f
+        };
+    }
 };

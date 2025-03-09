@@ -100,15 +100,17 @@ Renderer::Renderer(Window& window) {
     chk_sdl(SDL_Vulkan_CreateSurface(window.raw, instance, nullptr, &surface));
 
     // Device
-    VkPhysicalDeviceVulkan13Features features13 {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-        .dynamicRendering = true
-    };
+    Renderer::enabled_features11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+    Renderer::enabled_features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    Renderer::enabled_features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     
     vkb::PhysicalDeviceSelector selector{vkb_instance};
 	vkb::Result<vkb::PhysicalDevice> physical_device_result = selector
 		.set_minimum_version(1, 3)
-		.set_required_features_13(features13)
+        .set_required_features(Renderer::enabled_features)
+		.set_required_features_11(Renderer::enabled_features11)
+		.set_required_features_12(Renderer::enabled_features12)
+		.set_required_features_13(Renderer::enabled_features13)
 		.set_surface(surface)
 		.select();
     if (!physical_device_result.has_value()) {
@@ -128,6 +130,11 @@ Renderer::Renderer(Window& window) {
     physical_device = vkb_physical_device.physical_device;
     device = vkb_device.device;
     
+    // Store properties/features/etc
+    vkGetPhysicalDeviceProperties(physical_device, &properties);
+    vkGetPhysicalDeviceFeatures(physical_device, &features);
+    vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);
+
     // Create Graphics Queue
     vkb::Result<VkQueue> graphics_queue_result = vkb_device.get_queue(vkb::QueueType::graphics);
     if (!graphics_queue_result.has_value()) {
@@ -349,7 +356,7 @@ Renderer::~Renderer() {
     }
     v_buffer.destroy(allocator);
     i_buffer.destroy(allocator);
-    texture.destroy(allocator);
+    texture.destroy(this);
     vkDestroyCommandPool(device, command_pool, nullptr);
     vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
     vkDestroyPipeline(device, pipeline, nullptr);
