@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vulkan/vulkan.h>
+
 namespace initializers {
     inline VkImageCreateInfo image_create_info() {
         return VkImageCreateInfo {

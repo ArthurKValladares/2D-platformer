@@ -6,6 +6,7 @@
 #include "buffer.h"
 #include "renderer.h"
 #include "initializers.h"
+#include "tools.h"
 
 ImageData::ImageData(const std::string& path) {
     img = stbi_load(path.c_str(), &width, &height, &channels, 4);
@@ -30,11 +31,12 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
 
     this->width = ci.width;
     this->height = ci.height;
+    this->mip_levels = 1;
 
     VkImageCreateInfo image_create_info = initializers::image_create_info();
     image_create_info.imageType = VK_IMAGE_TYPE_2D;
     image_create_info.format = ci.format;
-    image_create_info.mipLevels = 1;
+    image_create_info.mipLevels = mip_levels;
     image_create_info.arrayLayers = 1;
     image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
     image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -54,6 +56,56 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     chk(vmaCreateImage(renderer->allocator, &image_create_info, &image_alloc_ci, &image, &img_allocation, nullptr));
 
     VkCommandBuffer copy_cmd = renderer->create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+
+    VkImageSubresourceRange subresource_range = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = mip_levels,
+        .layerCount = 1
+    };
+
+    tools::set_image_layout(
+        copy_cmd,
+        image,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        subresource_range
+    );
+
+    VkBufferImageCopy region{
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .mipLevel = 0,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        },
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {
+            width,
+            height,
+            1
+        }
+    };
+    vkCmdCopyBufferToImage(
+        copy_cmd,
+        staging_buffer.raw,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region
+    );
+
+    this->image_layout = ci.image_layout;
+    tools::set_image_layout(
+        copy_cmd,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        image_layout,
+        subresource_range
+    );
 
     VkQueue copy_queue = renderer->get_graphics_queue();
     renderer->flush_command_buffer(copy_cmd, copy_queue, true);

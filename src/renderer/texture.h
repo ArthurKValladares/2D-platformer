@@ -45,6 +45,7 @@ struct Texture {
     VkDeviceMemory device_memory;
     VkImageView view;
     uint32_t width, height;
+    uint32_t mip_levels;
     VkDescriptorImageInfo descriptor;
     VkSampler sampler;
 };

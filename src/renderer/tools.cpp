@@ -140,5 +140,5 @@ void tools::set_image_layout(
     subresource_range.baseMipLevel = 0;
     subresource_range.levelCount = 1;
     subresource_range.layerCount = 1;
-    setImageLayout(cmd_buffer, image, old_image_layout, new_image_layout, subresource_range, src_stage_mask, dst_stage_mask);
+    set_image_layout(cmd_buffer, image, old_image_layout, new_image_layout, subresource_range, src_stage_mask, dst_stage_mask);
 }  

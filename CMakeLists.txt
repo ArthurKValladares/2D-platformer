@@ -9,6 +9,7 @@ add_executable(${PROJECT_NAME}
   src/renderer/renderer.cpp
   src/renderer/buffer.cpp
   src/renderer/texture.cpp
+  src/renderer/tools.cpp
   src/window.cpp
   src/util.cpp
   src/main.cpp
