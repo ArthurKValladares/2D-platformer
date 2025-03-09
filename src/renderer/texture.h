@@ -36,7 +36,7 @@ struct Texture {
     Texture() {}
     Texture(VkDevice device, VmaAllocator allocator, TextureCreateInfo ci);
 
-    void destroy(VkDevice device);
+    void destroy(VmaAllocator allocator);
 
     VmaAllocation img_allocation;
     VkImage image;
@@ -44,7 +44,6 @@ struct Texture {
     VkDeviceMemory device_memory;
     VkImageView view;
     uint32_t width, height;
-    uint32_t layer_count;
     VkDescriptorImageInfo descriptor;
     VkSampler sampler;
 };

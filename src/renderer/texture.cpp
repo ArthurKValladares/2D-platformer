@@ -45,12 +45,18 @@ Texture::Texture(VkDevice device, VmaAllocator allocator, TextureCreateInfo ci) 
         .height = height,
         .depth = 1
     };
-    image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    chk(vkCreateImage(device, &image_create_info, nullptr, &image));
+    image_create_info.usage = 
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+    VmaAllocationCreateInfo image_alloc_ci = {
+        .usage = VMA_MEMORY_USAGE_AUTO
+    };
+
+    chk(vmaCreateImage(allocator, &image_create_info, &image_alloc_ci, &image, &img_allocation, nullptr));
 
     staging_buffer.destroy(allocator);
 }
 
-void Texture::destroy(VkDevice device) {
-    vkDestroyImage(device, image, nullptr);
+void Texture::destroy(VmaAllocator allocator) {
+    vmaDestroyImage(allocator, image, img_allocation);
 }

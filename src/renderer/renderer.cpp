@@ -331,7 +331,7 @@ Renderer::~Renderer() {
     }
     v_buffer.destroy(allocator);
     i_buffer.destroy(allocator);
-    texture.destroy(device);
+    texture.destroy(allocator);
     vkDestroyCommandPool(device, command_pool, nullptr);
     vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
     vkDestroyPipeline(device, pipeline, nullptr);
