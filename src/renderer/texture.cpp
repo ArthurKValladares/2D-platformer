@@ -53,12 +53,10 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     };
     chk(vmaCreateImage(renderer->allocator, &image_create_info, &image_alloc_ci, &image, &img_allocation, nullptr));
 
-    /*
     VkCommandBuffer copy_cmd = renderer->create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
     VkQueue copy_queue = renderer->get_graphics_queue();
     renderer->flush_command_buffer(copy_cmd, copy_queue, true);
-    */
    
     staging_buffer.destroy(renderer->allocator);
 }

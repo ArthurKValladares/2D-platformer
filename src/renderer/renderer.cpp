@@ -216,16 +216,6 @@ Renderer::Renderer(Window& window) {
         indices
     );
 
-    // Texture
-    ImageData test_image = ImageData("assets/textures/akv.png");
-    texture = Texture(this, TextureCreateInfo{
-        .buffer = test_image.img,
-        .buffer_size = test_image.size,
-        .width = static_cast<uint32_t>(test_image.width),
-        .height = static_cast<uint32_t>(test_image.height),
-        .format = VK_FORMAT_R8G8B8A8_SRGB,
-    });
-
     // Command Pool
     VkCommandPoolCreateInfo command_pool_ci = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -332,6 +322,17 @@ Renderer::Renderer(Window& window) {
 	chk(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_ci, nullptr, &pipeline));
 	vkDestroyShaderModule(device, stages[0].module, nullptr);
 	vkDestroyShaderModule(device, stages[1].module, nullptr);
+
+    // TODO: Just putting it at the end here for testing
+    // Texture
+    ImageData test_image = ImageData("assets/textures/akv.png");
+    texture = Texture(this, TextureCreateInfo{
+        .buffer = test_image.img,
+        .buffer_size = test_image.size,
+        .width = static_cast<uint32_t>(test_image.width),
+        .height = static_cast<uint32_t>(test_image.height),
+        .format = VK_FORMAT_R8G8B8A8_SRGB,
+    });
 }
 
 Renderer::~Renderer() {
