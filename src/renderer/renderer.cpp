@@ -2,6 +2,8 @@
 
 #define VMA_IMPLEMENTATION
 #include "renderer.h"
+#include "initializers.h"
+#include "tools.h"
 
 #include <SDL3/SDL_vulkan.h>
 #include <VkBootstrap.h>
@@ -201,7 +203,7 @@ Renderer::Renderer(Window& window) {
 
     // Texture
     ImageData test_image = ImageData("assets/textures/akv.png");
-    texture = Texture(device, allocator, TextureCreateInfo{
+    texture = Texture(this, TextureCreateInfo{
         .buffer = test_image.img,
         .buffer_size = test_image.size,
         .width = static_cast<uint32_t>(test_image.width),
@@ -508,5 +510,52 @@ void Renderer::render(Window& window) {
     ++frame_index;
     if (frame_index >= MAX_FRAMES_IN_FLIGHT) {
         frame_index = 0;
+    }
+}
+
+VkCommandBuffer Renderer::create_command_buffer(VkCommandBufferLevel level, bool begin, VkQueueFlagBits queue_ty)
+{
+    VkCommandPool cmd_pool = command_pool;
+    // TODO: transfer
+
+    VkCommandBufferAllocateInfo cmd_buff_allocate_info =
+        initializers::command_buffer_allocate_info(cmd_pool, level, 1);
+
+    VkCommandBuffer cmd_buffer = VK_NULL_HANDLE;
+    chk(vkAllocateCommandBuffers(device, &cmd_buff_allocate_info, &cmd_buffer));
+
+    if (begin) {
+        VkCommandBufferBeginInfo cmd_buf_info = initializers::command_buffer_begin_info();
+        chk(vkBeginCommandBuffer(cmd_buffer, &cmd_buf_info));
+    }
+
+    return cmd_buffer;
+}
+
+void Renderer::flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free, VkQueueFlagBits queue_type)
+{
+    if (command_buffer == VK_NULL_HANDLE) {
+        return;
+    }
+
+    chk(vkEndCommandBuffer(command_buffer));
+
+    VkSubmitInfo submit_info = initializers::submit_info();
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &command_buffer;
+
+    VkFenceCreateInfo fence_info = initializers::fence_create_info(VK_FLAGS_NONE);
+    VkFence fence;
+    chk(vkCreateFence(device, &fence_info, nullptr, &fence));
+
+    chk(vkQueueSubmit(queue, 1, &submit_info, fence));
+    chk(vkWaitForFences(device, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
+
+    vkDestroyFence(device, fence, nullptr);
+
+    if (free) {
+        VkCommandPool cmd_pool = command_pool;
+        // TODO: transfer
+        vkFreeCommandBuffers(device, cmd_pool, 1, &command_buffer);
     }
 }

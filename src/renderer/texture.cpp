@@ -17,11 +17,11 @@ ImageData::~ImageData() {
     stbi_image_free(img);
 }
 
-Texture::Texture(VkDevice device, VmaAllocator allocator, TextureCreateInfo ci) {
+Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     assert(ci.buffer);
 
     Buffer staging_buffer = Buffer(
-        allocator,
+        renderer->allocator,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
         ci.buffer,
@@ -51,10 +51,16 @@ Texture::Texture(VkDevice device, VmaAllocator allocator, TextureCreateInfo ci) 
     VmaAllocationCreateInfo image_alloc_ci = {
         .usage = VMA_MEMORY_USAGE_AUTO
     };
+    chk(vmaCreateImage(renderer->allocator, &image_create_info, &image_alloc_ci, &image, &img_allocation, nullptr));
 
-    chk(vmaCreateImage(allocator, &image_create_info, &image_alloc_ci, &image, &img_allocation, nullptr));
+    /*
+    VkCommandBuffer copy_cmd = renderer->create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
-    staging_buffer.destroy(allocator);
+    VkQueue copy_queue = renderer->graphics_queue();
+    renderer->flush_command_buffer(copy_cmd, copy_queue, true);
+    */
+   
+    staging_buffer.destroy(renderer->allocator);
 }
 
 void Texture::destroy(VmaAllocator allocator) {

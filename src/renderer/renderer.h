@@ -18,6 +18,13 @@ struct Renderer {
 
     void render(Window& window);
 
+    VkQueue graphics_queue() {
+        return queue;
+    }
+
+    VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
+    void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
+
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
@@ -55,6 +62,7 @@ private:
 
     Texture texture;
 
+    // TODO: Dedicated transfer pool
     VkCommandPool command_pool = VK_NULL_HANDLE;
 
     std::vector<VkCommandBuffer> command_buffers;
