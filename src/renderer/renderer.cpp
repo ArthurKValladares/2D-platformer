@@ -48,7 +48,7 @@ VkSwapchainCreateInfoKHR Renderer::get_swapchain_ci(uint32_t width, uint32_t hei
         },
         .imageArrayLayers = 1,
         .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-        .queueFamilyIndexCount = q_family_idx,
+        .queueFamilyIndexCount = graphics_queue_family,
         .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
         .presentMode = VK_PRESENT_MODE_FIFO_KHR
@@ -96,36 +96,52 @@ Renderer::Renderer(Window& window) {
     instance = vkb_instance.instance;
     debug_messenger = vkb_instance.debug_messenger;
 
+    // Surface
+    chk_sdl(SDL_Vulkan_CreateSurface(window.raw, instance, nullptr, &surface));
+
     // Device
-    uint32_t device_count = 0;
-    vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
-    std::vector<VkPhysicalDevice> devices(device_count);
-    vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
-    const float q_family_prios = 1.0f;
-    const uint32_t device_index = 0;
-    VkDeviceQueueCreateInfo queue_ci = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = q_family_idx,
-        .queueCount = 1,
-        .pQueuePriorities = &q_family_prios
-    };
-    VkPhysicalDeviceVulkan13Features features = {
+    VkPhysicalDeviceVulkan13Features features13 {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
         .dynamicRendering = true
     };
-    const std::vector<const char*> device_extensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-    VkDeviceCreateInfo device_ci = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &features,
-        .queueCreateInfoCount = 1,
-        .pQueueCreateInfos = &queue_ci,
-        .enabledExtensionCount = static_cast<uint32_t>(device_extensions.size()),
-        .ppEnabledExtensionNames = device_extensions.data(),
-    };
-    chk(vkCreateDevice(devices[device_index], &device_ci, nullptr, &device));
-    vkGetDeviceQueue(device, q_family_idx, 0, &queue);
+    
+    vkb::PhysicalDeviceSelector selector{vkb_instance};
+	vkb::Result<vkb::PhysicalDevice> physical_device_result = selector
+		.set_minimum_version(1, 3)
+		.set_required_features_13(features13)
+		.set_surface(surface)
+		.select();
+    if (!physical_device_result.has_value()) {
+        std::cerr << "Could not initialize physical device with vk-bootstrap" << std::endl;
+        exit(-1);
+    }
+    vkb::PhysicalDevice vkb_physical_device = physical_device_result.value();
+
+    vkb::DeviceBuilder device_builder{vkb_physical_device};
+	vkb::Result<vkb::Device> device_result = device_builder.build();
+    if (!device_result.has_value()) {
+        std::cerr << "Could not initialize device with vk-bootstrap" << std::endl;
+        exit(-1);
+    }
+    vkb::Device vkb_device = device_result.value();
+
+    physical_device = vkb_physical_device.physical_device;
+    device = vkb_device.device;
+    
+    // Create Graphics Queue
+    vkb::Result<VkQueue> graphics_queue_result = vkb_device.get_queue(vkb::QueueType::graphics);
+    if (!graphics_queue_result.has_value()) {
+        std::cerr << "Could not initialize graphics queue with vk-bootstrap" << std::endl;
+        exit(-1);
+    }
+    graphics_queue = graphics_queue_result.value();
+
+	vkb::Result<uint32_t> graphics_queue_family_result = vkb_device.get_queue_index(vkb::QueueType::graphics);
+    if (!graphics_queue_family_result.has_value()) {
+        std::cerr << "Could not initialize graphics queue family with vk-bootstrap" << std::endl;
+        exit(-1);
+    }
+    graphics_queue_family = graphics_queue_family_result.value();
 
     // VMA
 	VmaVulkanFunctions vk_functions = {
@@ -134,7 +150,7 @@ Renderer::Renderer(Window& window) {
         .vkCreateImage = vkCreateImage
     };
 	VmaAllocatorCreateInfo allocator_ci = {
-        .physicalDevice = devices[device_index],
+        .physicalDevice = physical_device,
         .device = device,
         .pVulkanFunctions = &vk_functions,
         .instance = instance
@@ -142,7 +158,6 @@ Renderer::Renderer(Window& window) {
 	chk(vmaCreateAllocator(&allocator_ci, &allocator));
 
     // Presentation
-    chk_sdl(SDL_Vulkan_CreateSurface(window.raw, instance, nullptr, &surface));
     Size2D window_size = window.get_size();
     VkSwapchainCreateInfoKHR swapchain_ci = get_swapchain_ci((uint32_t)window_size.width, (uint32_t)window_size.height);
     chk(vkCreateSwapchainKHR(device, &swapchain_ci, nullptr, &swapchain));
@@ -215,7 +230,7 @@ Renderer::Renderer(Window& window) {
     VkCommandPoolCreateInfo command_pool_ci = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = q_family_idx
+        .queueFamilyIndex = graphics_queue_family
     };
     chk(vkCreateCommandPool(device, &command_pool_ci, nullptr, &command_pool));
 
@@ -496,7 +511,7 @@ void Renderer::render(Window& window) {
         .signalSemaphoreCount = 1,
         .pSignalSemaphores = &render_semaphores[frame_index],
     };
-    vkQueueSubmit(queue, 1, &submit_info, fences[frame_index]);
+    vkQueueSubmit(graphics_queue, 1, &submit_info, fences[frame_index]);
     VkPresentInfoKHR present_info = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .waitSemaphoreCount = 1,
@@ -505,7 +520,7 @@ void Renderer::render(Window& window) {
         .pSwapchains = &swapchain,
         .pImageIndices = &image_index
     };
-    chk(vkQueuePresentKHR(queue, &present_info));
+    chk(vkQueuePresentKHR(graphics_queue, &present_info));
 
     ++frame_index;
     if (frame_index >= MAX_FRAMES_IN_FLIGHT) {

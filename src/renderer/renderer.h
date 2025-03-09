@@ -18,8 +18,8 @@ struct Renderer {
 
     void render(Window& window);
 
-    VkQueue graphics_queue() {
-        return queue;
+    VkQueue get_graphics_queue() {
+        return graphics_queue;
     }
 
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
@@ -35,9 +35,10 @@ private:
 
     VkInstance instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT debug_messenger = VK_NULL_HANDLE;
+    VkPhysicalDevice physical_device = VK_NULL_HANDLE;
     VkDevice device = VK_NULL_HANDLE;
-    uint32_t q_family_idx = 0;
-    VkQueue queue = VK_NULL_HANDLE;
+    uint32_t graphics_queue_family;
+    VkQueue graphics_queue = VK_NULL_HANDLE;
 
     VmaAllocator allocator = VK_NULL_HANDLE;
 

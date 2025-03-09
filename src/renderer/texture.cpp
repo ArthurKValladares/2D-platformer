@@ -56,7 +56,7 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     /*
     VkCommandBuffer copy_cmd = renderer->create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
-    VkQueue copy_queue = renderer->graphics_queue();
+    VkQueue copy_queue = renderer->get_graphics_queue();
     renderer->flush_command_buffer(copy_cmd, copy_queue, true);
     */
    
