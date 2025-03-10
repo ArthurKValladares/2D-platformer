@@ -520,8 +520,10 @@ void Renderer::render(Window& window) {
     vkCmdBeginRendering(cb, &renderingInfo);
 
     VkViewport vp = {
+        .x = 0,
+        .y = static_cast<float>(window_size.height),
         .width = static_cast<float>(window_size.width),
-        .height = static_cast<float>(window_size.height),
+        .height = -static_cast<float>(window_size.height),
         .minDepth = 0.0f,
         .maxDepth = 1.0f
     };
