@@ -12,6 +12,7 @@
 #include "../window.h"
 #include "../vec.h"
 #include "../rect.h"
+#include "../image.h"
 
 #ifdef NDEBUG
 constexpr bool USE_VALIDATION_LAYERS = false;

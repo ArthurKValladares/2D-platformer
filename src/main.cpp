@@ -8,10 +8,13 @@
 
 #include "window.h"
 #include "util.h"
+#include "asset_manager.h"
 
 int main(int argc, char *argv[]) {
     Renderer::enabled_features13.dynamicRendering = true;
     
+    TextureManager texture_manager;
+
     Window window = Window();
     Renderer renderer(window);
     

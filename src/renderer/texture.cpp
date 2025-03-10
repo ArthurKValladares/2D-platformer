@@ -1,22 +1,11 @@
 #include "texture.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include "buffer.h"
 #include "renderer.h"
 #include "initializers.h"
 #include "tools.h"
 
-ImageData::ImageData(const std::string& path) {
-    img = stbi_load(path.c_str(), &width, &height, &channels, 4);
-    size = static_cast<uint32_t>(width * height * 4);
-    assert(img != nullptr);
-}
-
-ImageData::~ImageData() {
-    stbi_image_free(img);
-}
+#include <cassert>
 
 Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     assert(ci.buffer);

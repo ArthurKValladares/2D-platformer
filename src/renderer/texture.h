@@ -1,19 +1,6 @@
 #pragma once
 
-#include <string>
-
 #include <vma/vk_mem_alloc.h>
-
-struct ImageData {
-    ImageData() {}
-    ImageData(const std::string& path);
-
-    ~ImageData();
-
-    int width, height, channels;
-    unsigned char* img;
-    size_t size;
-};
 
 struct TextureCreateInfo {
     void* buffer;
