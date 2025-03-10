@@ -237,9 +237,76 @@ Renderer::Renderer(Window& window) {
         chk(vkCreateSemaphore(device, &semaphore_ci, nullptr, &render_semaphores[i]));
     }
 
+    // TODO: Just putting it here for testing
+    // Texture
+    ImageData test_image = ImageData("assets/textures/akv.png");
+    texture = Texture(this, TextureCreateInfo{
+        .buffer = test_image.img,
+        .buffer_size = test_image.size,
+        .width = static_cast<uint32_t>(test_image.width),
+        .height = static_cast<uint32_t>(test_image.height),
+        .format = VK_FORMAT_R8G8B8A8_SRGB,
+    });
+
+    // Descriptor Pool
+    const VkDescriptorPoolSize pool_sizes[]{
+        VkDescriptorPoolSize{
+            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
+        }
+    };
+    VkDescriptorPoolCreateInfo pool_info{};
+    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.poolSizeCount = ArrayCount(pool_sizes);
+    pool_info.pPoolSizes = &pool_sizes[0];
+    pool_info.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
+
+    // Descriptor set layout
+    VkDescriptorSetLayoutBinding bindings[1] = {
+        VkDescriptorSetLayoutBinding{
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .pImmutableSamplers = nullptr
+            
+        }
+    };
+    VkDescriptorSetLayoutCreateInfo layout_info{};
+    layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layout_info.bindingCount = ArrayCount(bindings);
+    layout_info.pBindings = &bindings[0];
+    chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &texture_descriptor_set_layout));
+
+
+    // Descriptor set
+    VkDescriptorSetAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool = descriptor_pool;
+    alloc_info.descriptorSetCount = 1;
+    alloc_info.pSetLayouts = &texture_descriptor_set_layout;
+    chk(vkAllocateDescriptorSets(device, &alloc_info, &texture_descriptor_set));
+
+    // Update set
+    VkWriteDescriptorSet descriptor_writes[1] = {
+        VkWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = texture_descriptor_set,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &texture.descriptor
+        }
+    };
+    vkUpdateDescriptorSets(device, ArrayCount(descriptor_writes), &descriptor_writes[0], 0, nullptr);
+
     // Pipeline
 	VkPipelineLayoutCreateInfo pipeline_layout_ci = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 1,
+        .pSetLayouts = &texture_descriptor_set_layout
     };
 	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
     const std::vector<uint32_t> vert_shader_bytes = read_file_to_buffer<uint32_t>("shaders/triangle.vert.spv");
@@ -324,70 +391,6 @@ Renderer::Renderer(Window& window) {
 	chk(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_ci, nullptr, &pipeline));
 	vkDestroyShaderModule(device, stages[0].module, nullptr);
 	vkDestroyShaderModule(device, stages[1].module, nullptr);
-
-    // Descriptor Pool
-    const VkDescriptorPoolSize pool_sizes[] {
-        VkDescriptorPoolSize{
-            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
-        }
-    };
-    VkDescriptorPoolCreateInfo pool_info{};
-    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool_info.poolSizeCount = ArrayCount(pool_sizes);
-    pool_info.pPoolSizes = &pool_sizes[0];
-    pool_info.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-    chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
-
-    // TODO: Just putting it at the end here for testing
-    // Texture
-    ImageData test_image = ImageData("assets/textures/akv.png");
-    texture = Texture(this, TextureCreateInfo{
-        .buffer = test_image.img,
-        .buffer_size = test_image.size,
-        .width = static_cast<uint32_t>(test_image.width),
-        .height = static_cast<uint32_t>(test_image.height),
-        .format = VK_FORMAT_R8G8B8A8_SRGB,
-    });
-
-    // Descriptor set layout
-    VkDescriptorSetLayoutBinding sampler_layout_binding{};
-    sampler_layout_binding.binding = 0;
-    sampler_layout_binding.descriptorCount = 1;
-    sampler_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    sampler_layout_binding.pImmutableSamplers = nullptr;
-    sampler_layout_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    VkDescriptorSetLayoutBinding bindings[1] = {
-        sampler_layout_binding
-    };
-    VkDescriptorSetLayoutCreateInfo layout_info{};
-    layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layout_info.bindingCount = ArrayCount(bindings);
-    layout_info.pBindings = &bindings[0];
-    chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &texture_descriptor_set_layout));
-
-
-    // Descriptor set
-    VkDescriptorSetAllocateInfo alloc_info{};
-    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    alloc_info.descriptorPool = descriptor_pool;
-    alloc_info.descriptorSetCount = 1;
-    alloc_info.pSetLayouts = &texture_descriptor_set_layout;
-    chk(vkAllocateDescriptorSets(device, &alloc_info, &texture_descriptor_set));
-
-    // Update set
-    VkWriteDescriptorSet descriptor_writes[1] = {
-        VkWriteDescriptorSet {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = texture_descriptor_set,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &texture.descriptor
-        }
-    };
-    vkUpdateDescriptorSets(device, ArrayCount(descriptor_writes), &descriptor_writes[0], 0, nullptr);
 }
 
 Renderer::~Renderer() {
@@ -536,6 +539,8 @@ void Renderer::render(Window& window) {
     VkDeviceSize v_offset = 0;
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer.raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
+
+    vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &texture_descriptor_set, 0, nullptr);
 
     vkCmdDrawIndexed(cb, num_indices, 1, 0, 0, 0);
 

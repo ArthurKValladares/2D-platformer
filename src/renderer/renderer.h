@@ -80,10 +80,10 @@ private:
     VkPipeline pipeline = VK_NULL_HANDLE;
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
 
-    VkDescriptorPool descriptor_pool;
+    VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
-    VkDescriptorSetLayout texture_descriptor_set_layout;
-    VkDescriptorSet texture_descriptor_set;
+    VkDescriptorSetLayout texture_descriptor_set_layout = VK_NULL_HANDLE;
+    VkDescriptorSet texture_descriptor_set = VK_NULL_HANDLE;
 
     Texture texture;
 
