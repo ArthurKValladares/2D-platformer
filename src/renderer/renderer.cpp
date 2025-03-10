@@ -10,6 +10,8 @@
 
 #include "../util.h"
 #include "../window.h"
+#include "../vec.h"
+#include "../rect.h"
 
 #ifdef NDEBUG
 constexpr bool USE_VALIDATION_LAYERS = false;
@@ -160,7 +162,7 @@ Renderer::Renderer(Window& window) {
 	chk(vmaCreateAllocator(&allocator_ci, &allocator));
 
     // Presentation
-    Size2D window_size = window.get_size();
+    Size2Di32 window_size = window.get_size();
     VkSwapchainCreateInfoKHR swapchain_ci = get_swapchain_ci((uint32_t)window_size.width, (uint32_t)window_size.height);
     chk(vkCreateSwapchainKHR(device, &swapchain_ci, nullptr, &swapchain));
     vkGetSwapchainImagesKHR(device, swapchain, &image_count, nullptr);
@@ -192,12 +194,8 @@ Renderer::Renderer(Window& window) {
     }
 
     // Vertexbuffer (Pos 3f, Col 3f)
-    const std::vector<float> vertices = {
-         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-          0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-         -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
-          0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f,
-    };
+    Rect2D quad_rect = Rect2D(Point2Df32{0.0, 0.0}, Size2Df32{1.0, 1.0});
+    const std::vector<Vec3f32> vertices = quad_rect.vertex_data();
     v_buffer = Buffer(
         allocator,
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -424,7 +422,7 @@ Renderer::~Renderer() {
 void Renderer::resize_swapchain(Window& window) {
     vkDeviceWaitIdle(device);
 
-    Size2D window_size = window.get_size();
+    Size2Di32 window_size = window.get_size();
     VkSwapchainCreateInfoKHR swapchain_ci = get_swapchain_ci((uint32_t)window_size.width, (uint32_t)window_size.height);
     swapchain_ci.oldSwapchain = swapchain;
     chk(vkCreateSwapchainKHR(device, &swapchain_ci, nullptr, &swapchain));
@@ -504,7 +502,7 @@ void Renderer::render(Window& window) {
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .clearValue = {.color = { 0.0f, 0.0f, 0.2f, 1.0f }}
     };
-    Size2D window_size = window.get_size();
+    Size2Di32 window_size = window.get_size();
     VkRenderingInfo renderingInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
         .renderArea = {

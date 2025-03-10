@@ -25,8 +25,8 @@ Window::~Window() {
     SDL_Quit();
 }
 
-Size2D Window::get_size() const {
-    Size2D size;
+Size2Di32 Window::get_size() const {
+    Size2Di32 size;
     SDL_GetWindowSize(raw, &size.width, &size.height);
     return size;
 }
