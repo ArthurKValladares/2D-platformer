@@ -92,7 +92,6 @@ Renderer::Renderer(Window& window) {
         exit(-1);
     }
     vkb::Instance vkb_instance = vkb_instance_result.value();
-
     instance = vkb_instance.instance;
     debug_messenger = vkb_instance.debug_messenger;
 
@@ -103,7 +102,6 @@ Renderer::Renderer(Window& window) {
     Renderer::enabled_features11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
     Renderer::enabled_features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     Renderer::enabled_features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-    
     vkb::PhysicalDeviceSelector selector{vkb_instance};
 	vkb::Result<vkb::PhysicalDevice> physical_device_result = selector
 		.set_minimum_version(1, 3)
@@ -118,7 +116,6 @@ Renderer::Renderer(Window& window) {
         exit(-1);
     }
     vkb::PhysicalDevice vkb_physical_device = physical_device_result.value();
-
     vkb::DeviceBuilder device_builder{vkb_physical_device};
 	vkb::Result<vkb::Device> device_result = device_builder.build();
     if (!device_result.has_value()) {
@@ -126,7 +123,6 @@ Renderer::Renderer(Window& window) {
         exit(-1);
     }
     vkb::Device vkb_device = device_result.value();
-
     physical_device = vkb_physical_device.physical_device;
     device = vkb_device.device;
     
@@ -142,7 +138,6 @@ Renderer::Renderer(Window& window) {
         exit(-1);
     }
     graphics_queue = graphics_queue_result.value();
-
 	vkb::Result<uint32_t> graphics_queue_family_result = vkb_device.get_queue_index(vkb::QueueType::graphics);
     if (!graphics_queue_family_result.has_value()) {
         std::cerr << "Could not initialize graphics queue family with vk-bootstrap" << std::endl;
@@ -330,6 +325,20 @@ Renderer::Renderer(Window& window) {
 	vkDestroyShaderModule(device, stages[0].module, nullptr);
 	vkDestroyShaderModule(device, stages[1].module, nullptr);
 
+    // Descriptor Pool
+    const VkDescriptorPoolSize pool_sizes[] {
+        VkDescriptorPoolSize{
+            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
+        }
+    };
+    VkDescriptorPoolCreateInfo pool_info{};
+    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.poolSizeCount = ArrayCount(pool_sizes);
+    pool_info.pPoolSizes = &pool_sizes[0];
+    pool_info.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
+
     // TODO: Just putting it at the end here for testing
     // Texture
     ImageData test_image = ImageData("assets/textures/akv.png");
@@ -340,6 +349,45 @@ Renderer::Renderer(Window& window) {
         .height = static_cast<uint32_t>(test_image.height),
         .format = VK_FORMAT_R8G8B8A8_SRGB,
     });
+
+    // Descriptor set layout
+    VkDescriptorSetLayoutBinding sampler_layout_binding{};
+    sampler_layout_binding.binding = 0;
+    sampler_layout_binding.descriptorCount = 1;
+    sampler_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    sampler_layout_binding.pImmutableSamplers = nullptr;
+    sampler_layout_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    VkDescriptorSetLayoutBinding bindings[1] = {
+        sampler_layout_binding
+    };
+    VkDescriptorSetLayoutCreateInfo layout_info{};
+    layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layout_info.bindingCount = ArrayCount(bindings);
+    layout_info.pBindings = &bindings[0];
+    chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &texture_descriptor_set_layout));
+
+
+    // Descriptor set
+    VkDescriptorSetAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool = descriptor_pool;
+    alloc_info.descriptorSetCount = 1;
+    alloc_info.pSetLayouts = &texture_descriptor_set_layout;
+    chk(vkAllocateDescriptorSets(device, &alloc_info, &texture_descriptor_set));
+
+    // Update set
+    VkWriteDescriptorSet descriptor_writes[1] = {
+        VkWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = texture_descriptor_set,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &texture.descriptor
+        }
+    };
+    vkUpdateDescriptorSets(device, ArrayCount(descriptor_writes), &descriptor_writes[0], 0, nullptr);
 }
 
 Renderer::~Renderer() {
@@ -363,6 +411,8 @@ Renderer::~Renderer() {
     vkDestroySwapchainKHR(device, swapchain, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
+    vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
+    vkDestroyDescriptorSetLayout(device, texture_descriptor_set_layout, nullptr);
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);

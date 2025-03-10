@@ -69,8 +69,6 @@ private:
     Buffer i_buffer;
     uint64_t num_indices;
 
-    Texture texture;
-
     // TODO: Dedicated transfer pool
     VkCommandPool command_pool = VK_NULL_HANDLE;
 
@@ -81,6 +79,13 @@ private:
 
     VkPipeline pipeline = VK_NULL_HANDLE;
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
+
+    VkDescriptorPool descriptor_pool;
+
+    VkDescriptorSetLayout texture_descriptor_set_layout;
+    VkDescriptorSet texture_descriptor_set;
+
+    Texture texture;
 
     friend class Texture;
 };
