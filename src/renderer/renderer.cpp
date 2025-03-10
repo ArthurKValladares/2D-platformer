@@ -193,27 +193,36 @@ Renderer::Renderer(Window& window) {
         chk(vkCreateImageView(device, &view_ci, nullptr, &swapchain_image_views[i]));
     }
 
-    // Vertexbuffer (Pos 3f, Col 3f)
-    Rect2D quad_rect = Rect2D(Point2Df32{0.0, 0.0}, Size2Df32{1.0, 1.0});
-    std::vector<Vec3f32> vertices = {};
-     quad_rect.vertex_data(vertices);
+    // Vertex/Index buffers
+    std::vector<QuadVertex> vertices = {};
+    std::vector<uint32_t> indices = {};
+
+    Rect2D quad_rect = Rect2D(Point2Df32{0.5f, 0.5f}, Size2Df32{1.0, 1.0});
+    quad_rect.index_data(vertices.size(), indices);
+    quad_rect.vertex_data(vertices);
+    quad_rect = Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{ 1.0, 1.0 });
+    quad_rect.index_data(vertices.size(), indices);
+    quad_rect.vertex_data(vertices);
+    quad_rect = Rect2D(Point2Df32{ 0.5f, -0.5f }, Size2Df32{ 1.0, 1.0 });
+    quad_rect.index_data(vertices.size(), indices);
+    quad_rect.vertex_data(vertices);
+    quad_rect = Rect2D(Point2Df32{ -0.5f, 0.5f }, Size2Df32{ 1.0, 1.0 });
+    quad_rect.index_data(vertices.size(), indices);
+    quad_rect.vertex_data(vertices);
+
     v_buffer = Buffer(
         allocator,
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
         vertices
     );
-
-    // index buffer
-    std::vector<uint32_t> indices = {};
-    quad_rect.index_data(0, indices);
-    num_indices = indices.size();
     i_buffer = Buffer(
         allocator,
         VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
         indices
     );
+    num_indices = indices.size();
 
     // Command Pool
     VkCommandPoolCreateInfo command_pool_ci = {

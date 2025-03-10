@@ -6,6 +6,11 @@
 
 #include <vector>
 
+struct QuadVertex {
+    Vec3f32 pos;
+    Vec3f32 uv;
+};
+
 struct Rect2D {
     Rect2D() {}
     Rect2D(Point2Df32 center, Size2Df32 size)
@@ -23,7 +28,7 @@ struct Rect2D {
         , max_y(max_y)
     {}
 
-    void vertex_data(std::vector<Vec3f32>& vertex_buffer) const;
+    void vertex_data(std::vector<QuadVertex>& vertex_buffer) const;
     void index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const;
 
     float min_x = 0.0, max_x = 0.0;
