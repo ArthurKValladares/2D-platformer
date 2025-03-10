@@ -198,16 +198,16 @@ Renderer::Renderer(Window& window) {
     std::vector<QuadVertex> vertices = {};
     std::vector<uint32_t> indices = {};
 
-    Rect2D quad_rect = Rect2D(Point2Df32{0.5f, 0.5f}, Size2Df32{1.0, 1.0});
+    Rect2D quad_rect = Rect2D(Point2Df32{ -0.5f, 0.5f }, Size2Df32{1.0, 1.0});
+    quad_rect.index_data(vertices.size(), indices);
+    quad_rect.vertex_data(vertices);
+    quad_rect = Rect2D(Point2Df32{ 0.5f, 0.5f }, Size2Df32{ 1.0, 1.0 });
     quad_rect.index_data(vertices.size(), indices);
     quad_rect.vertex_data(vertices);
     quad_rect = Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{ 1.0, 1.0 });
     quad_rect.index_data(vertices.size(), indices);
     quad_rect.vertex_data(vertices);
     quad_rect = Rect2D(Point2Df32{ 0.5f, -0.5f }, Size2Df32{ 1.0, 1.0 });
-    quad_rect.index_data(vertices.size(), indices);
-    quad_rect.vertex_data(vertices);
-    quad_rect = Rect2D(Point2Df32{ -0.5f, 0.5f }, Size2Df32{ 1.0, 1.0 });
     quad_rect.index_data(vertices.size(), indices);
     quad_rect.vertex_data(vertices);
 
@@ -246,27 +246,30 @@ Renderer::Renderer(Window& window) {
 
     // TODO: Just putting it here for testing
     // Texture
-    ImageData test_image = ImageData("assets/textures/akv.png");
-    texture = Texture(this, TextureCreateInfo{
-        .buffer = test_image.img,
-        .buffer_size = test_image.size,
-        .width = static_cast<uint32_t>(test_image.width),
-        .height = static_cast<uint32_t>(test_image.height),
-        .format = VK_FORMAT_R8G8B8A8_SRGB,
-    });
+    const uint64_t image_count = texture_manager.images.size();
+    textures.reserve(image_count);
+    for (ImageData& image : texture_manager.images) {
+        textures.emplace_back(this, TextureCreateInfo{
+            .buffer = image.img,
+            .buffer_size = image.size,
+            .width = static_cast<uint32_t>(image.width),
+            .height = static_cast<uint32_t>(image.height),
+            .format = VK_FORMAT_R8G8B8A8_SRGB,
+        });
+    }
 
     // Descriptor Pool
     const VkDescriptorPoolSize pool_sizes[]{
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
+            .descriptorCount = static_cast<uint32_t>(image_count)
         }
     };
     VkDescriptorPoolCreateInfo pool_info{};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.poolSizeCount = ArrayCount(pool_sizes);
     pool_info.pPoolSizes = &pool_sizes[0];
-    pool_info.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    pool_info.maxSets = static_cast<uint32_t>(image_count);
     chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
 
     // Descriptor set layout
@@ -288,26 +291,29 @@ Renderer::Renderer(Window& window) {
 
 
     // Descriptor set
-    VkDescriptorSetAllocateInfo alloc_info{};
-    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    alloc_info.descriptorPool = descriptor_pool;
-    alloc_info.descriptorSetCount = 1;
-    alloc_info.pSetLayouts = &texture_descriptor_set_layout;
-    chk(vkAllocateDescriptorSets(device, &alloc_info, &texture_descriptor_set));
+    texture_descriptor_sets.resize(image_count);
+    for (uint64_t i = 0; i < image_count; ++i) {
+        VkDescriptorSetAllocateInfo alloc_info{};
+        alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        alloc_info.descriptorPool = descriptor_pool;
+        alloc_info.descriptorSetCount = 1;
+        alloc_info.pSetLayouts = &texture_descriptor_set_layout;
+        chk(vkAllocateDescriptorSets(device, &alloc_info, &texture_descriptor_sets[i]));
 
-    // Update set
-    VkWriteDescriptorSet descriptor_writes[1] = {
-        VkWriteDescriptorSet {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = texture_descriptor_set,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &texture.descriptor
-        }
-    };
-    vkUpdateDescriptorSets(device, ArrayCount(descriptor_writes), &descriptor_writes[0], 0, nullptr);
+        // Update set
+        VkWriteDescriptorSet descriptor_writes[1] = {
+            VkWriteDescriptorSet {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = texture_descriptor_sets[i],
+                .dstBinding = 0,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = &textures[i].descriptor
+            }
+        };
+        vkUpdateDescriptorSets(device, ArrayCount(descriptor_writes), &descriptor_writes[0], 0, nullptr);
+    }
 
     // Pipeline
 	VkPipelineLayoutCreateInfo pipeline_layout_ci = {
@@ -414,7 +420,9 @@ Renderer::~Renderer() {
     }
     v_buffer.destroy(allocator);
     i_buffer.destroy(allocator);
-    texture.destroy(this);
+    for (Texture& texture : textures) {
+        texture.destroy(this);
+    }
     vkDestroyCommandPool(device, command_pool, nullptr);
     vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
     vkDestroyPipeline(device, pipeline, nullptr);
@@ -549,9 +557,13 @@ void Renderer::render(Window& window) {
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer.raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &texture_descriptor_set, 0, nullptr);
-
-    vkCmdDrawIndexed(cb, num_indices, 1, 0, 0, 0);
+    for (uint64_t i = 0; i < texture_descriptor_sets.size(); ++i) {
+        // TODO: Need to store these params somewhere in a `DrawData-like struct`
+        const uint32_t index_count = 6;
+        const uint32_t first_index = i * index_count;
+        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &texture_descriptor_sets[i], 0, nullptr);
+        vkCmdDrawIndexed(cb, index_count, 1, first_index, 0, 0);
+    }
 
     vkCmdEndRendering(cb);
 

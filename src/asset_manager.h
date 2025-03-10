@@ -19,5 +19,6 @@ const char* texture_path(TextureSource texture);
 struct TextureManager {
     TextureManager();
 
+    // TODO: Holding on to this data forerver is bad, i only need (most of it) it to create the GPU textures
     std::vector<ImageData> images;
 };

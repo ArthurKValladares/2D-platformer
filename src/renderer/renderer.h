@@ -9,6 +9,8 @@
 #include "buffer.h"
 #include "texture.h"
 
+#include "../asset_manager.h"
+
 struct Window;
 struct Renderer {
     Renderer(Window& window);
@@ -82,10 +84,11 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
+    TextureManager texture_manager;
+    std::vector<Texture> textures;
+    
     VkDescriptorSetLayout texture_descriptor_set_layout = VK_NULL_HANDLE;
-    VkDescriptorSet texture_descriptor_set = VK_NULL_HANDLE;
-
-    Texture texture;
+    std::vector<VkDescriptorSet> texture_descriptor_sets;
 
     friend class Texture;
 };
