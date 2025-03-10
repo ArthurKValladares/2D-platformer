@@ -195,7 +195,8 @@ Renderer::Renderer(Window& window) {
 
     // Vertexbuffer (Pos 3f, Col 3f)
     Rect2D quad_rect = Rect2D(Point2Df32{0.0, 0.0}, Size2Df32{1.0, 1.0});
-    const std::vector<Vec3f32> vertices = quad_rect.vertex_data();
+    std::vector<Vec3f32> vertices = {};
+     quad_rect.vertex_data(vertices);
     v_buffer = Buffer(
         allocator,
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -204,10 +205,8 @@ Renderer::Renderer(Window& window) {
     );
 
     // index buffer
-    const std::vector<uint32_t> indices = {
-        0, 1, 2,
-        0, 3, 1
-    };
+    std::vector<uint32_t> indices = {};
+    quad_rect.index_data(0, indices);
     num_indices = indices.size();
     i_buffer = Buffer(
         allocator,

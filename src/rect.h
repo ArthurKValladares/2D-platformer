@@ -23,7 +23,8 @@ struct Rect2D {
         , max_y(max_y)
     {}
 
-    std::vector<Vec3f32> vertex_data() const;
+    void vertex_data(std::vector<Vec3f32>& vertex_buffer) const;
+    void index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const;
 
     float min_x = 0.0, max_x = 0.0;
     float min_y = 0.0, max_y = 0.0;
