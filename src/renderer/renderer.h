@@ -8,20 +8,34 @@
 
 #include "buffer.h"
 #include "texture.h"
-
-#include "../asset_manager.h"
+#include "draw.h"
+#include "material.h"
 
 struct Window;
 struct Renderer {
     Renderer(Window& window);
     ~Renderer();
 
+    void upload_textures(const std::vector<TextureCreateInfo>& texture_cis);
+    void upload_index_data(void* data, uint64_t size_bytes);
+    void upload_vertex_data(void* data, uint64_t size_bytes);
+
     void resize_swapchain(Window& window);
 
-    void render(Window& window);
+    void render(Window& window, std::vector<DrawCommand> draws);
 
     VkQueue get_graphics_queue() {
         return graphics_queue;
+    }
+    VkDevice get_device() {
+        return device;
+    }
+    VkDescriptorPool get_descriptor_pool() {
+        return descriptor_pool;
+    }
+
+    const Material& get_material_at(uint64_t index) {
+        return texture_materials[index];
     }
 
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
@@ -67,9 +81,7 @@ private:
     VkImageView render_image_view;
 
     Buffer v_buffer;
-
     Buffer i_buffer;
-    uint64_t num_indices;
 
     // TODO: Dedicated transfer pool
     VkCommandPool command_pool = VK_NULL_HANDLE;
@@ -84,11 +96,10 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
-    TextureManager texture_manager;
     std::vector<Texture> textures;
     
     VkDescriptorSetLayout texture_descriptor_set_layout = VK_NULL_HANDLE;
-    std::vector<VkDescriptorSet> texture_descriptor_sets;
+    std::vector<Material> texture_materials;
 
     friend class Texture;
 };

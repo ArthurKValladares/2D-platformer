@@ -10,9 +10,6 @@
 
 #include "../util.h"
 #include "../window.h"
-#include "../vec.h"
-#include "../rect.h"
-#include "../image.h"
 
 #ifdef NDEBUG
 constexpr bool USE_VALIDATION_LAYERS = false;
@@ -194,37 +191,6 @@ Renderer::Renderer(Window& window) {
         chk(vkCreateImageView(device, &view_ci, nullptr, &swapchain_image_views[i]));
     }
 
-    // Vertex/Index buffers
-    std::vector<QuadVertex> vertices = {};
-    std::vector<uint32_t> indices = {};
-
-    Rect2D quad_rect = Rect2D(Point2Df32{ -0.5f, 0.5f }, Size2Df32{1.0, 1.0});
-    quad_rect.index_data(vertices.size(), indices);
-    quad_rect.vertex_data(vertices);
-    quad_rect = Rect2D(Point2Df32{ 0.5f, 0.5f }, Size2Df32{ 1.0, 1.0 });
-    quad_rect.index_data(vertices.size(), indices);
-    quad_rect.vertex_data(vertices);
-    quad_rect = Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{ 1.0, 1.0 });
-    quad_rect.index_data(vertices.size(), indices);
-    quad_rect.vertex_data(vertices);
-    quad_rect = Rect2D(Point2Df32{ 0.5f, -0.5f }, Size2Df32{ 1.0, 1.0 });
-    quad_rect.index_data(vertices.size(), indices);
-    quad_rect.vertex_data(vertices);
-
-    v_buffer = Buffer(
-        allocator,
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-        vertices
-    );
-    i_buffer = Buffer(
-        allocator,
-        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-        indices
-    );
-    num_indices = indices.size();
-
     // Command Pool
     VkCommandPoolCreateInfo command_pool_ci = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -244,32 +210,21 @@ Renderer::Renderer(Window& window) {
         chk(vkCreateSemaphore(device, &semaphore_ci, nullptr, &render_semaphores[i]));
     }
 
-    // TODO: Just putting it here for testing
-    // Texture
-    const uint64_t image_count = texture_manager.images.size();
-    textures.reserve(image_count);
-    for (ImageData& image : texture_manager.images) {
-        textures.emplace_back(this, TextureCreateInfo{
-            .buffer = image.img,
-            .buffer_size = image.size,
-            .width = static_cast<uint32_t>(image.width),
-            .height = static_cast<uint32_t>(image.height),
-            .format = VK_FORMAT_R8G8B8A8_SRGB,
-        });
-    }
-
     // Descriptor Pool
+    // TODO: This max_image_count thing sucks, better dyanamic descriptor pool size stuff later,
+    // with creating sets with fixed amounts as needed
+    const uint32_t max_image_count = 20;
     const VkDescriptorPoolSize pool_sizes[]{
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = static_cast<uint32_t>(image_count)
+            .descriptorCount = static_cast<uint32_t>(max_image_count)
         }
     };
     VkDescriptorPoolCreateInfo pool_info{};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.poolSizeCount = ArrayCount(pool_sizes);
     pool_info.pPoolSizes = &pool_sizes[0];
-    pool_info.maxSets = static_cast<uint32_t>(image_count);
+    pool_info.maxSets = static_cast<uint32_t>(max_image_count);
     chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
 
     // Descriptor set layout
@@ -288,32 +243,6 @@ Renderer::Renderer(Window& window) {
     layout_info.bindingCount = ArrayCount(bindings);
     layout_info.pBindings = &bindings[0];
     chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &texture_descriptor_set_layout));
-
-
-    // Descriptor set
-    texture_descriptor_sets.resize(image_count);
-    for (uint64_t i = 0; i < image_count; ++i) {
-        VkDescriptorSetAllocateInfo alloc_info{};
-        alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        alloc_info.descriptorPool = descriptor_pool;
-        alloc_info.descriptorSetCount = 1;
-        alloc_info.pSetLayouts = &texture_descriptor_set_layout;
-        chk(vkAllocateDescriptorSets(device, &alloc_info, &texture_descriptor_sets[i]));
-
-        // Update set
-        VkWriteDescriptorSet descriptor_writes[1] = {
-            VkWriteDescriptorSet {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = texture_descriptor_sets[i],
-                .dstBinding = 0,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = &textures[i].descriptor
-            }
-        };
-        vkUpdateDescriptorSets(device, ArrayCount(descriptor_writes), &descriptor_writes[0], 0, nullptr);
-    }
 
     // Pipeline
 	VkPipelineLayoutCreateInfo pipeline_layout_ci = {
@@ -436,6 +365,39 @@ Renderer::~Renderer() {
     vkDestroyInstance(instance, nullptr);
 }
 
+void Renderer::upload_textures(const std::vector<TextureCreateInfo>& texture_cis) {
+    const uint64_t image_count = texture_cis.size();
+    textures.reserve(image_count);
+    for (const TextureCreateInfo& ci : texture_cis) {
+        textures.emplace_back(this, ci);
+    }
+
+    texture_materials.reserve(image_count);
+    for (uint64_t i = 0; i < image_count; ++i) {
+        texture_materials.emplace_back(this, &textures[i], texture_descriptor_set_layout);
+    }
+}
+
+void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
+    i_buffer = Buffer(
+        allocator,
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        data,
+        size_bytes
+    );
+}
+
+void Renderer::upload_vertex_data(void* data, uint64_t size_bytes) {
+    v_buffer = Buffer(
+        allocator,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        data,
+        size_bytes
+    );
+}
+
 void Renderer::resize_swapchain(Window& window) {
     vkDeviceWaitIdle(device);
 
@@ -483,7 +445,7 @@ void Renderer::resize_swapchain(Window& window) {
     vkDestroySwapchainKHR(device, swapchain_ci.oldSwapchain, nullptr);
 }
 
-void Renderer::render(Window& window) {
+void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     vkWaitForFences(device, 1, &fences[frame_index], true, UINT64_MAX);
     vkResetFences(device, 1, &fences[frame_index]);
 
@@ -557,12 +519,9 @@ void Renderer::render(Window& window) {
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer.raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
-    for (uint64_t i = 0; i < texture_descriptor_sets.size(); ++i) {
-        // TODO: Need to store these params somewhere in a `DrawData-like struct`
-        const uint32_t index_count = 6;
-        const uint32_t first_index = i * index_count;
-        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &texture_descriptor_sets[i], 0, nullptr);
-        vkCmdDrawIndexed(cb, index_count, 1, first_index, 0, 0);
+    for (const DrawCommand& draw : draws) {
+        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &draw.descriptor_set, 0, nullptr);
+        vkCmdDrawIndexed(cb, draw.index_count, 1, draw.first_index, 0, 0);
     }
 
     vkCmdEndRendering(cb);

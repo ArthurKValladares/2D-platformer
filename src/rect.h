@@ -28,8 +28,8 @@ struct Rect2D {
         , max_y(max_y)
     {}
 
-    void vertex_data(std::vector<QuadVertex>& vertex_buffer) const;
-    void index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const;
+    uint64_t vertex_data(std::vector<QuadVertex>& vertex_buffer) const;
+    uint64_t index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const;
 
     float min_x = 0.0, max_x = 0.0;
     float min_y = 0.0, max_y = 0.0;

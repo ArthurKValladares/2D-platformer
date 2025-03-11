@@ -2,7 +2,7 @@
 
 #include "util.h"
 
-void Rect2D::vertex_data(std::vector<QuadVertex>& vertex_buffer) const {
+uint64_t Rect2D::vertex_data(std::vector<QuadVertex>& vertex_buffer) const {
     const float half_size_x = (max_x - min_x) / 2.0;
     const float half_size_y = (max_y - min_y) / 2.0;
 
@@ -17,12 +17,16 @@ void Rect2D::vertex_data(std::vector<QuadVertex>& vertex_buffer) const {
    };
 
    std::move(&quad_vertices[0], &quad_vertices[ArrayCount(quad_vertices)], back_inserter(vertex_buffer));
+
+   return ArrayCount(quad_vertices);
 }
 
-void Rect2D::index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const {
+uint64_t Rect2D::index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const {
     const uint32_t quad_indices[] = {
         vertex_offset, vertex_offset + 1, vertex_offset + 2,
         vertex_offset, vertex_offset + 3, vertex_offset + 1
     };
     std::move(&quad_indices[0], &quad_indices[ArrayCount(quad_indices)], back_inserter(index_buffer));
+
+    return ArrayCount(quad_indices);
 }
