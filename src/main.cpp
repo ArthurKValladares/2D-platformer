@@ -10,6 +10,7 @@
 #include "window.h"
 #include "util.h"
 #include "quad_draw.h"
+#include "view.h"
 
 int main(int argc, char *argv[]) {
     Window window = Window();
@@ -33,36 +34,18 @@ int main(int argc, char *argv[]) {
     }
     renderer.upload_textures(texture_cis);
 
-    // Quads
-    // TODO: Need to attach the textures to this and get the draws from it
-    std::vector<QuadVertex> vertices = {};
-    std::vector<uint32_t> indices = {};
-    std::vector<QuadDraw> quad_draws = {
-        {Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test1},
-        {Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test2},
-        {Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test3},
-        {Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test4}
-    };
+    // View-tree
+    View root_view = View();
+    root_view.push_child(QuadDraw{Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test1});
+    root_view.push_child(QuadDraw{Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test2});
+    root_view.push_child(QuadDraw{Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test3});
+    root_view.push_child(QuadDraw{Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}), TextureSource::Test4});
 
-    std::vector<DrawCommand> draws = {};
-    for (QuadDraw& quad_draw : quad_draws) {
-        const uint32_t first_index = indices.size();
+    ViewDrawData data = {};
+    root_view.append_draw_data(&renderer, data);
+    renderer.upload_index_data(&data.indices[0], data.indices.size() * sizeof(uint32_t));
+    renderer.upload_vertex_data(&data.vertices[0], data.vertices.size() * sizeof(QuadVertex));
 
-        const uint32_t index_count = quad_draw.rect.index_data(vertices.size(), indices);
-        quad_draw.rect.vertex_data(vertices);
-
-        // TODO: I need a better way to get the actual material I want
-        const Material& material = renderer.get_material_at(static_cast<uint64_t>(quad_draw.texture));
-        draws.push_back(DrawCommand{
-            .descriptor_set = material.descriptor_set,
-            .index_count = index_count,
-            .first_index = first_index
-        });
-    }
-
-    renderer.upload_index_data(&indices[0], indices.size() * sizeof(uint32_t));
-    renderer.upload_vertex_data(&vertices[0], vertices.size() * sizeof(QuadVertex));
-    
     SDL_Event e;
     SDL_zero(e);
     bool quit = false;
@@ -79,7 +62,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        renderer.render(window, draws);
+        renderer.render(window, data.draws);
     }
 
     return 0;

@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
   src/util.cpp
   src/image.cpp
   src/asset_manager.cpp
+  src/view.cpp
   src/main.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
