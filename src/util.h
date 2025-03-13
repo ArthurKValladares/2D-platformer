@@ -27,7 +27,7 @@ std::vector<T> read_file_to_buffer(const std::string& path) {
     }
 
     const size_t file_size_bytes = (size_t) source_file.tellg();
-    std::vector<uint32_t> buffer(file_size_bytes / sizeof(T));
+    std::vector<T> buffer(file_size_bytes / sizeof(T));
 
     source_file.seekg(0);
     source_file.read((char*)buffer.data(), file_size_bytes);

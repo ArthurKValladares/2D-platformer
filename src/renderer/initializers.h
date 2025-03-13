@@ -68,4 +68,30 @@ namespace initializers {
     inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const std::vector<VkDescriptorSetLayoutBinding>& bindings) {
         return descriptor_set_create_info((uint32_t) bindings.size(), bindings.data());
     }
+    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const VkDescriptorSetLayoutBinding& binding) {
+        return descriptor_set_create_info(1, &binding);
+    }
+
+    inline VkPipelineLayoutCreateInfo pipeline_layout_create_info(uint32_t set_layout_count = 0, const VkDescriptorSetLayout* set_layouts = nullptr) {
+        return VkPipelineLayoutCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = set_layout_count,
+            .pSetLayouts = set_layouts
+        };
+    }
+    inline VkPipelineLayoutCreateInfo pipeline_layout_create_info(const std::vector<VkDescriptorSetLayout>& set_layouts) {
+        return pipeline_layout_create_info((uint32_t) set_layouts.size(), set_layouts.data());
+    }
+    inline VkPipelineLayoutCreateInfo pipeline_layout_create_info(const VkDescriptorSetLayout& set_layouts) {
+        return pipeline_layout_create_info(1, &set_layouts);
+    }
+
+    inline VkPipelineShaderStageCreateInfo pipeline_shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule module) {
+        return VkPipelineShaderStageCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = stage,
+            .module = module,
+            .pName = "main"
+        };
+    }
 };

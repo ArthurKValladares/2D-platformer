@@ -18,24 +18,6 @@ constexpr bool USE_VALIDATION_LAYERS = false;
 constexpr bool USE_VALIDATION_LAYERS = true;
 #endif
 
-namespace {
-    VkPipelineShaderStageCreateInfo create_shader(VkDevice device, const std::vector<uint32_t>& shader_bytes, VkShaderStageFlagBits shaderStage) {
-        VkShaderModuleCreateInfo shaderModule_ci = {
-            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            .codeSize = shader_bytes.size() * sizeof(uint32_t),
-            .pCode = shader_bytes.data()
-        };
-        VkShaderModule shader_module;
-        vkCreateShaderModule(device, &shaderModule_ci, nullptr, &shader_module);
-        return VkPipelineShaderStageCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = shaderStage,
-            .module = shader_module,
-            .pName = "main"
-        };
-    };
-};
-
 VkSwapchainCreateInfoKHR Renderer::get_swapchain_ci(uint32_t width, uint32_t height) {
     return VkSwapchainCreateInfoKHR {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -228,27 +210,25 @@ Renderer::Renderer(Window& window) {
     pool_info.maxSets = static_cast<uint32_t>(max_image_count);
     chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
 
+    // Shaders
+    const std::vector<uint8_t> vert_shader_bytes = read_file_to_buffer<uint8_t>("shaders/triangle.vert.spv");
+    const ShaderData vert_shader_data = ShaderData(device, vert_shader_bytes.size(), &vert_shader_bytes[0]);
+    const std::vector<uint8_t> frag_shader_bytes = read_file_to_buffer<uint8_t>("shaders/triangle.frag.spv");
+    const ShaderData frag_shader_data = ShaderData(device, frag_shader_bytes.size(), &frag_shader_bytes[0]);
+
     // Descriptor set layout
-    const std::vector<uint32_t> vert_shader_bytes = read_file_to_buffer<uint32_t>("shaders/triangle.vert.spv");
-    const ShaderData vert_shader_data = ShaderData(vert_shader_bytes.size() * sizeof(uint32_t), &vert_shader_bytes[0]);
-
-    const std::vector<uint32_t> frag_shader_bytes = read_file_to_buffer<uint32_t>("shaders/triangle.frag.spv");
-    const ShaderData frag_shader_data = ShaderData(frag_shader_bytes.size() * sizeof(uint32_t), &frag_shader_bytes[0]);
-
     std::vector<VkDescriptorSetLayoutBinding> bindings = frag_shader_data.get_layout_bindings(0);
     VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings);
     chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &texture_descriptor_set_layout));
 
-    // Pipeline
-	VkPipelineLayoutCreateInfo pipeline_layout_ci = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = &texture_descriptor_set_layout
-    };
+    // Pipeline layout
+	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(texture_descriptor_set_layout);
 	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
+
+    // Pipeline
 	std::vector<VkPipelineShaderStageCreateInfo> stages = {
-        create_shader(device, vert_shader_bytes, VK_SHADER_STAGE_VERTEX_BIT),
-        create_shader(device, frag_shader_bytes, VK_SHADER_STAGE_FRAGMENT_BIT)
+        initializers::pipeline_shader_stage_create_info(vert_shader_data.shader_stage_bits(), vert_shader_data.shader_module),
+        initializers::pipeline_shader_stage_create_info(frag_shader_data.shader_stage_bits(), frag_shader_data.shader_module)
     };
 	VkVertexInputBindingDescription vertex_binding = {
         .binding = 0,
@@ -324,8 +304,6 @@ Renderer::Renderer(Window& window) {
 		.layout = pipeline_layout,
 	};
 	chk(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_ci, nullptr, &pipeline));
-	vkDestroyShaderModule(device, stages[0].module, nullptr);
-	vkDestroyShaderModule(device, stages[1].module, nullptr);
 }
 
 Renderer::~Renderer() {
