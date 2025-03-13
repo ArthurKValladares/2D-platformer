@@ -5,6 +5,9 @@
 #include <vulkan/vulkan.h>
 #include "spirv_reflect.h"
 
+// TODO: could just be a vector later
+using BindingsMap = std::vector<std::vector<VkDescriptorSetLayoutBinding>>;
+
 struct ShaderData {
     ShaderData(VkDevice device, size_t size, const void* p_code);
     ~ShaderData();
@@ -12,7 +15,9 @@ struct ShaderData {
     VkShaderStageFlags shader_stage() const;
     VkShaderStageFlagBits shader_stage_bits() const;
     
-    std::vector<VkDescriptorSetLayoutBinding> get_layout_bindings(uint32_t set_idx) const;
+    uint32_t max_descriptor_set() const;
+    
+    void append_layout_bindings(BindingsMap& bindings) const;
 
     void get_vertex_input_data(
         VkVertexInputBindingDescription* binding_desc,

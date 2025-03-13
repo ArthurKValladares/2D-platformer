@@ -217,8 +217,13 @@ Renderer::Renderer(Window& window) {
     const ShaderData frag_shader_data = ShaderData(device, frag_shader_bytes.size(), &frag_shader_bytes[0]);
 
     // Descriptor set layout
-    std::vector<VkDescriptorSetLayoutBinding> bindings = frag_shader_data.get_layout_bindings(0);
-    VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings);
+    BindingsMap bindings_map;
+    const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
+    bindings_map.resize(num_sets);
+    vert_shader_data.append_layout_bindings(bindings_map);
+    frag_shader_data.append_layout_bindings(bindings_map);
+
+    VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[0]);
     chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &texture_descriptor_set_layout));
 
     // Pipeline layout
