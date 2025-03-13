@@ -4,6 +4,7 @@
 #include "renderer.h"
 #include "initializers.h"
 #include "tools.h"
+#include "shader.h"
 
 #include <SDL3/SDL_vulkan.h>
 #include <VkBootstrap.h>
@@ -252,7 +253,9 @@ Renderer::Renderer(Window& window) {
     };
 	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
     const std::vector<uint32_t> vert_shader_bytes = read_file_to_buffer<uint32_t>("shaders/triangle.vert.spv");
+    const ShaderData vert_shader_data = ShaderData(vert_shader_bytes.size() * sizeof(uint32_t), &vert_shader_bytes[0]);
     const std::vector<uint32_t> frag_shader_bytes = read_file_to_buffer<uint32_t>("shaders/triangle.frag.spv");
+    const ShaderData frag_shader_data = ShaderData(frag_shader_bytes.size() * sizeof(uint32_t), &frag_shader_bytes[0]);
 	std::vector<VkPipelineShaderStageCreateInfo> stages = {
         create_shader(device, vert_shader_bytes, VK_SHADER_STAGE_VERTEX_BIT),
         create_shader(device, frag_shader_bytes, VK_SHADER_STAGE_FRAGMENT_BIT)

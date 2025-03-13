@@ -5,10 +5,14 @@
 #include <unordered_map>
 #include <utility>
 
+#include "spirv_reflect.h"
+
 #include "image.h"
 #include "renderer/pipeline.h"
 
-// TODO: This stuff should all be auto-generated at some point
+//
+// TODO: These should be auto-generated later
+//
 enum class TextureSource : uint32_t {
     Test1 = 0,
     Test2,
@@ -18,20 +22,22 @@ enum class TextureSource : uint32_t {
 };
 const char* texture_path(TextureSource texture);
 
-struct TextureManager {
-    TextureManager();
-
-    // TODO: Holding on to this data forerver is bad, i only need (most of it) it to create the GPU textures
-    std::vector<ImageData> images;
-};
-
 enum class ShaderSource : uint32_t {
     TriangleFrag = 0,
     TriangleVert,
     Count
 };
 const char* shader_path(ShaderSource shader);
+//
+//
+//
 
+struct TextureManager {
+    TextureManager();
+
+    // TODO: Holding on to this data forerver is bad, i only need (most of it) it to create the GPU textures
+    std::vector<ImageData> images;
+};
 
 struct PipelineManager {
     std::unordered_map<std::pair<ShaderSource, ShaderSource>, Pipeline> pipelines;
