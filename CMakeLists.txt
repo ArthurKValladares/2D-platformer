@@ -12,6 +12,7 @@ add_executable(${PROJECT_NAME}
   src/renderer/tools.cpp
   src/renderer/material.cpp
   src/renderer/shader.cpp
+  src/renderer/pipeline.cpp
   src/rect.cpp
   src/window.cpp
   src/util.cpp

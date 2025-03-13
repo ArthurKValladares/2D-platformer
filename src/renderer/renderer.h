@@ -10,6 +10,7 @@
 #include "texture.h"
 #include "draw.h"
 #include "material.h"
+#include "pipeline.h"
 
 struct Window;
 struct Renderer {
@@ -87,9 +88,9 @@ private:
     std::vector<VkSemaphore> present_semaphores;
     std::vector<VkSemaphore> render_semaphores;
 
-    VkPipeline pipeline = VK_NULL_HANDLE;
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
-
+    Pipeline pipeline;
+    
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
     std::vector<Texture> textures;
