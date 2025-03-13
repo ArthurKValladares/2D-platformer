@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <vector>
+
 namespace initializers {
     inline VkImageCreateInfo image_create_info() {
         return VkImageCreateInfo {
@@ -54,5 +56,16 @@ namespace initializers {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .maxAnisotropy = 1.0f
         };
+    }
+
+    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(uint32_t binding_count = 0, const VkDescriptorSetLayoutBinding* p_bindings = nullptr) {
+        return VkDescriptorSetLayoutCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = binding_count,
+            .pBindings = p_bindings
+        };
+    }
+    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const std::vector<VkDescriptorSetLayoutBinding>& bindings) {
+        return descriptor_set_create_info((uint32_t) bindings.size(), bindings.data());
     }
 };
