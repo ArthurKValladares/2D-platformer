@@ -18,9 +18,12 @@ add_executable(${PROJECT_NAME}
   src/asset_manager.cpp
   src/view.cpp
   src/main.cpp
+  # Adding SPIRV-Reflect directly to project
+  third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
-  third-party/stb)
+  third-party/stb
+  third-party/SPIRV-Reflect-vulkan-sdk)
 
 ### Vulkan setup
 find_package(Vulkan REQUIRED)

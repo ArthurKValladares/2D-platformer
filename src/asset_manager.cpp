@@ -21,6 +21,10 @@ const char* texture_path(TextureSource texture) {
             assert(false);
             return "";
         }
+        default:{
+            assert(false);
+            return "";
+        }
     }
 }
 
@@ -42,6 +46,10 @@ const char* shader_path(ShaderSource shader) {
             return "shaders/triangle.vert.spv";
         }
         case ShaderSource::Count: {
+            assert(false);
+            return "";
+        }
+        default:{
             assert(false);
             return "";
         }
