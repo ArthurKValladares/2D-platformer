@@ -4,7 +4,7 @@
 
 // TODO: very incomplete, just the bare minimum for testing
 struct DrawCommand {
-    VkDescriptorSet descriptor_set;
+    uint64_t material_idx;
     uint32_t index_count;
     uint32_t first_index;
 };

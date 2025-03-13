@@ -34,10 +34,6 @@ struct Renderer {
         return descriptor_pool;
     }
 
-    const Material& get_material_at(uint64_t index) {
-        return texture_materials[index];
-    }
-
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
     void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
 
@@ -99,7 +95,7 @@ private:
     std::vector<Texture> textures;
     
     VkDescriptorSetLayout texture_descriptor_set_layout = VK_NULL_HANDLE;
-    std::vector<Material> texture_materials;
+    std::vector<Material> materials;
 
     friend class Texture;
 };

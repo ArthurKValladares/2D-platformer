@@ -10,9 +10,8 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         draw.rect.vertex_data(data.vertices);
 
         // TODO: I need a better way to get the actual material I want
-        const Material& material = renderer->get_material_at(static_cast<uint64_t>(draw.texture));
         data.draws.push_back(DrawCommand{
-            .descriptor_set = material.descriptor_set,
+            .material_idx = static_cast<uint64_t>(draw.texture),
             .index_count = index_count,
             .first_index = first_index
         });

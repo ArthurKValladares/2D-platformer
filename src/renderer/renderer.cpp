@@ -372,9 +372,9 @@ void Renderer::upload_textures(const std::vector<TextureCreateInfo>& texture_cis
         textures.emplace_back(this, ci);
     }
 
-    texture_materials.reserve(image_count);
+    materials.reserve(image_count);
     for (uint64_t i = 0; i < image_count; ++i) {
-        texture_materials.emplace_back(this, &textures[i], texture_descriptor_set_layout);
+        materials.emplace_back(this, &textures[i], texture_descriptor_set_layout);
     }
 }
 
@@ -520,7 +520,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
     for (const DrawCommand& draw : draws) {
-        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &draw.descriptor_set, 0, nullptr);
+        const Material& material = materials[draw.material_idx];
+        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &material.descriptor_set, 0, nullptr);
         vkCmdDrawIndexed(cb, draw.index_count, 1, draw.first_index, 0, 0);
     }
 
