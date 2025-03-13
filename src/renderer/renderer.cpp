@@ -230,22 +230,12 @@ Renderer::Renderer(Window& window) {
         initializers::pipeline_shader_stage_create_info(vert_shader_data.shader_stage_bits(), vert_shader_data.shader_module),
         initializers::pipeline_shader_stage_create_info(frag_shader_data.shader_stage_bits(), frag_shader_data.shader_module)
     };
-	VkVertexInputBindingDescription vertex_binding = {
-        .binding = 0,
-        .stride = sizeof(float) * 6,
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-    };
-	std::vector<VkVertexInputAttributeDescription> vertex_attributes = {
-		{.location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT},
-		{.location = 1, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = sizeof(float) * 3},
-	};
-	VkPipelineVertexInputStateCreateInfo vertex_input_state = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &vertex_binding,
-		.vertexAttributeDescriptionCount = 2,
-		.pVertexAttributeDescriptions = vertex_attributes.data(),
-	};
+
+    VkVertexInputBindingDescription vertex_binding;
+	std::vector<VkVertexInputAttributeDescription> vertex_attributes;
+	VkPipelineVertexInputStateCreateInfo vertex_input_state;
+    vert_shader_data.get_vertex_input_data(&vertex_binding, vertex_attributes, &vertex_input_state);
+
 	VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST

@@ -2,12 +2,17 @@
 
 #include <cassert>
 
+#define SPIRV_BYTE_WIDTH 8
+
 namespace {
     VkDescriptorType from_spv(SpvReflectDescriptorType spv) {
         return static_cast<VkDescriptorType>(static_cast<uint32_t>(spv));
     }
     VkShaderStageFlagBits from_spv(SpvReflectShaderStageFlagBits spv) {
         return static_cast<VkShaderStageFlagBits>(static_cast<uint32_t>(spv));
+    }
+    VkFormat from_spv(SpvReflectFormat spv) {
+        return static_cast<VkFormat>(static_cast<uint32_t>(spv));
     }
 };
 
@@ -98,4 +103,52 @@ std::vector<VkDescriptorSetLayoutBinding> ShaderData::get_layout_bindings(uint32
     }
 
     return bindings;
+}
+
+void ShaderData::get_vertex_input_data(
+    VkVertexInputBindingDescription* binding_desc,
+    std::vector<VkVertexInputAttributeDescription>& attribute_description,  
+    VkPipelineVertexInputStateCreateInfo* ci) const
+{
+    assert(shader_stage_bits() == VK_SHADER_STAGE_VERTEX_BIT);
+    // TODO: Atm hard-coded to one vertex input binding
+
+    uint32_t offset = 0;
+    for (const SpvReflectInterfaceVariable* var : input_vars) {
+       attribute_description.push_back(VkVertexInputAttributeDescription{
+            .location = var->location,
+            .binding = 0,
+            .format = from_spv(var->format),
+            .offset = offset
+       });
+
+        uint32_t size = 0;
+        switch (var->type_description->op) {
+            case SpvOpTypeVector: {
+                size =
+                    var->numeric.vector.component_count * (var->numeric.scalar.width / SPIRV_BYTE_WIDTH);
+                break;
+            };
+            default: {
+                assert(false);
+                break;
+            }
+        }
+
+        offset += size;
+    }
+
+    *binding_desc = VkVertexInputBindingDescription {
+        .binding = 0,
+        .stride = offset,
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+    };
+   
+    *ci = VkPipelineVertexInputStateCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .vertexBindingDescriptionCount = 1,
+        .pVertexBindingDescriptions = binding_desc,
+        .vertexAttributeDescriptionCount = (uint32_t) attribute_description.size(),
+        .pVertexAttributeDescriptions = attribute_description.data(),
+    };
 }

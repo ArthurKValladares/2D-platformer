@@ -14,6 +14,11 @@ struct ShaderData {
     
     std::vector<VkDescriptorSetLayoutBinding> get_layout_bindings(uint32_t set_idx) const;
 
+    void get_vertex_input_data(
+        VkVertexInputBindingDescription* binding_desc,
+        std::vector<VkVertexInputAttributeDescription>& attribute_description,
+        VkPipelineVertexInputStateCreateInfo* ci) const;
+
     VkDevice device;
 
     VkShaderModule shader_module;
