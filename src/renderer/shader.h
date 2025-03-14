@@ -11,7 +11,8 @@ using BindingsMap = std::vector<std::vector<VkDescriptorSetLayoutBinding>>;
 struct ShaderData {
     ShaderData() {}
     ShaderData(VkDevice device, size_t size, const void* p_code);
-    ~ShaderData();
+
+    void destroy(VkDevice device);
 
     VkShaderStageFlags shader_stage() const;
     VkShaderStageFlagBits shader_stage_bits() const;
@@ -24,8 +25,6 @@ struct ShaderData {
         VkVertexInputBindingDescription* binding_desc,
         std::vector<VkVertexInputAttributeDescription>& attribute_description,
         VkPipelineVertexInputStateCreateInfo* ci) const;
-
-    VkDevice device = VK_NULL_HANDLE;
 
     VkShaderModule shader_module = VK_NULL_HANDLE;
     SpvReflectShaderModule spv_module = {};

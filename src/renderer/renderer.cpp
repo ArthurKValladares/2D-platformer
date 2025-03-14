@@ -229,6 +229,9 @@ Renderer::~Renderer() {
     for (auto& [id, texture] : textures) {
         texture.destroy(this);
     }
+    for (auto& [id, shader] : shaders) {
+        shader.destroy(device);
+    }
     vkDestroyCommandPool(device, command_pool, nullptr);
     for (auto& [id, pipeline_layout] : pipeline_layouts) {
         vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
@@ -288,6 +291,15 @@ void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shad
         shader_pair,
         sample_count,
         image_format);
+}
+
+void Renderer::upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id) {
+    const Texture& texture = textures.at(texture_id);
+
+    std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
+    std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_triple = {texture_id, shader_pair};
+    // TODO: Like the rest of descriptor set stuff, hard-coded for now
+    materials.try_emplace(material_triple, this, &texture, descriptor_set_layouts[0]);
 }
 
 void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
@@ -430,7 +442,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
     for (const DrawCommand& draw : draws) {
-        const Material& material = materials[draw.material_idx];
+        const std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_id = {draw.texture_id, draw.pipeline_id};
+        const Material& material = materials[material_id];
         const Pipeline& pipeline = pipelines[draw.pipeline_id];
         const VkPipelineLayout& pipeline_layout = pipeline_layouts[draw.pipeline_id];
 

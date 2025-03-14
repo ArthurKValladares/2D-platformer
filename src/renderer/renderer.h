@@ -24,6 +24,7 @@ struct Renderer {
     void upload_texture(uint32_t id, const TextureCreateInfo& texture_cis);
     void upload_shader(uint32_t id, const char* path);
     void upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shader_id);
+    void upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id);
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
@@ -109,11 +110,11 @@ private:
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     std::vector<VkDescriptorSetLayout> descriptor_set_layouts;
 
-    std::vector<Material> materials;
-
-    // TODO: Dumbass std::pair does not have a hash function, fix it
-    std::unordered_map<std::pair<uint32_t, uint32_t>, VkPipelineLayout, HashPair<uint32_t, uint32_t>> pipeline_layouts;
-    std::unordered_map<std::pair<uint32_t, uint32_t>, Pipeline, HashPair<uint32_t, uint32_t>> pipelines;
+    // <texture, <vert, frag>>
+    std::unordered_map<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>, Material> materials;
+    // <vert, frag>
+    std::unordered_map<std::pair<uint32_t, uint32_t>, VkPipelineLayout> pipeline_layouts;
+    std::unordered_map<std::pair<uint32_t, uint32_t>, Pipeline> pipelines;
 
     friend class Texture;
 };

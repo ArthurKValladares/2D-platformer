@@ -29,13 +29,17 @@ struct hash_container
     }
 };
 
-template<typename T, typename U>
-struct HashPair
+namespace std
 {
-    size_t operator()(const std::pair<T,U>& v) const
+    // support for pair<T,U> if T and U can be hashed
+    template<typename T, typename U>
+    struct hash<pair<T, U>>
     {
-        size_t h=make_hash(v.first);
-        hash_combine(h, make_hash(v.second));
-        return h;
-    }
-};
+        size_t operator()(const pair<T,U>& v) const
+        {
+            size_t h=make_hash(v.first);
+            hash_combine(h, make_hash(v.second));
+            return h;
+        }
+    };
+}
