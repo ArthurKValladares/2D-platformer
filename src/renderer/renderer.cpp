@@ -284,9 +284,8 @@ void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shad
 
     // Pipeline
     pipelines.try_emplace(shader_pair,
-        device,
-        &pipeline_layout,
-        vert_shader_data, frag_shader_data,
+        this,
+        shader_pair,
         sample_count,
         image_format);
 }

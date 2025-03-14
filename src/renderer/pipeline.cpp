@@ -7,14 +7,14 @@
 #include <vector>
 
 Pipeline::Pipeline(
-    const Renderer& renderer,
+    const Renderer* renderer,
     std::pair<uint32_t, uint32_t> layout_id,
     VkSampleCountFlagBits sample_count,
     uint32_t color_attachment_count, const VkFormat* p_color_attachment_formats
 ) {
-    const ShaderData& vert_shader_data = renderer.shaders(layout_id.first);
-    const ShaderData& frag_shader_data = renderer.get_shader_data(layout_id.second);
-    const VkPipelineLayout& layout = renderer.get_pipeline_layout(layout_id);
+    const ShaderData& vert_shader_data = renderer->get_shader_data(layout_id.first);
+    const ShaderData& frag_shader_data = renderer->get_shader_data(layout_id.second);
+    const VkPipelineLayout& layout = renderer->get_pipeline_layout(layout_id);
 
     std::vector<VkPipelineShaderStageCreateInfo> stages = {
         initializers::pipeline_shader_stage_create_info(vert_shader_data.shader_stage_bits(), vert_shader_data.shader_module),
@@ -85,7 +85,7 @@ Pipeline::Pipeline(
 	};
 
     this->layout_id = layout_id;
-	chk(vkCreateGraphicsPipelines(renderer.get_device(), VK_NULL_HANDLE, 1, &pipeline_ci, nullptr, &raw));
+	chk(vkCreateGraphicsPipelines(renderer->get_device(), VK_NULL_HANDLE, 1, &pipeline_ci, nullptr, &raw));
 }
 
 void Pipeline::destroy(VkDevice device) {

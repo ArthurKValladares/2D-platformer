@@ -13,6 +13,8 @@
 #include "material.h"
 #include "pipeline.h"
 
+#include "../hash.h"
+
 struct Window;
 struct Renderer {
     Renderer(Window& window);
@@ -110,8 +112,8 @@ private:
     std::vector<Material> materials;
 
     // TODO: Dumbass std::pair does not have a hash function, fix it
-    std::unordered_map<std::pair<uint32_t, uint32_t>, VkPipelineLayout> pipeline_layouts;
-    std::unordered_map<std::pair<uint32_t, uint32_t>, Pipeline> pipelines;
+    std::unordered_map<std::pair<uint32_t, uint32_t>, VkPipelineLayout, HashPair<uint32_t, uint32_t>> pipeline_layouts;
+    std::unordered_map<std::pair<uint32_t, uint32_t>, Pipeline, HashPair<uint32_t, uint32_t>> pipelines;
 
     friend class Texture;
 };
