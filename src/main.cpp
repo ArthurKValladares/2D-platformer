@@ -20,19 +20,25 @@ int main(int argc, char *argv[]) {
     
     // Textures
     TextureManager texture_manager;
-
-    std::vector<TextureCreateInfo> texture_cis;
-    texture_cis.reserve(texture_manager.images.size());
-    for (ImageData& image : texture_manager.images) {
-        texture_cis.push_back(TextureCreateInfo{
+    // TODO: Kinda awkward, I should be using the enums, make this better later
+    for (uint32_t id = 0; id < texture_manager.images.size(); ++id) {
+        const ImageData& image = texture_manager.images[id];
+        TextureCreateInfo ci = TextureCreateInfo{
             .buffer = image.img,
             .buffer_size = image.size,
             .width = static_cast<uint32_t>(image.width),
             .height = static_cast<uint32_t>(image.height),
             .format = VK_FORMAT_R8G8B8A8_SRGB,
-        });
+        };
+        renderer.upload_texture(id, ci);
     }
-    renderer.upload_textures(texture_cis);
+
+    // Shaders
+    renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleVert), shader_path(ShaderSource::TriangleVert));
+    renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleFrag), shader_path(ShaderSource::TriangleFrag));
+
+    // Pipelines
+    renderer.upload_pipeline(static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
 
     // View-tree
     View root_view = View();
