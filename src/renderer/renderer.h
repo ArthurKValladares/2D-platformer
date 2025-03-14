@@ -87,16 +87,16 @@ private:
     std::vector<VkFence> fences;
     std::vector<VkSemaphore> present_semaphores;
     std::vector<VkSemaphore> render_semaphores;
+    
+    std::vector<Texture> textures;
+    
+    VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
+    std::vector<VkDescriptorSetLayout> descriptor_set_layouts;
+
+    std::vector<Material> materials;
 
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
     Pipeline pipeline;
-    
-    VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
-
-    std::vector<Texture> textures;
-    
-    VkDescriptorSetLayout texture_descriptor_set_layout = VK_NULL_HANDLE;
-    std::vector<Material> materials;
 
     friend class Texture;
 };

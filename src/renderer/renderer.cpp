@@ -223,11 +223,15 @@ Renderer::Renderer(Window& window) {
     vert_shader_data.append_layout_bindings(bindings_map);
     frag_shader_data.append_layout_bindings(bindings_map);
 
-    VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[0]);
-    chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &texture_descriptor_set_layout));
+    // TODO: This is still bad, it needs to be a map so I don't create duplicate layouts and so I can more easily retrieve it
+    descriptor_set_layouts.resize(bindings_map.size());
+    for (uint64_t i = 0; i < bindings_map.size(); ++i) {
+        VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
+        chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &descriptor_set_layouts[i]));
+    }
 
     // Pipeline layout
-	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(texture_descriptor_set_layout);
+	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(descriptor_set_layouts[0]);
 	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
 
     // Pipeline
@@ -263,7 +267,9 @@ Renderer::~Renderer() {
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
     vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
-    vkDestroyDescriptorSetLayout(device, texture_descriptor_set_layout, nullptr);
+    for (VkDescriptorSetLayout set_layout : descriptor_set_layouts) {
+        vkDestroyDescriptorSetLayout(device, set_layout, nullptr);
+    }
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);
@@ -278,7 +284,8 @@ void Renderer::upload_textures(const std::vector<TextureCreateInfo>& texture_cis
 
     materials.reserve(image_count);
     for (uint64_t i = 0; i < image_count; ++i) {
-        materials.emplace_back(this, &textures[i], texture_descriptor_set_layout);
+        // TODO: need to actually get this set layout somehow
+        materials.emplace_back(this, &textures[i], descriptor_set_layouts[0]);
     }
 }
 
