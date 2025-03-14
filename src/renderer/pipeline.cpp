@@ -1,6 +1,5 @@
-#include "pipeline.h"
-#include "initializers.h"
 #include "renderer.h"
+#include "initializers.h"
 
 #include "../util.h"
 

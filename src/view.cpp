@@ -12,6 +12,7 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         // TODO: I need a better way to get the actual material I want
         data.draws.push_back(DrawCommand{
             .material_idx = static_cast<uint64_t>(draw.texture),
+            .pipeline_id = std::make_pair(static_cast<uint32_t>(draw.vertex_shader), static_cast<uint32_t>(draw.fragment_shader)),
             .index_count = index_count,
             .first_index = first_index
         });

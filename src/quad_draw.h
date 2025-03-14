@@ -10,6 +10,8 @@ struct QuadDraw {
 
     Rect2D rect;
     TextureSource texture;
+    ShaderSource vertex_shader;
+    ShaderSource fragment_shader;
 };
 
 
