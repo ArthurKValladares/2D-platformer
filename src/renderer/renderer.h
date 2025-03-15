@@ -102,17 +102,18 @@ private:
     std::vector<VkFence> fences;
     std::vector<VkSemaphore> present_semaphores;
     std::vector<VkSemaphore> render_semaphores;
-    
-    // TODO: All these maps should probably have strongly-typed ids
-    std::unordered_map<uint32_t, Texture> textures;
-    std::unordered_map<uint32_t, ShaderData> shaders;
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
-    std::vector<VkDescriptorSetLayout> descriptor_set_layouts;
 
+    // TODO: All these maps should probably have strongly-typed ids
+    // TODO: A lot of these keys are still inneficient, I can be better later
+    // <id>
+    std::unordered_map<uint32_t, Texture> textures;
+    std::unordered_map<uint32_t, ShaderData> shaders;
     // <texture, <vert, frag>>
     std::unordered_map<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>, Material> materials;
     // <vert, frag>
+    std::unordered_map<std::pair<uint32_t, uint32_t>, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;
     std::unordered_map<std::pair<uint32_t, uint32_t>, VkPipelineLayout> pipeline_layouts;
     std::unordered_map<std::pair<uint32_t, uint32_t>, Pipeline> pipelines;
 

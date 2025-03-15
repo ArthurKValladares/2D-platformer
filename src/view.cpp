@@ -9,7 +9,7 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         const uint32_t index_count = draw.rect.index_data(data.vertices.size(), data.indices);
         draw.rect.vertex_data(data.vertices);
 
-        // TODO: I need a better way to get the actual material I want
+        // : I need a better way to get the actual material I want
         data.draws.push_back(DrawCommand{
             .texture_id = static_cast<uint64_t>(draw.texture),
             .pipeline_id = std::make_pair(static_cast<uint32_t>(draw.vertex_shader), static_cast<uint32_t>(draw.fragment_shader)),

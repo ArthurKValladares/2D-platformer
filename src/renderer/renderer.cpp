@@ -243,8 +243,10 @@ Renderer::~Renderer() {
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
     vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
-    for (VkDescriptorSetLayout set_layout : descriptor_set_layouts) {
-        vkDestroyDescriptorSetLayout(device, set_layout, nullptr);
+    for (auto& [id, layouts] : descriptor_set_layouts) {
+        for (VkDescriptorSetLayout layout : layouts) {
+            vkDestroyDescriptorSetLayout(device, layout, nullptr);
+        }
     }
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
@@ -261,6 +263,8 @@ void Renderer::upload_shader(uint32_t id, const char* path) {
 }
 
 void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shader_id) {
+    const std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
+
     const ShaderData& vert_shader_data = shaders[vertex_shader_id];
     const ShaderData& frag_shader_data = shaders[fragment_shader_id];
 
@@ -271,18 +275,16 @@ void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shad
     vert_shader_data.append_layout_bindings(bindings_map);
     frag_shader_data.append_layout_bindings(bindings_map);
 
-    // TODO: This is still bad, it needs to be a map so I don't create duplicate layouts and so I can more easily retrieve it
-    descriptor_set_layouts.resize(bindings_map.size());
+    std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+    layouts.resize(bindings_map.size());
     for (uint64_t i = 0; i < bindings_map.size(); ++i) {
         VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
-        chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &descriptor_set_layouts[i]));
+        chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layouts[i]));
     }
 
     // Pipeline layout
-    std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
     VkPipelineLayout& pipeline_layout = pipeline_layouts[shader_pair];
-    // TODO: Still hard-coded to get the first one for now
-	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(descriptor_set_layouts[0]);
+	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
 	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
 
     // Pipeline
@@ -298,8 +300,11 @@ void Renderer::upload_material(uint32_t texture_id, uint32_t vertex_shader_id, u
 
     std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
     std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_triple = {texture_id, shader_pair};
-    // TODO: Like the rest of descriptor set stuff, hard-coded for now
-    materials.try_emplace(material_triple, this, &texture, descriptor_set_layouts[0]);
+    
+    const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+    // TODO: This is hard-coded to get the `0` set for now, which is the sampler2D set.
+    // In the future I should be smarter about this.
+    materials.try_emplace(material_triple, this, &texture, layouts[0]);
 }
 
 void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
