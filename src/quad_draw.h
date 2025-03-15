@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rect.h"
-#include "asset_manager.h"
+#include "assets.h"
 
 struct QuadDraw {
     bool is_empty() const {

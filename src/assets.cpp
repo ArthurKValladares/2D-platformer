@@ -1,4 +1,4 @@
-#include "asset_manager.h"
+#include "assets.h"
 
 #include <cassert>
 
@@ -25,14 +25,6 @@ const char* texture_path(TextureSource texture) {
             assert(false);
             return "";
         }
-    }
-}
-
-TextureManager::TextureManager() {
-    const uint64_t count = static_cast<uint64_t>(TextureSource::Count);
-    images.reserve(count);
-    for (uint64_t i = 0; i < count; ++i) {
-        images.emplace_back(texture_path(static_cast<TextureSource>(i)));
     }
 }
 

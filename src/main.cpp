@@ -6,12 +6,13 @@
 #include <filesystem>
 
 #include "renderer/renderer.h"
-#include "asset_manager.h"
 
+#include "assets.h"
 #include "window.h"
 #include "util.h"
 #include "quad_draw.h"
 #include "view.h"
+#include "image.h"
 
 int main(int argc, char *argv[]) {
     Window window = Window();
@@ -20,12 +21,17 @@ int main(int argc, char *argv[]) {
     Renderer renderer(window);
     
     // Textures
-    TextureManager texture_manager;
-    // TODO: Kinda awkward, I should be using the enums, make this better later
-    for (uint32_t id = 0; id < texture_manager.images.size(); ++id) {
-        const ImageData& image = texture_manager.images[id];
-        renderer.upload_texture(id, image.texture_create_info());
-    }
+    ImageData test_1 = ImageData(texture_path(TextureSource::Test1));
+    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test1), test_1.texture_create_info());
+
+    ImageData test_2 = ImageData(texture_path(TextureSource::Test2));
+    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test2), test_2.texture_create_info());
+
+    ImageData test_3 = ImageData(texture_path(TextureSource::Test3));
+    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test3), test_3.texture_create_info());
+
+    ImageData test_4 = ImageData(texture_path(TextureSource::Test4));
+    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test4), test_4.texture_create_info());
 
     // Shaders
     renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleVert), shader_path(ShaderSource::TriangleVert));

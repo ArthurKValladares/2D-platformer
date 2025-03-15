@@ -17,7 +17,7 @@ add_executable(${PROJECT_NAME}
   src/window.cpp
   src/util.cpp
   src/image.cpp
-  src/asset_manager.cpp
+  src/assets.cpp
   src/view.cpp
   src/main.cpp
   # Adding SPIRV-Reflect directly to project
