@@ -14,6 +14,10 @@
 #include "view.h"
 #include "image.h"
 
+// TODO: The way I'm handling descriptor sets is very messy.
+// Look at using push descriptors instead
+// https://github.com/SaschaWillems/Vulkan/blob/master/examples/pushdescriptors/pushdescriptors.cpp
+
 int main(int argc, char *argv[]) {
     Window window = Window();
 
