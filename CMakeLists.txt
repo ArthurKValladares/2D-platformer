@@ -25,7 +25,8 @@ add_executable(${PROJECT_NAME}
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
   third-party/stb
-  third-party/SPIRV-Reflect-vulkan-sdk)
+  third-party/SPIRV-Reflect-vulkan-sdk
+  third-party/glm)
 
 ### Vulkan setup
 find_package(Vulkan REQUIRED)
@@ -41,13 +42,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 add_subdirectory(third-party/SDL EXCLUDE_FROM_ALL)
 
+### Glm
+add_subdirectory(third-party/glm)
+
 ### Link libs
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     Vulkan::Vulkan
     GPUOpen::VulkanMemoryAllocator
     vk-bootstrap::vk-bootstrap
-    SDL3::SDL3)
+    SDL3::SDL3
+    glm::glm)
 
 # Compile shaders
 find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
