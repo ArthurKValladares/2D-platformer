@@ -12,3 +12,13 @@ ImageData::ImageData(const std::string& path) {
 ImageData::~ImageData() {
     stbi_image_free(img);
 }
+
+TextureCreateInfo ImageData::texture_create_info() const {
+    return TextureCreateInfo{
+        .buffer = img,
+        .buffer_size = size,
+        .width = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height),
+        .format = VK_FORMAT_R8G8B8A8_SRGB,
+    };
+}

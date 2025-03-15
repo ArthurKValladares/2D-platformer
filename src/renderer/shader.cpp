@@ -17,8 +17,6 @@ namespace {
 };
 
 ShaderData::ShaderData(VkDevice device, size_t size, const void* p_code) {
-    this->device = device;
-
     VkShaderModuleCreateInfo shader_module_ci = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .codeSize = size,
@@ -71,7 +69,7 @@ ShaderData::ShaderData(VkDevice device, size_t size, const void* p_code) {
     }
 }
 
-ShaderData::~ShaderData() {
+void ShaderData::destroy(VkDevice device) {
     spvReflectDestroyShaderModule(&spv_module);
     vkDestroyShaderModule(device, shader_module, nullptr);
 }

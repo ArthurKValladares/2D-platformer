@@ -1,7 +1,7 @@
 #include "material.h"
 #include "renderer.h"
 
-Material::Material(Renderer* renderer, Texture* texture, VkDescriptorSetLayout set_layout) {
+Material::Material(Renderer* renderer, const Texture* texture, VkDescriptorSetLayout set_layout) {
     VkDescriptorSetAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = renderer->get_descriptor_pool();

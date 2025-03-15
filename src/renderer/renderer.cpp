@@ -210,37 +210,6 @@ Renderer::Renderer(Window& window) {
     pool_info.maxSets = static_cast<uint32_t>(max_image_count);
     chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
 
-    // Shaders
-    const std::vector<uint8_t> vert_shader_bytes = read_file_to_buffer<uint8_t>("shaders/triangle.vert.spv");
-    const ShaderData vert_shader_data = ShaderData(device, vert_shader_bytes.size(), &vert_shader_bytes[0]);
-    const std::vector<uint8_t> frag_shader_bytes = read_file_to_buffer<uint8_t>("shaders/triangle.frag.spv");
-    const ShaderData frag_shader_data = ShaderData(device, frag_shader_bytes.size(), &frag_shader_bytes[0]);
-
-    // Descriptor set layout
-    BindingsMap bindings_map;
-    const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
-    bindings_map.resize(num_sets);
-    vert_shader_data.append_layout_bindings(bindings_map);
-    frag_shader_data.append_layout_bindings(bindings_map);
-
-    // TODO: This is still bad, it needs to be a map so I don't create duplicate layouts and so I can more easily retrieve it
-    descriptor_set_layouts.resize(bindings_map.size());
-    for (uint64_t i = 0; i < bindings_map.size(); ++i) {
-        VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
-        chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &descriptor_set_layouts[i]));
-    }
-
-    // Pipeline layout
-	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(descriptor_set_layouts[0]);
-	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
-
-    // Pipeline
-    pipeline = Pipeline(
-        device,
-        &pipeline_layout,
-        vert_shader_data, frag_shader_data,
-        sample_count,
-        image_format);
 }
 
 Renderer::~Renderer() {
@@ -257,36 +226,85 @@ Renderer::~Renderer() {
     }
     v_buffer.destroy(allocator);
     i_buffer.destroy(allocator);
-    for (Texture& texture : textures) {
+    for (auto& [id, texture] : textures) {
         texture.destroy(this);
     }
+    for (auto& [id, shader] : shaders) {
+        shader.destroy(device);
+    }
     vkDestroyCommandPool(device, command_pool, nullptr);
-    vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
-    pipeline.destroy(device);
+    for (auto& [id, pipeline_layout] : pipeline_layouts) {
+        vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
+    }
+    for (auto& [id, pipeline] : pipelines) {
+        pipeline.destroy(device);
+    }
     vkDestroySwapchainKHR(device, swapchain, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
     vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
-    for (VkDescriptorSetLayout set_layout : descriptor_set_layouts) {
-        vkDestroyDescriptorSetLayout(device, set_layout, nullptr);
+    for (auto& [id, layouts] : descriptor_set_layouts) {
+        for (VkDescriptorSetLayout layout : layouts) {
+            vkDestroyDescriptorSetLayout(device, layout, nullptr);
+        }
     }
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);
 }
 
-void Renderer::upload_textures(const std::vector<TextureCreateInfo>& texture_cis) {
-    const uint64_t image_count = texture_cis.size();
-    textures.reserve(image_count);
-    for (const TextureCreateInfo& ci : texture_cis) {
-        textures.emplace_back(this, ci);
+void Renderer::upload_texture(uint32_t id, const TextureCreateInfo& ci) {
+    textures.try_emplace(id, this, ci);
+}
+
+void Renderer::upload_shader(uint32_t id, const char* path) {
+    const std::vector<uint8_t> shader_bytes = read_file_to_buffer<uint8_t>(path);
+    shaders.try_emplace(id, device, shader_bytes.size(), &shader_bytes[0]);
+}
+
+void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shader_id) {
+    const std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
+
+    const ShaderData& vert_shader_data = shaders[vertex_shader_id];
+    const ShaderData& frag_shader_data = shaders[fragment_shader_id];
+
+    // Descriptor set layout
+    BindingsMap bindings_map;
+    const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
+    bindings_map.resize(num_sets);
+    vert_shader_data.append_layout_bindings(bindings_map);
+    frag_shader_data.append_layout_bindings(bindings_map);
+
+    std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+    layouts.resize(bindings_map.size());
+    for (uint64_t i = 0; i < bindings_map.size(); ++i) {
+        VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
+        chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layouts[i]));
     }
 
-    materials.reserve(image_count);
-    for (uint64_t i = 0; i < image_count; ++i) {
-        // TODO: need to actually get this set layout somehow
-        materials.emplace_back(this, &textures[i], descriptor_set_layouts[0]);
-    }
+    // Pipeline layout
+    VkPipelineLayout& pipeline_layout = pipeline_layouts[shader_pair];
+	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
+	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
+
+    // Pipeline
+    pipelines.try_emplace(shader_pair,
+        this,
+        shader_pair,
+        sample_count,
+        image_format);
+}
+
+void Renderer::upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id) {
+    const Texture& texture = textures.at(texture_id);
+
+    std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
+    std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_triple = {texture_id, shader_pair};
+    
+    const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+    // TODO: This is hard-coded to get the `0` set for now, which is the sampler2D set.
+    // In the future I should be smarter about this.
+    materials.try_emplace(material_triple, this, &texture, layouts[0]);
 }
 
 void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
@@ -424,14 +442,17 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     };
     vkCmdSetScissor(cb, 0, 1, &scissor);
 
-    vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
-
     VkDeviceSize v_offset = 0;
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer.raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
     for (const DrawCommand& draw : draws) {
-        const Material& material = materials[draw.material_idx];
+        const std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_id = {draw.texture_id, draw.pipeline_id};
+        const Material& material = materials[material_id];
+        const Pipeline& pipeline = pipelines[draw.pipeline_id];
+        const VkPipelineLayout& pipeline_layout = pipeline_layouts[draw.pipeline_id];
+
+        vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &material.descriptor_set, 0, nullptr);
         vkCmdDrawIndexed(cb, draw.index_count, 1, draw.first_index, 0, 0);
     }
