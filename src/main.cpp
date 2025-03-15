@@ -24,14 +24,7 @@ int main(int argc, char *argv[]) {
     // TODO: Kinda awkward, I should be using the enums, make this better later
     for (uint32_t id = 0; id < texture_manager.images.size(); ++id) {
         const ImageData& image = texture_manager.images[id];
-        TextureCreateInfo ci = TextureCreateInfo{
-            .buffer = image.img,
-            .buffer_size = image.size,
-            .width = static_cast<uint32_t>(image.width),
-            .height = static_cast<uint32_t>(image.height),
-            .format = VK_FORMAT_R8G8B8A8_SRGB,
-        };
-        renderer.upload_texture(id, ci);
+        renderer.upload_texture(id, image.texture_create_info());
     }
 
     // Shaders
