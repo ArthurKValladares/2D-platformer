@@ -27,6 +27,7 @@ struct ShaderPair {
         triangle_frag = frag;
     }
 
+    uint32_t vertex_num_floats() const;
     // TODO: This is not quite right, but ok for now
     TextureSource draw_texture() const;
 

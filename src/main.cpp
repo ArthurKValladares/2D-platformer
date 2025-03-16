@@ -56,7 +56,6 @@ int main(int argc, char *argv[]) {
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test4), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
 
     // View-tree
-    // TODO: Maybe should use the material instead of all the separete things?
     View root_view = View();
 
     ShaderPair pair = ShaderPair();
@@ -97,7 +96,7 @@ int main(int argc, char *argv[]) {
     ViewDrawData data = {};
     root_view.append_draw_data(&renderer, data);
     renderer.upload_index_data(&data.indices[0], data.indices.size() * sizeof(uint32_t));
-    renderer.upload_vertex_data(&data.vertices[0], data.vertices.size() * sizeof(QuadVertex));
+    renderer.upload_vertex_data(&data.vertices[0], data.vertices.size() * sizeof(float));
 
     const auto start{std::chrono::steady_clock::now()};
     SDL_Event e;

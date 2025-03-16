@@ -6,7 +6,7 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
     if (!draw.is_empty()) {
         const uint32_t first_index = data.indices.size();
 
-        const uint32_t index_count = draw.rect.index_data(data.vertices.size(), data.indices);
+        const uint32_t index_count = draw.rect.index_data(data.vertices.size() / draw.shaders.vertex_num_floats(), data.indices);
         draw.rect.vertex_data(data.vertices);
 
         TextureSource draw_texture = draw.shaders.draw_texture();

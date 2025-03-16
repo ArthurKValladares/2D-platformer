@@ -9,9 +9,8 @@
 #include "rect.h"
 #include "quad_draw.h"
 
-// TODO: Right now Views are hard-coded to be quads, will be more generic later
 struct ViewDrawData {
-    std::vector<QuadVertex> vertices = {};
+    std::vector<float> vertices = {};
     std::vector<uint32_t> indices = {};
     std::vector<DrawCommand> draws = {};
 };

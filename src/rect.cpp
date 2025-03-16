@@ -2,18 +2,19 @@
 
 #include "util.h"
 
-uint64_t Rect2D::vertex_data(std::vector<QuadVertex>& vertex_buffer) const {
+uint64_t Rect2D::vertex_data(std::vector<float>& vertex_buffer) const {
     const float half_size_x = (max_x - min_x) / 2.0;
     const float half_size_y = (max_y - min_y) / 2.0;
 
     const float mid_x = min_x + half_size_x;
     const float mid_y = min_y + half_size_y;
 
-    const QuadVertex quad_vertices[] = {
-        QuadVertex{Vec3f32{mid_x - half_size_x, mid_y - half_size_y, 0.0f}, Vec3f32{0.0f, 1.0f, 0.0f}},
-        QuadVertex{Vec3f32{mid_x + half_size_x, mid_y + half_size_y, 0.0f}, Vec3f32{1.0f, 0.0f, 0.0f}},
-        QuadVertex{Vec3f32{mid_x - half_size_x, mid_y + half_size_y, 0.0f}, Vec3f32{0.0f, 0.0f, 0.0f}},
-        QuadVertex{Vec3f32{mid_x + half_size_x, mid_y - half_size_y, 0.0f}, Vec3f32{1.0f, 1.0f, 0.0f}},
+    const float quad_vertices[] = {
+        // Pos                                          // Color
+        mid_x - half_size_x, mid_y - half_size_y, 0.0f, 0.0f, 1.0f, 0.0f,
+        mid_x + half_size_x, mid_y + half_size_y, 0.0f, 1.0f, 0.0f, 0.0f,
+        mid_x - half_size_x, mid_y + half_size_y, 0.0f, 0.0f, 0.0f, 0.0f,
+        mid_x + half_size_x, mid_y - half_size_y, 0.0f, 1.0f, 1.0f, 0.0f,
    };
 
    std::move(&quad_vertices[0], &quad_vertices[ArrayCount(quad_vertices)], back_inserter(vertex_buffer));

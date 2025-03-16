@@ -13,5 +13,9 @@ struct TriangleVertex {
 struct TriangleVert {
     TriangleVert() {}
 
+    uint32_t vertex_num_floats() const {
+        return sizeof(TriangleVertex) / sizeof(float);
+    }
+    
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 };
