@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <chrono>
+#include <math.h> 
 
 #include "renderer/renderer.h"
 
@@ -67,7 +69,7 @@ int main(int argc, char *argv[]) {
 
     pair.with_triangle_transform_vert(
         TriangleTransformVert(TriangleTransformPC{
-            glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0))
+            glm::mat4(1.0)
         })
     );
     pair.with_triangle_frag(TriangleFrag(TextureSource::Test2));
@@ -97,6 +99,7 @@ int main(int argc, char *argv[]) {
     renderer.upload_index_data(&data.indices[0], data.indices.size() * sizeof(uint32_t));
     renderer.upload_vertex_data(&data.vertices[0], data.vertices.size() * sizeof(QuadVertex));
 
+    const auto start{std::chrono::steady_clock::now()};
     SDL_Event e;
     SDL_zero(e);
     bool quit = false;
@@ -113,6 +116,14 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        const auto finish{std::chrono::steady_clock::now()};
+        const std::chrono::duration<double> elapsed_seconds{finish - start};
+        const double offset = sin(elapsed_seconds.count()) * 0.1;
+
+        // TODO: Obviously bad, need like an `update` function on views or something like that
+        root_view.children[1].draw.shaders.triangle_transform_vert.push_constant.render_matrix = 
+        glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
+        
         renderer.render(window, data.draws);
     }
 
