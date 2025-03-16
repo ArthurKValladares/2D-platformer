@@ -9,23 +9,18 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         const uint32_t index_count = draw.rect.index_data(data.vertices.size(), data.indices);
         draw.rect.vertex_data(data.vertices);
 
-        // TODO: I need a better way to get the actual material I want
-        // TODO: I also need a better way to handle push constants
+        TextureSource draw_texture = draw.shaders.draw_texture();
         DrawCommand dc = DrawCommand{
-            .texture_id = static_cast<uint64_t>(draw.texture),
-            .pipeline_id = std::make_pair(static_cast<uint32_t>(draw.vertex_shader), static_cast<uint32_t>(draw.fragment_shader)),
+            .texture_id = static_cast<uint64_t>(draw_texture),
+            .pipeline_id = std::make_pair(
+                static_cast<uint32_t>(draw.shaders.vertex_ty),
+                static_cast<uint32_t>(draw.shaders.fragment_ty)
+            ),
             .index_count = index_count,
             .first_index = first_index
         };
-        if (use_pc) {
-            dc.uses_push_constants = true;
-            dc.pc = PushConstantData {
-                .stage_flags = VK_SHADER_STAGE_VERTEX_BIT,
-                .offset = 0,
-                .size = sizeof(glm::mat4),
-                .p_data = &transform
-            };
-        }
+        draw.shaders.append_push_constant_data(dc.pcs);
+
         data.draws.push_back(dc);
     }
 

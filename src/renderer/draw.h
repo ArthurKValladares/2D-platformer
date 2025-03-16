@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <vulkan/vulkan.h>
 
 struct PushConstantData {
@@ -15,6 +17,5 @@ struct DrawCommand {
     std::pair<uint32_t, uint32_t> pipeline_id;
     uint32_t index_count;
     uint32_t first_index;
-    bool uses_push_constants;
-    PushConstantData pc;
+    std::vector<PushConstantData> pcs;
 };

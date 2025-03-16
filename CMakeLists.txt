@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
   src/renderer/material.cpp
   src/renderer/shader.cpp
   src/renderer/pipeline.cpp
+  src/shader_defs/shader_pairs.cpp
   src/rect.cpp
   src/window.cpp
   src/util.cpp

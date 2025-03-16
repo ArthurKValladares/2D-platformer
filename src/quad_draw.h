@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rect.h"
-#include "assets.h"
+#include "shader_defs/shader_pairs.h"
 
 struct QuadDraw {
     bool is_empty() const {
@@ -9,9 +9,7 @@ struct QuadDraw {
     }
 
     Rect2D rect;
-    TextureSource texture;
-    ShaderSource vertex_shader;
-    ShaderSource fragment_shader;
+    ShaderPair shaders;
 };
 
 

@@ -46,40 +46,50 @@ int main(int argc, char *argv[]) {
     renderer.upload_pipeline(static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
     renderer.upload_pipeline(static_cast<uint32_t>(ShaderSource::TriangleTransformVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
 
+    // TODO: I should be creating these on the fly as needed and not here, do that later
     // Materials
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test1), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test2), static_cast<uint32_t>(ShaderSource::TriangleTransformVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test3), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test4), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
 
-    // Tranform
-    glm::mat4 rotate_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.1, 0.0, 0.0));
-
     // View-tree
     // TODO: Maybe should use the material instead of all the separete things?
     View root_view = View();
+
+    ShaderPair pair = ShaderPair();
+    pair.with_triangle_vert(TriangleVert());
+    pair.with_triangle_frag(TriangleFrag(TextureSource::Test1));
     root_view.push_child(QuadDraw{
         Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test1,
-        ShaderSource::TriangleVert, ShaderSource::TriangleFrag
+        pair
     });
+
+    pair.with_triangle_transform_vert(
+        TriangleTransformVert(TriangleTransformPC{
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0))
+        })
+    );
+    pair.with_triangle_frag(TriangleFrag(TextureSource::Test2));
     root_view.push_child(View(
         QuadDraw{
             Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-            TextureSource::Test2,
-            ShaderSource::TriangleTransformVert, ShaderSource::TriangleFrag
-        }, 
-        true, rotate_matrix
+            pair
+        }
     ));
+
+    pair.with_triangle_vert(TriangleVert());
+    pair.with_triangle_frag(TriangleFrag(TextureSource::Test3));
     root_view.push_child(QuadDraw{
         Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test3,
-        ShaderSource::TriangleVert, ShaderSource::TriangleFrag
+        pair
     });
+
+    pair.with_triangle_vert(TriangleVert());
+    pair.with_triangle_frag(TriangleFrag(TextureSource::Test4));
     root_view.push_child(QuadDraw{
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test4,
-        ShaderSource::TriangleVert, ShaderSource::TriangleFrag
+        pair
     });
 
     ViewDrawData data = {};

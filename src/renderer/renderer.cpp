@@ -462,9 +462,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &material.descriptor_set, 0, nullptr);
 
-        // TODO: Needs to handle more than one and not just a bool, needs to be a vector
-        if (draw.uses_push_constants) {
-            vkCmdPushConstants(cb, pipeline_layout, draw.pc.stage_flags, draw.pc.offset, draw.pc.size, draw.pc.p_data);
+        for (const PushConstantData& pc : draw.pcs) {
+            vkCmdPushConstants(cb, pipeline_layout, pc.stage_flags, pc.offset, pc.size, pc.p_data);
         }
 
         vkCmdDrawIndexed(cb, draw.index_count, 1, draw.first_index, 0, 0);

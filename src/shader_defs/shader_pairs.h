@@ -1,0 +1,45 @@
+#pragma once
+
+#include "../assets.h"
+
+#include "triangle_vert.h"
+#include "triangle_transform_vert.h"
+#include "triangle_frag.h"
+
+//
+// TODO: A bunch of stuff in thus sub-dir can maybe be auto-generated.
+//
+
+struct ShaderPair {
+    ShaderPair() {}
+
+    void with_triangle_vert(TriangleVert vert) {
+        vertex_ty = ShaderSource::TriangleVert;
+        triangle_vert = vert;
+    }
+    void with_triangle_transform_vert(TriangleTransformVert vert) {
+        vertex_ty = ShaderSource::TriangleTransformVert;
+        triangle_transform_vert = vert;
+    }
+
+    void with_triangle_frag(TriangleFrag frag) {
+        fragment_ty = ShaderSource::TriangleFrag;
+        triangle_frag = frag;
+    }
+
+    // TODO: This is not quite right, but ok for now
+    TextureSource draw_texture() const;
+
+    void append_push_constant_data(std::vector<PushConstantData>& pcs) const;
+
+    ShaderSource vertex_ty;
+    union {
+        TriangleVert triangle_vert;
+        TriangleTransformVert triangle_transform_vert;
+    };
+    
+    ShaderSource fragment_ty;
+    union {
+        TriangleFrag triangle_frag;
+    };
+};

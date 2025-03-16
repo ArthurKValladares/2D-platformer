@@ -19,10 +19,8 @@ struct ViewDrawData {
 struct Renderer;
 struct View {
     View() {}
-    View(QuadDraw in_draw,  bool use_pc = false, glm::mat4 transform = glm::mat4(1.0))
+    View(QuadDraw in_draw)
         : draw(in_draw)
-        , use_pc(use_pc)
-        , transform(transform)
     {}
 
     void push_child(View view)  {
@@ -32,10 +30,6 @@ struct View {
     void append_draw_data(Renderer* renderer, ViewDrawData& data) const;
 
     QuadDraw draw;
-
-    // TODO: This use_pc stuff is very bad, very temp
-    bool use_pc;
-    glm::mat4 transform;
 
     std::vector<View> children;
 };
