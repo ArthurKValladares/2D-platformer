@@ -67,6 +67,16 @@ ShaderData::ShaderData(VkDevice device, size_t size, const void* p_code) {
         result = spvReflectEnumerateDescriptorSets(&spv_module, &var_count, &descriptor_sets[0]);
         assert(result == SPV_REFLECT_RESULT_SUCCESS);
     }
+
+    // Enumerate and extract shader's push constantas
+    var_count = 0;
+    result = spvReflectEnumeratePushConstants(&spv_module, &var_count, NULL);
+    assert(result == SPV_REFLECT_RESULT_SUCCESS);
+    if (var_count != 0) {
+        push_constants.resize(var_count);
+        result = spvReflectEnumeratePushConstants(&spv_module, &var_count, &push_constants[0]);
+        assert(result == SPV_REFLECT_RESULT_SUCCESS);
+    }
 }
 
 void ShaderData::destroy(VkDevice device) {
@@ -158,4 +168,14 @@ void ShaderData::get_vertex_input_data(
         .vertexAttributeDescriptionCount = (uint32_t) attribute_description.size(),
         .pVertexAttributeDescriptions = attribute_description.data(),
     };
+}
+
+void ShaderData::append_push_constant_ranges(std::vector<VkPushConstantRange>& ranges) const {
+    for (SpvReflectBlockVariable* push_constant : push_constants) {
+        ranges.push_back(VkPushConstantRange{
+            .stageFlags = shader_stage(),
+            .offset = push_constant->offset,
+            .size = push_constant->size
+        });
+    }
 }

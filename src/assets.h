@@ -17,6 +17,7 @@ const char* texture_path(TextureSource texture);
 enum class ShaderSource : uint32_t {
     TriangleFrag = 0,
     TriangleVert,
+    TriangleTransformVert,
     Count
 };
 const char* shader_path(ShaderSource shader);

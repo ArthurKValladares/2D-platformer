@@ -39,34 +39,38 @@ int main(int argc, char *argv[]) {
 
     // Shaders
     renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleVert), shader_path(ShaderSource::TriangleVert));
+    renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleTransformVert), shader_path(ShaderSource::TriangleTransformVert));
     renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleFrag), shader_path(ShaderSource::TriangleFrag));
 
     // Pipelines
     renderer.upload_pipeline(static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
+    renderer.upload_pipeline(static_cast<uint32_t>(ShaderSource::TriangleTransformVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
 
     // Materials
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test1), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
-    renderer.upload_material(static_cast<uint32_t>(TextureSource::Test2), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
+    renderer.upload_material(static_cast<uint32_t>(TextureSource::Test2), static_cast<uint32_t>(ShaderSource::TriangleTransformVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test3), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
     renderer.upload_material(static_cast<uint32_t>(TextureSource::Test4), static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
 
     // Tranform
-    // TODO: Create a shader that uses this and hook it up to one of the views, having the backend also handle it automatically
-    // Also need to offset it to origin to get the rotation to actually work
-    glm::mat4 rotate_matrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 rotate_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.1, 0.0, 0.0));
 
     // View-tree
+    // TODO: Maybe should use the material instead of all the separete things?
     View root_view = View();
     root_view.push_child(QuadDraw{
         Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test1,
         ShaderSource::TriangleVert, ShaderSource::TriangleFrag
     });
-    root_view.push_child(QuadDraw{
-        Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test2,
-        ShaderSource::TriangleVert, ShaderSource::TriangleFrag
-    });
+    root_view.push_child(View(
+        QuadDraw{
+            Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
+            TextureSource::Test2,
+            ShaderSource::TriangleTransformVert, ShaderSource::TriangleFrag
+        }, 
+        true, rotate_matrix
+    ));
     root_view.push_child(QuadDraw{
         Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test3,

@@ -26,10 +26,13 @@ struct ShaderData {
         std::vector<VkVertexInputAttributeDescription>& attribute_description,
         VkPipelineVertexInputStateCreateInfo* ci) const;
 
+    void append_push_constant_ranges(std::vector<VkPushConstantRange>& ranges) const;
+
     VkShaderModule shader_module = VK_NULL_HANDLE;
     SpvReflectShaderModule spv_module = {};
     std::vector<SpvReflectInterfaceVariable*> input_vars;
     std::vector<SpvReflectInterfaceVariable*> output_vars;
     std::vector<SpvReflectDescriptorBinding*> descriptor_bindings;
     std::vector<SpvReflectDescriptorSet*> descriptor_sets;
+    std::vector<SpvReflectBlockVariable*> push_constants;
 };

@@ -37,6 +37,9 @@ const char* shader_path(ShaderSource shader) {
         case ShaderSource::TriangleVert: {
             return "shaders/triangle.vert.spv";
         }
+        case ShaderSource::TriangleTransformVert: {
+            return "shaders/triangle_transform.vert.spv";
+        }
         case ShaderSource::Count: {
             assert(false);
             return "";

@@ -282,9 +282,16 @@ void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shad
         chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layouts[i]));
     }
 
+    // Push constants
+    std::vector<VkPushConstantRange> push_constant_ranges;
+    vert_shader_data.append_push_constant_ranges(push_constant_ranges);
+    frag_shader_data.append_push_constant_ranges(push_constant_ranges);
+
     // Pipeline layout
     VkPipelineLayout& pipeline_layout = pipeline_layouts[shader_pair];
 	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
+    pipeline_layout_ci.pPushConstantRanges = push_constant_ranges.data();
+    pipeline_layout_ci.pushConstantRangeCount = push_constant_ranges.size();
 	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
 
     // Pipeline
@@ -454,6 +461,12 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &material.descriptor_set, 0, nullptr);
+
+        // TODO: Needs to handle more than one and not just a bool, needs to be a vector
+        if (draw.uses_push_constants) {
+            vkCmdPushConstants(cb, pipeline_layout, draw.pc.stage_flags, draw.pc.offset, draw.pc.size, draw.pc.p_data);
+        }
+
         vkCmdDrawIndexed(cb, draw.index_count, 1, draw.first_index, 0, 0);
     }
 
