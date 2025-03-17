@@ -254,52 +254,57 @@ Renderer::~Renderer() {
 }
 
 void Renderer::upload_texture(uint32_t id, const TextureCreateInfo& ci) {
-    textures.try_emplace(id, this, ci);
+    if (!textures.contains(id)) {
+        textures.try_emplace(id, this, ci);
+    }
 }
 
 void Renderer::upload_shader(uint32_t id, const char* path) {
-    const std::vector<uint8_t> shader_bytes = read_file_to_buffer<uint8_t>(path);
-    shaders.try_emplace(id, device, shader_bytes.size(), &shader_bytes[0]);
+    if (!shaders.contains(id)) {
+        const std::vector<uint8_t> shader_bytes = read_file_to_buffer<uint8_t>(path);
+        shaders.try_emplace(id, device, shader_bytes.size(), &shader_bytes[0]);
+    }
 }
 
 void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shader_id) {
     const std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
-
-    const ShaderData& vert_shader_data = shaders[vertex_shader_id];
-    const ShaderData& frag_shader_data = shaders[fragment_shader_id];
-
-    // Descriptor set layout
-    BindingsMap bindings_map;
-    const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
-    bindings_map.resize(num_sets);
-    vert_shader_data.append_layout_bindings(bindings_map);
-    frag_shader_data.append_layout_bindings(bindings_map);
-
-    std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
-    layouts.resize(bindings_map.size());
-    for (uint64_t i = 0; i < bindings_map.size(); ++i) {
-        VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
-        chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layouts[i]));
+    if (!pipelines.contains(shader_pair)) {
+        const ShaderData& vert_shader_data = shaders[vertex_shader_id];
+        const ShaderData& frag_shader_data = shaders[fragment_shader_id];
+    
+        // Descriptor set layout
+        BindingsMap bindings_map;
+        const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
+        bindings_map.resize(num_sets);
+        vert_shader_data.append_layout_bindings(bindings_map);
+        frag_shader_data.append_layout_bindings(bindings_map);
+    
+        std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+        layouts.resize(bindings_map.size());
+        for (uint64_t i = 0; i < bindings_map.size(); ++i) {
+            VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
+            chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layouts[i]));
+        }
+    
+        // Push constants
+        std::vector<VkPushConstantRange> push_constant_ranges;
+        vert_shader_data.append_push_constant_ranges(push_constant_ranges);
+        frag_shader_data.append_push_constant_ranges(push_constant_ranges);
+    
+        // Pipeline layout
+        VkPipelineLayout& pipeline_layout = pipeline_layouts[shader_pair];
+        VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
+        pipeline_layout_ci.pPushConstantRanges = push_constant_ranges.data();
+        pipeline_layout_ci.pushConstantRangeCount = push_constant_ranges.size();
+        chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
+    
+        // Pipeline
+        pipelines.try_emplace(shader_pair,
+            this,
+            shader_pair,
+            sample_count,
+            image_format);
     }
-
-    // Push constants
-    std::vector<VkPushConstantRange> push_constant_ranges;
-    vert_shader_data.append_push_constant_ranges(push_constant_ranges);
-    frag_shader_data.append_push_constant_ranges(push_constant_ranges);
-
-    // Pipeline layout
-    VkPipelineLayout& pipeline_layout = pipeline_layouts[shader_pair];
-	VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
-    pipeline_layout_ci.pPushConstantRanges = push_constant_ranges.data();
-    pipeline_layout_ci.pushConstantRangeCount = push_constant_ranges.size();
-	chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
-
-    // Pipeline
-    pipelines.try_emplace(shader_pair,
-        this,
-        shader_pair,
-        sample_count,
-        image_format);
 }
 
 void Renderer::upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id, uint32_t set_idx) {

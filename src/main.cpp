@@ -26,28 +26,6 @@ int main(int argc, char *argv[]) {
     Renderer::enabled_features13.dynamicRendering = true;
     Renderer renderer(window);
     
-    // Textures
-    ImageData test_1 = ImageData(texture_path(TextureSource::Test1));
-    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test1), test_1.texture_create_info());
-
-    ImageData test_2 = ImageData(texture_path(TextureSource::Test2));
-    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test2), test_2.texture_create_info());
-
-    ImageData test_3 = ImageData(texture_path(TextureSource::Test3));
-    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test3), test_3.texture_create_info());
-
-    ImageData test_4 = ImageData(texture_path(TextureSource::Test4));
-    renderer.upload_texture(static_cast<uint32_t>(TextureSource::Test4), test_4.texture_create_info());
-
-    // Shaders
-    renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleVert), shader_path(ShaderSource::TriangleVert));
-    renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleTransformVert), shader_path(ShaderSource::TriangleTransformVert));
-    renderer.upload_shader(static_cast<uint32_t>(ShaderSource::TriangleFrag), shader_path(ShaderSource::TriangleFrag));
-
-    // Pipelines
-    renderer.upload_pipeline(static_cast<uint32_t>(ShaderSource::TriangleVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
-    renderer.upload_pipeline(static_cast<uint32_t>(ShaderSource::TriangleTransformVert), static_cast<uint32_t>(ShaderSource::TriangleFrag));
-
     // View-tree
     View root_view = View();
 
