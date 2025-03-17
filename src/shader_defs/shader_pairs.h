@@ -2,6 +2,8 @@
 
 #include "../assets.h"
 
+#include "shared.h"
+
 #include "triangle_vert.h"
 #include "triangle_transform_vert.h"
 #include "triangle_frag.h"
@@ -21,14 +23,16 @@ struct ShaderPair {
         vertex_ty = ShaderSource::TriangleTransformVert;
         triangle_transform_vert = vert;
     }
-
     void with_triangle_frag(TriangleFrag frag) {
         fragment_ty = ShaderSource::TriangleFrag;
         triangle_frag = frag;
     }
 
     uint32_t vertex_num_floats() const;
+
     // TODO: This is not quite right, but ok for now
+    // I need a better way to get descriptor set data i can use in the rendererer
+    DescriptorSetData draw_texture_binding() const;
     TextureSource draw_texture() const;
 
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const;

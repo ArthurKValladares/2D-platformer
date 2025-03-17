@@ -18,6 +18,19 @@ uint32_t ShaderPair::vertex_num_floats() const {
     }
 }
 
+DescriptorSetData ShaderPair::draw_texture_binding() const {
+    switch (fragment_ty)
+    {
+        case ShaderSource::TriangleFrag: {
+            return triangle_frag.draw_texture_binding();
+        }
+        default: {
+            assert(false);
+            return DescriptorSetData{};
+        }
+    }
+}
+
 TextureSource ShaderPair::draw_texture() const {
     switch (fragment_ty)
     {

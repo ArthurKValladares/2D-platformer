@@ -24,7 +24,7 @@ struct Renderer {
     void upload_texture(uint32_t id, const TextureCreateInfo& texture_cis);
     void upload_shader(uint32_t id, const char* path);
     void upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shader_id);
-    void upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id);
+    void upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id, uint32_t set_idx);
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
