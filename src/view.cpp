@@ -22,6 +22,12 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         draw.shaders.append_push_constant_data(dc.pcs);
 
         data.draws.push_back(dc);
+
+        renderer->upload_material(
+            static_cast<uint32_t>(draw.shaders.draw_texture()),
+            static_cast<uint32_t>(draw.shaders.vertex_ty),
+            static_cast<uint32_t>(draw.shaders.fragment_ty)
+        );
     }
 
     for (const View& child : children) {

@@ -303,15 +303,15 @@ void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shad
 }
 
 void Renderer::upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id) {
-    const Texture& texture = textures.at(texture_id);
-
     std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
     std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_triple = {texture_id, shader_pair};
-    
-    const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
-    // TODO: This is hard-coded to get the `0` set for now, which is the sampler2D set.
-    // In the future I should be smarter about this.
-    materials.try_emplace(material_triple, this, &texture, layouts[0]);
+    if (!materials.contains(material_triple)) {
+        const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+        const Texture& texture = textures.at(texture_id);
+        // TODO: This is hard-coded to get the `0` set for now, which is the sampler2D set.
+        // In the future I should be smarter about this.
+        materials.try_emplace(material_triple, this, &texture, layouts[0]);
+    }
 }
 
 void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
