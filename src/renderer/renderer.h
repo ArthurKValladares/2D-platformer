@@ -12,8 +12,7 @@
 #include "draw.h"
 #include "material.h"
 #include "pipeline.h"
-
-#include "../hash.h"
+#include "resource_ids.h"
 
 struct Window;
 struct Renderer {
@@ -21,10 +20,10 @@ struct Renderer {
     ~Renderer();
 
     // TODO: Efficient way to do this in a batch
-    void upload_texture(uint32_t id, const TextureCreateInfo& texture_cis);
-    void upload_shader(uint32_t id, const char* path);
-    void upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shader_id);
-    void upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id, uint32_t set_idx);
+    void upload_texture(TextureID id, const TextureCreateInfo& texture_cis);
+    void upload_shader(ShaderID id, const char* path);
+    void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id);
+    void upload_material(TextureID texture_id, ShaderID vertex_shader_id, ShaderID fragment_shader_id, uint32_t set_idx);
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
@@ -43,11 +42,11 @@ struct Renderer {
         return descriptor_pool;
     }
 
-    const ShaderData& get_shader_data(uint32_t shader_id) const {
+    const ShaderData& get_shader_data(ShaderID shader_id) const {
         return shaders.at(shader_id);
     }
-    const VkPipelineLayout& get_pipeline_layout(std::pair<uint32_t, uint32_t> layout_id) const {
-        return pipeline_layouts.at(layout_id);
+    const VkPipelineLayout& get_pipeline_layout(PipelineID pipeline_id) const {
+        return pipeline_layouts.at(pipeline_id);
     }
 
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
@@ -105,17 +104,12 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
-    // TODO: All these maps should probably have strongly-typed ids
-    // TODO: A lot of these keys are still inneficient, I can be better later
-    // <id>
-    std::unordered_map<uint32_t, Texture> textures;
-    std::unordered_map<uint32_t, ShaderData> shaders;
-    // <texture, <vert, frag>>
-    std::unordered_map<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>, Material> materials;
-    // <vert, frag>
-    std::unordered_map<std::pair<uint32_t, uint32_t>, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;
-    std::unordered_map<std::pair<uint32_t, uint32_t>, VkPipelineLayout> pipeline_layouts;
-    std::unordered_map<std::pair<uint32_t, uint32_t>, Pipeline> pipelines;
+    std::unordered_map<TextureID, Texture> textures;
+    std::unordered_map<ShaderID, ShaderData> shaders;
+    std::unordered_map<MaterialID, Material> materials;
+    std::unordered_map<PipelineID, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;
+    std::unordered_map<PipelineID, VkPipelineLayout> pipeline_layouts;
+    std::unordered_map<PipelineID, Pipeline> pipelines;
 
     friend class Texture;
 };

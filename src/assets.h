@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "renderer/resource_ids.h"
+
 //
 // TODO: These should be auto-generated later
 //
@@ -13,6 +15,7 @@ enum class TextureSource : uint32_t {
     Count
 };
 const char* texture_path(TextureSource texture);
+TextureID texture_id(TextureSource texture);
 
 enum class ShaderSource : uint32_t {
     TriangleFrag = 0,
@@ -21,6 +24,7 @@ enum class ShaderSource : uint32_t {
     Count
 };
 const char* shader_path(ShaderSource shader);
+ShaderID shader_id(ShaderSource shader);
 //
 //
 //

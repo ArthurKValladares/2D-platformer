@@ -28,6 +28,10 @@ const char* texture_path(TextureSource texture) {
     }
 }
 
+TextureID texture_id(TextureSource texture) {
+    return TextureID(static_cast<uint32_t>(texture));
+}
+
 const char* shader_path(ShaderSource shader) {
     switch (shader)
     {
@@ -49,4 +53,8 @@ const char* shader_path(ShaderSource shader) {
             return "";
         }
     }
+}
+
+ShaderID shader_id(ShaderSource shader) {
+    return ShaderID(static_cast<uint32_t>(shader));
 }

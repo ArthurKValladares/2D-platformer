@@ -7,12 +7,12 @@
 
 Pipeline::Pipeline(
     const Renderer* renderer,
-    std::pair<uint32_t, uint32_t> layout_id,
+    PipelineID layout_id,
     VkSampleCountFlagBits sample_count,
     uint32_t color_attachment_count, const VkFormat* p_color_attachment_formats
 ) {
-    const ShaderData& vert_shader_data = renderer->get_shader_data(layout_id.first);
-    const ShaderData& frag_shader_data = renderer->get_shader_data(layout_id.second);
+    const ShaderData& vert_shader_data = renderer->get_shader_data(layout_id.vertex);
+    const ShaderData& frag_shader_data = renderer->get_shader_data(layout_id.fragment);
     const VkPipelineLayout& layout = renderer->get_pipeline_layout(layout_id);
 
     std::vector<VkPipelineShaderStageCreateInfo> stages = {

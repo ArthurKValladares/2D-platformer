@@ -253,22 +253,22 @@ Renderer::~Renderer() {
     vkDestroyInstance(instance, nullptr);
 }
 
-void Renderer::upload_texture(uint32_t id, const TextureCreateInfo& ci) {
+void Renderer::upload_texture(TextureID id, const TextureCreateInfo& ci) {
     if (!textures.contains(id)) {
         textures.try_emplace(id, this, ci);
     }
 }
 
-void Renderer::upload_shader(uint32_t id, const char* path) {
+void Renderer::upload_shader(ShaderID id, const char* path) {
     if (!shaders.contains(id)) {
         const std::vector<uint8_t> shader_bytes = read_file_to_buffer<uint8_t>(path);
         shaders.try_emplace(id, device, shader_bytes.size(), &shader_bytes[0]);
     }
 }
 
-void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shader_id) {
-    const std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
-    if (!pipelines.contains(shader_pair)) {
+void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id) {
+    const PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
+    if (!pipelines.contains(pipeline_id)) {
         const ShaderData& vert_shader_data = shaders[vertex_shader_id];
         const ShaderData& frag_shader_data = shaders[fragment_shader_id];
     
@@ -279,7 +279,7 @@ void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shad
         vert_shader_data.append_layout_bindings(bindings_map);
         frag_shader_data.append_layout_bindings(bindings_map);
     
-        std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+        std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
         layouts.resize(bindings_map.size());
         for (uint64_t i = 0; i < bindings_map.size(); ++i) {
             VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
@@ -292,28 +292,28 @@ void Renderer::upload_pipeline(uint32_t vertex_shader_id, uint32_t fragment_shad
         frag_shader_data.append_push_constant_ranges(push_constant_ranges);
     
         // Pipeline layout
-        VkPipelineLayout& pipeline_layout = pipeline_layouts[shader_pair];
+        VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
         VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
         pipeline_layout_ci.pPushConstantRanges = push_constant_ranges.data();
         pipeline_layout_ci.pushConstantRangeCount = push_constant_ranges.size();
         chk(vkCreatePipelineLayout(device, &pipeline_layout_ci, nullptr, &pipeline_layout));
     
         // Pipeline
-        pipelines.try_emplace(shader_pair,
+        pipelines.try_emplace(pipeline_id,
             this,
-            shader_pair,
+            pipeline_id,
             sample_count,
             image_format);
     }
 }
 
-void Renderer::upload_material(uint32_t texture_id, uint32_t vertex_shader_id, uint32_t fragment_shader_id, uint32_t set_idx) {
-    std::pair<uint32_t, uint32_t> shader_pair = {vertex_shader_id, fragment_shader_id};
-    std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_triple = {texture_id, shader_pair};
-    if (!materials.contains(material_triple)) {
-        const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[shader_pair];
+void Renderer::upload_material(TextureID texture_id, ShaderID vertex_shader_id, ShaderID fragment_shader_id, uint32_t set_idx) {
+    PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
+    MaterialID material_id(texture_id, vertex_shader_id, fragment_shader_id);
+    if (!materials.contains(material_id)) {
+        const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
         const Texture& texture = textures.at(texture_id);
-        materials.try_emplace(material_triple, this, &texture, layouts[set_idx]);
+        materials.try_emplace(material_id, this, &texture, layouts[set_idx]);
     }
 }
 
@@ -457,10 +457,11 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
     for (const DrawCommand& draw : draws) {
-        const std::pair<uint32_t, std::pair<uint32_t, uint32_t>> material_id = {draw.texture_id, draw.pipeline_id};
+        const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id); 
+        const MaterialID material_id(draw.texture_id, draw.vertex_id, draw.fragment_id);
         const Material& material = materials[material_id];
-        const Pipeline& pipeline = pipelines[draw.pipeline_id];
-        const VkPipelineLayout& pipeline_layout = pipeline_layouts[draw.pipeline_id];
+        const Pipeline& pipeline = pipelines[pipeline_id];
+        const VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &material.descriptor_set, 0, nullptr);
