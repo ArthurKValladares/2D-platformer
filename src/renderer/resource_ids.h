@@ -6,7 +6,7 @@
 // TODO: A lot of these IDs are still inneficient, can be better later
 struct TextureID {
     TextureID() {}
-    TextureID(uint32_t id)
+    explicit TextureID(uint32_t id)
         : id(id)
     {}
 
@@ -19,7 +19,7 @@ struct TextureID {
 
 struct ShaderID {
     ShaderID() {}
-    ShaderID(uint32_t id)
+    explicit ShaderID(uint32_t id)
         : id(id)
     {}
 
@@ -32,7 +32,7 @@ struct ShaderID {
 
 struct PipelineID {
     PipelineID() {}
-    PipelineID(ShaderID vertex, ShaderID fragment)
+    explicit PipelineID(ShaderID vertex, ShaderID fragment)
         : vertex(vertex)
         , fragment(fragment)
     {}
@@ -47,7 +47,7 @@ struct PipelineID {
 
 struct MaterialID {
     MaterialID() {}
-    MaterialID(TextureID texture, ShaderID vertex, ShaderID fragment)
+    explicit MaterialID(TextureID texture, ShaderID vertex, ShaderID fragment)
         : texture(texture)
         , vertex(vertex)
         , fragment(fragment)

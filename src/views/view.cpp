@@ -30,15 +30,15 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
                 const ImageData image_data = ImageData(texture_path(draw_texture));
                 renderer->upload_texture(texture_id(draw_texture), image_data.texture_create_info());
         
-                renderer->upload_shader(static_cast<uint32_t>(quad_draw.shaders.vertex_ty), shader_path(quad_draw.shaders.vertex_ty));
-                renderer->upload_shader(static_cast<uint32_t>(quad_draw.shaders.fragment_ty), shader_path(quad_draw.shaders.fragment_ty));
+                renderer->upload_shader(shader_id(quad_draw.shaders.vertex_ty), shader_path(quad_draw.shaders.vertex_ty));
+                renderer->upload_shader(shader_id(quad_draw.shaders.fragment_ty), shader_path(quad_draw.shaders.fragment_ty));
         
-                renderer->upload_pipeline(static_cast<uint32_t>(quad_draw.shaders.vertex_ty), static_cast<uint32_t>(quad_draw.shaders.fragment_ty));
+                renderer->upload_pipeline(shader_id(quad_draw.shaders.vertex_ty), shader_id(quad_draw.shaders.fragment_ty));
         
                 renderer->upload_material(
-                    static_cast<uint32_t>(draw_texture),
-                    static_cast<uint32_t>(quad_draw.shaders.vertex_ty),
-                    static_cast<uint32_t>(quad_draw.shaders.fragment_ty),
+                    texture_id(draw_texture),
+                    shader_id(quad_draw.shaders.vertex_ty),
+                    shader_id(quad_draw.shaders.fragment_ty),
                     quad_draw.shaders.draw_texture_binding().set
                 );
             }
@@ -66,17 +66,17 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         
                 // Upload draw data
                 const ImageData image_data = ImageData(texture_path(draw_texture));
-                renderer->upload_texture(static_cast<uint32_t>(draw_texture), image_data.texture_create_info());
+                renderer->upload_texture(texture_id(draw_texture), image_data.texture_create_info());
         
-                renderer->upload_shader(static_cast<uint32_t>(moving_quad_draw.shaders.vertex_ty), shader_path(moving_quad_draw.shaders.vertex_ty));
-                renderer->upload_shader(static_cast<uint32_t>(moving_quad_draw.shaders.fragment_ty), shader_path(moving_quad_draw.shaders.fragment_ty));
+                renderer->upload_shader(shader_id(moving_quad_draw.shaders.vertex_ty), shader_path(moving_quad_draw.shaders.vertex_ty));
+                renderer->upload_shader(shader_id(moving_quad_draw.shaders.fragment_ty), shader_path(moving_quad_draw.shaders.fragment_ty));
         
-                renderer->upload_pipeline(static_cast<uint32_t>(moving_quad_draw.shaders.vertex_ty), static_cast<uint32_t>(moving_quad_draw.shaders.fragment_ty));
+                renderer->upload_pipeline(shader_id(moving_quad_draw.shaders.vertex_ty), shader_id(moving_quad_draw.shaders.fragment_ty));
         
                 renderer->upload_material(
-                    static_cast<uint32_t>(draw_texture),
-                    static_cast<uint32_t>(moving_quad_draw.shaders.vertex_ty),
-                    static_cast<uint32_t>(moving_quad_draw.shaders.fragment_ty),
+                    texture_id(draw_texture),
+                    shader_id(moving_quad_draw.shaders.vertex_ty),
+                    shader_id(moving_quad_draw.shaders.fragment_ty),
                     moving_quad_draw.shaders.draw_texture_binding().set
                 );
             }
