@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ### Create Executable
 add_executable(${PROJECT_NAME}
+  # renderer
   src/renderer/renderer.cpp
   src/renderer/buffer.cpp
   src/renderer/texture.cpp
@@ -13,13 +14,16 @@ add_executable(${PROJECT_NAME}
   src/renderer/material.cpp
   src/renderer/shader.cpp
   src/renderer/pipeline.cpp
+  # shader defs
   src/shader_defs/shader_pairs.cpp
+  # views
+  src/views/view.cpp
+  # main
   src/rect.cpp
   src/window.cpp
   src/util.cpp
   src/image.cpp
   src/assets.cpp
-  src/view.cpp
   src/main.cpp
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp

@@ -1,5 +1,4 @@
 #include <SDL3/SDL_main.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -12,9 +11,9 @@
 #include "assets.h"
 #include "window.h"
 #include "util.h"
-#include "quad_draw.h"
-#include "view.h"
 #include "image.h"
+
+#include "views/view.h"
 
 // TODO: The way I'm handling descriptor sets is very messy.
 // Look at using push descriptors instead
@@ -28,41 +27,24 @@ int main(int argc, char *argv[]) {
     
     // View-tree
     View root_view = View();
-
-    ShaderPair pair = ShaderPair();
-    pair.with_triangle_vert(TriangleVert());
-    pair.with_triangle_frag(TriangleFrag(TextureSource::Test1));
-    root_view.push_child(QuadDraw{
+    root_view.push_child(QuadDraw(
         Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-        pair
-    });
-
-    pair.with_triangle_transform_vert(
-        TriangleTransformVert(TriangleTransformPC{
-            glm::mat4(1.0)
-        })
-    );
-    pair.with_triangle_frag(TriangleFrag(TextureSource::Test2));
-    root_view.push_child(View(
-        QuadDraw{
-            Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-            pair
-        }
+        TextureSource::Test1
     ));
-
-    pair.with_triangle_vert(TriangleVert());
-    pair.with_triangle_frag(TriangleFrag(TextureSource::Test3));
-    root_view.push_child(QuadDraw{
+    root_view.push_child(View(
+        MovingQuadDraw(
+            Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
+            TextureSource::Test2
+        )
+    ));
+    root_view.push_child(QuadDraw(
         Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        pair
-    });
-
-    pair.with_triangle_vert(TriangleVert());
-    pair.with_triangle_frag(TriangleFrag(TextureSource::Test4));
-    root_view.push_child(QuadDraw{
+        TextureSource::Test3
+    ));
+    root_view.push_child(QuadDraw(
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        pair
-    });
+        TextureSource::Test4
+    ));
 
     ViewDrawData data = root_view.get_draw_data(&renderer);
 
@@ -85,11 +67,11 @@ int main(int argc, char *argv[]) {
 
         const auto finish{std::chrono::steady_clock::now()};
         const std::chrono::duration<double> elapsed_seconds{finish - start};
-        const double offset = sin(elapsed_seconds.count()) * 0.1;
+        const ViewUpdateData update_data = ViewUpdateData{
+            .elapsed_seconds = elapsed_seconds.count()
+        };
 
-        // TODO: Obviously bad, need like an `update` function on views or something like that
-        root_view.children[1].draw.shaders.triangle_transform_vert.push_constant.render_matrix = 
-        glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
+        root_view.update(update_data);
         
         renderer.render(window, data.draws);
     }
