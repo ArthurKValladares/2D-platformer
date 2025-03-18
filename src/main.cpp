@@ -64,10 +64,7 @@ int main(int argc, char *argv[]) {
         pair
     });
 
-    ViewDrawData data = {};
-    root_view.append_draw_data(&renderer, data);
-    renderer.upload_index_data(&data.indices[0], data.indices.size() * sizeof(uint32_t));
-    renderer.upload_vertex_data(&data.vertices[0], data.vertices.size() * sizeof(float));
+    ViewDrawData data = root_view.get_draw_data(&renderer);
 
     const auto start{std::chrono::steady_clock::now()};
     SDL_Event e;

@@ -27,7 +27,8 @@ struct View {
     }
 
     void append_draw_data(Renderer* renderer, ViewDrawData& data) const;
-
+    ViewDrawData get_draw_data(Renderer* renderer);
+    
     QuadDraw draw;
 
     std::vector<View> children;

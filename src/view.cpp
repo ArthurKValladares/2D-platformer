@@ -44,3 +44,13 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         child.append_draw_data(renderer, data);
     }
 }
+
+ViewDrawData View::get_draw_data(Renderer* renderer) {
+    ViewDrawData data = {};
+
+    append_draw_data(renderer, data);
+    renderer->upload_index_data(&data.indices[0], data.indices.size() * sizeof(uint32_t));
+    renderer->upload_vertex_data(&data.vertices[0], data.vertices.size() * sizeof(float));
+
+    return data;
+}
