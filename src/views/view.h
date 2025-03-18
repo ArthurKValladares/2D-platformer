@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include <glm/mat4x4.hpp>
 
@@ -18,30 +19,20 @@ struct ViewDrawData {
     std::vector<DrawCommand> draws = {};
 };
 
-// TODO: this is not great, maybe use concepts if possible?
-// IN other places too
-enum class ViewType {
-    Empty,
-    Quad,
-    MovingQuad,
-};
-
 struct Renderer;
 struct View {
     View()
-        : ty(ViewType::Empty)
     {}
+
     View(QuadDraw in_draw)
-        : ty(ViewType::Quad)
-        , quad_draw(in_draw)
+        : renderable(new QuadDraw(std::move(in_draw)))
     {}
     View(MovingQuadDraw in_draw)
-        : ty(ViewType::MovingQuad)
-        , moving_quad_draw(in_draw)
+        : renderable(new MovingQuadDraw(std::move(in_draw)))
     {}
 
     void push_child(View view)  {
-        children.push_back(view);
+        children.emplace_back(std::move(view));
     }
 
     void update(const ViewUpdateData& data);
@@ -49,11 +40,7 @@ struct View {
     void append_draw_data(Renderer* renderer, ViewDrawData& data) const;
     ViewDrawData get_draw_data(Renderer* renderer);
 
-    ViewType ty;
-    union{
-        QuadDraw quad_draw;
-        MovingQuadDraw moving_quad_draw;
-    };
+    std::unique_ptr<RenderableInterface> renderable;
 
     std::vector<View> children;
 };
