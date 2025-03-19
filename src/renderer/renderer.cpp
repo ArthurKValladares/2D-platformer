@@ -64,9 +64,13 @@ Renderer::Renderer(Window& window) {
     render_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
 
     // Instance
+    const char* required_instance_extensions[] = {
+        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
+    };
     vkb::InstanceBuilder builder;
     vkb::Result<vkb::Instance> vkb_instance_result = builder.set_app_name("2D-Platformer")
         .request_validation_layers(USE_VALIDATION_LAYERS)
+        .enable_extensions(ArrayCount(required_instance_extensions), required_instance_extensions)
         .use_default_debug_messenger()
         .require_api_version(1, 3, 0)
         .build();
@@ -82,13 +86,25 @@ Renderer::Renderer(Window& window) {
     chk_sdl(SDL_Vulkan_CreateSurface(window.raw, instance, nullptr, &surface));
 
     // Device
-    Renderer::enabled_features11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-    Renderer::enabled_features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-    Renderer::enabled_features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    Renderer::enabled_features = {};
+    Renderer::enabled_features11 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+    };
+    Renderer::enabled_features12 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+    };
+    Renderer::enabled_features13 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .dynamicRendering = true
+    };
+    const char* required_device_extensions[] = {
+        VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME
+    };
     vkb::PhysicalDeviceSelector selector{vkb_instance};
 	vkb::Result<vkb::PhysicalDevice> physical_device_result = selector
 		.set_minimum_version(1, 3)
         .set_required_features(Renderer::enabled_features)
+        .add_required_extensions(ArrayCount(required_device_extensions), required_device_extensions)
 		.set_required_features_11(Renderer::enabled_features11)
 		.set_required_features_12(Renderer::enabled_features12)
 		.set_required_features_13(Renderer::enabled_features13)
@@ -194,17 +210,17 @@ Renderer::Renderer(Window& window) {
     }
 
     // Descriptor Pool
-    // TODO: This max_image_count thing sucks, better dyanamic descriptor pool size stuff later,
+    // TODO: This max_descriptor_count thing sucks, better dyanamic descriptor pool size stuff later,
     // with creating sets with fixed amounts as needed
     const uint32_t max_descriptor_count = 20;
     const VkDescriptorPoolSize pool_sizes[]{
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(max_descriptor_count)
-        }
+        },
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = static_cast<uint32_t>(max_image_count)
+            .descriptorCount = static_cast<uint32_t>(max_descriptor_count)
         }
     };
     VkDescriptorPoolCreateInfo pool_info{};

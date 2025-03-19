@@ -56,16 +56,16 @@ struct Renderer {
 
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
     void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
+    
+private:
+    VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
+    VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
 
     inline static VkPhysicalDeviceFeatures enabled_features{};
 	inline static VkPhysicalDeviceVulkan11Features enabled_features11{};
 	inline static VkPhysicalDeviceVulkan12Features enabled_features12{};
 	inline static VkPhysicalDeviceVulkan13Features enabled_features13{};
     
-private:
-    VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
-    VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
-
     const VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_4_BIT;
     uint32_t image_index = 0;
     uint32_t frame_index = 0;

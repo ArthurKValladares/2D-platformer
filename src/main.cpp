@@ -22,7 +22,6 @@
 int main(int argc, char *argv[]) {
     Window window = Window();
 
-    Renderer::enabled_features13.dynamicRendering = true;
     Renderer renderer(window);
     
     // View-tree
