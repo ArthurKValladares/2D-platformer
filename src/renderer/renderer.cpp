@@ -196,10 +196,14 @@ Renderer::Renderer(Window& window) {
     // Descriptor Pool
     // TODO: This max_image_count thing sucks, better dyanamic descriptor pool size stuff later,
     // with creating sets with fixed amounts as needed
-    const uint32_t max_image_count = 20;
+    const uint32_t max_descriptor_count = 20;
     const VkDescriptorPoolSize pool_sizes[]{
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = static_cast<uint32_t>(max_descriptor_count)
+        }
+        VkDescriptorPoolSize{
+            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = static_cast<uint32_t>(max_image_count)
         }
     };
@@ -207,7 +211,7 @@ Renderer::Renderer(Window& window) {
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.poolSizeCount = ArrayCount(pool_sizes);
     pool_info.pPoolSizes = &pool_sizes[0];
-    pool_info.maxSets = static_cast<uint32_t>(max_image_count);
+    pool_info.maxSets = static_cast<uint32_t>(max_descriptor_count * 2);
     chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
 
 }
