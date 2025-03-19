@@ -8,20 +8,20 @@
 
 #include <vector>
 
-struct TriangleFrag final : FragmentShader {
-    TriangleFrag() {}
-    TriangleFrag(TextureSource texture)
+struct TriangleDataFrag final : FragmentShader {
+    TriangleDataFrag() {}
+    TriangleDataFrag(TextureSource texture)
         :  texture_binding(texture)
     {}
 
     ShaderSource source() const {
-        return ShaderSource::TriangleFrag;
+        return ShaderSource::TriangleDataFrag;
     }
 
     DescriptorSetData draw_texture_binding() const {
         return DescriptorSetData{
             .set = 0,
-            .binding = 0
+            .binding = 1
         };
     }
 

@@ -1,7 +1,7 @@
 #include "material.h"
 #include "renderer.h"
 
-Material::Material(Renderer* renderer, const Texture* texture, VkDescriptorSetLayout set_layout) {
+Material::Material(Renderer* renderer, const Texture* texture, VkDescriptorSetLayout set_layout, uint32_t binding) {
     VkDescriptorSetAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = renderer->get_descriptor_pool();
@@ -14,7 +14,7 @@ Material::Material(Renderer* renderer, const Texture* texture, VkDescriptorSetLa
         VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = descriptor_set,
-            .dstBinding = 0,
+            .dstBinding = binding,
             .dstArrayElement = 0,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,

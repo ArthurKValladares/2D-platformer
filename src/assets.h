@@ -20,8 +20,10 @@ TextureID texture_id(TextureSource texture);
 enum class ShaderSource : uint32_t {
     TriangleFrag = 0,
     TriangleColorFrag,
+    TriangleDataFrag,
     TriangleVert,
     TriangleTransformVert,
+    TriangleDataVert,
     Count
 };
 const char* shader_path(ShaderSource shader);

@@ -307,13 +307,13 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
     }
 }
 
-void Renderer::upload_material(TextureID texture_id, ShaderID vertex_shader_id, ShaderID fragment_shader_id, uint32_t set_idx) {
+void Renderer::upload_material(TextureID texture_id, ShaderID vertex_shader_id, ShaderID fragment_shader_id, DescriptorSetData data) {
     PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
     MaterialID material_id(texture_id, vertex_shader_id, fragment_shader_id);
     if (!materials.contains(material_id)) {
         const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
         const Texture& texture = textures.at(texture_id);
-        materials.try_emplace(material_id, this, &texture, layouts[set_idx]);
+        materials.try_emplace(material_id, this, &texture, layouts[data.set], data.binding);
     }
 }
 

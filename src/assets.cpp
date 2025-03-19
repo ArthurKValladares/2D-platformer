@@ -41,11 +41,17 @@ const char* shader_path(ShaderSource shader) {
         case ShaderSource::TriangleColorFrag: {
             return "shaders/triangle_color.frag.spv";
         }
+        case ShaderSource::TriangleDataFrag: {
+            return "shaders/triangle_data.frag.spv";
+        }
         case ShaderSource::TriangleVert: {
             return "shaders/triangle.vert.spv";
         }
         case ShaderSource::TriangleTransformVert: {
             return "shaders/triangle_transform.vert.spv";
+        }
+        case ShaderSource::TriangleDataVert: {
+            return "shaders/triangle_data.vert.spv";
         }
         case ShaderSource::Count: {
             assert(false);

@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <vector>
 
-#include "shared.h"
 
 #include "../renderer/draw.h"
+#include "../renderer/renderer.h"
 #include "../assets.h"
 
 // TODO: same optimization question as renderable

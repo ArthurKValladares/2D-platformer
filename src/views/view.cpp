@@ -38,7 +38,7 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
             texture_id(draw_texture),
             shader_id(vertex_ty),
             shader_id(fragment_ty),
-            shaders.draw_texture_binding().set
+            shaders.draw_texture_binding()
         );
     }
 

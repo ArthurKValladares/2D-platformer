@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "shared.h"
 #include "shader.h"
 
 #include "../assets.h"
 #include "../renderer/draw.h"
+#include "../renderer/renderer.h"
 
 #include <vector>
 

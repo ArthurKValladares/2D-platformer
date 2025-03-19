@@ -4,12 +4,14 @@
 
 #include "../assets.h"
 
-#include "shared.h"
+#include "../renderer/renderer.h"
 
 #include "triangle_vert.h"
 #include "triangle_transform_vert.h"
 #include "triangle_frag.h"
 #include "triangle_color_frag.h"
+#include "triangle_data_vert.h"
+#include "triangle_data_frag.h"
 
 //
 // TODO: A bunch of stuff in thus sub-dir can maybe be auto-generated.

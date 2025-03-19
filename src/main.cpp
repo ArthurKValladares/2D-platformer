@@ -31,17 +31,16 @@ int main(int argc, char *argv[]) {
         Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test1
     ));
-    root_view.push_child(View(
-        MovingQuadDraw(
-            Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-            TextureSource::Test2
-        )
-    ));
-    root_view.push_child(View(ColorQuadDraw(
+    root_view.push_child(MovingQuadDraw(
+        Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
+        TextureSource::Test2
+    )
+    );
+    root_view.push_child(ColorQuadDraw(
         Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test3
-    )));
-    root_view.push_child(QuadDraw(
+    ));
+    root_view.push_child(DataQuadDraw(
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test4
     ));

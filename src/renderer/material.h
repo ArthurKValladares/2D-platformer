@@ -7,7 +7,8 @@
 struct Renderer;
 struct Material {
     Material() {}
-    Material(Renderer* renderer, const Texture* texture, VkDescriptorSetLayout set_layout);
+    // TODO: Still kinda bad
+    Material(Renderer* renderer, const Texture* texture, VkDescriptorSetLayout set_layout, uint32_t binding);
 
     Texture* texture;
     VkDescriptorSet descriptor_set;
