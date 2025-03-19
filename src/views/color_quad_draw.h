@@ -8,15 +8,13 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-struct MovingQuadDraw final : RenderableInterface{
-    MovingQuadDraw(Rect2D rect, TextureSource texture)
+struct ColorQuadDraw final : RenderableInterface{
+    ColorQuadDraw(Rect2D rect, TextureSource texture)
         : rect(rect)
     {
         ShaderPair pair;
-        pair.with_triangle_transform_vert(
-            TriangleTransformVert(glm::mat4(1.0))
-        );
-        pair.with_triangle_frag(TriangleFrag(texture));
+        pair.with_triangle_vert(TriangleVert());
+        pair.with_triangle_color_frag(TriangleColorFrag(texture));
         shader_pair = pair;
     }
 
@@ -25,9 +23,10 @@ struct MovingQuadDraw final : RenderableInterface{
     }
 
     void update(const ViewUpdateData& data) {
-        const double offset = sin(data.elapsed_seconds) * 0.1;
-        shader_pair.triangle_transform_vert.render_matrix = 
-            glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
+        const double r = abs(sin(data.elapsed_seconds));
+        const double g = abs(cos(data.elapsed_seconds * 0.5));
+        const double b = abs(tan(data.elapsed_seconds * 0.25));
+        shader_pair.triangle_color_frag.color = glm::vec3(r, g, b);
     }
     
     const ShaderPair& shaders() const {

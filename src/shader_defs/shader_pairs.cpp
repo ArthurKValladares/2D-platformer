@@ -24,6 +24,9 @@ DescriptorSetData ShaderPair::draw_texture_binding() const {
         case ShaderSource::TriangleFrag: {
             return triangle_frag.draw_texture_binding();
         }
+        case ShaderSource::TriangleColorFrag: {
+            return triangle_color_frag.draw_texture_binding();
+        }
         default: {
             assert(false);
             return DescriptorSetData{};
@@ -36,6 +39,9 @@ TextureSource ShaderPair::draw_texture() const {
     {
         case ShaderSource::TriangleFrag: {
             return triangle_frag.texture_binding;
+        }
+        case ShaderSource::TriangleColorFrag: {
+            return triangle_color_frag.texture_binding;
         }
         default: {
             assert(false);
@@ -65,6 +71,10 @@ void ShaderPair::append_push_constant_data(std::vector<PushConstantData>& pcs) c
     {
         case ShaderSource::TriangleFrag: {
             triangle_frag.append_push_constant_data(pcs);
+            break;
+        }
+        case ShaderSource::TriangleColorFrag: {
+            triangle_color_frag.append_push_constant_data(pcs);
             break;
         }
         default: {

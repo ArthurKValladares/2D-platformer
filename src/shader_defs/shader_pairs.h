@@ -7,6 +7,7 @@
 #include "triangle_vert.h"
 #include "triangle_transform_vert.h"
 #include "triangle_frag.h"
+#include "triangle_color_frag.h"
 
 //
 // TODO: A bunch of stuff in thus sub-dir can maybe be auto-generated.
@@ -27,6 +28,10 @@ struct ShaderPair {
         fragment_ty = ShaderSource::TriangleFrag;
         triangle_frag = frag;
     }
+    void with_triangle_color_frag(TriangleColorFrag frag) {
+        fragment_ty = ShaderSource::TriangleColorFrag;
+        triangle_color_frag = frag;
+    }
 
     uint32_t vertex_num_floats() const;
 
@@ -46,5 +51,6 @@ struct ShaderPair {
     ShaderSource fragment_ty;
     union {
         TriangleFrag triangle_frag;
+        TriangleColorFrag triangle_color_frag;
     };
 };

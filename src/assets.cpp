@@ -38,6 +38,9 @@ const char* shader_path(ShaderSource shader) {
         case ShaderSource::TriangleFrag: {
             return "shaders/triangle.frag.spv";
         }
+        case ShaderSource::TriangleColorFrag: {
+            return "shaders/triangle_color.frag.spv";
+        }
         case ShaderSource::TriangleVert: {
             return "shaders/triangle.vert.spv";
         }

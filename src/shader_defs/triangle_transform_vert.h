@@ -11,14 +11,11 @@ struct TriangleTransformVertex {
     glm::vec3 in_color;
 };
 
-struct TriangleTransformPC {
-    glm::mat4 render_matrix;
-};
 
 struct TriangleTransformVert {
     TriangleTransformVert() {}
-    TriangleTransformVert(TriangleTransformPC push_constant)
-        : push_constant(push_constant)
+    TriangleTransformVert(glm::mat4 render_matrix)
+        : render_matrix(render_matrix)
     {}
     
     uint32_t vertex_num_floats() const {
@@ -30,9 +27,9 @@ struct TriangleTransformVert {
             .stage_flags = VK_SHADER_STAGE_VERTEX_BIT,
             .offset = 0,
             .size = sizeof(glm::mat4),
-            .p_data = &push_constant.render_matrix
+            .p_data = &render_matrix
         });
     }
 
-    TriangleTransformPC push_constant;
+    glm::mat4 render_matrix;
 };

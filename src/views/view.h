@@ -12,6 +12,7 @@
 #include "shared.h"
 #include "quad_draw.h"
 #include "moving_quad_draw.h"
+#include "color_quad_draw.h"
 
 struct ViewDrawData {
     std::vector<float> vertices = {};
@@ -24,11 +25,15 @@ struct View {
     View()
     {}
 
+    // TODO: is there a way to do this without needing all these specific cosntructors?
     View(QuadDraw in_draw)
         : renderable(new QuadDraw(std::move(in_draw)))
     {}
     View(MovingQuadDraw in_draw)
         : renderable(new MovingQuadDraw(std::move(in_draw)))
+    {}
+    View(ColorQuadDraw in_draw)
+        : renderable(new ColorQuadDraw(std::move(in_draw)))
     {}
 
     void push_child(View view)  {

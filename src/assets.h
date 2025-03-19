@@ -19,6 +19,7 @@ TextureID texture_id(TextureSource texture);
 
 enum class ShaderSource : uint32_t {
     TriangleFrag = 0,
+    TriangleColorFrag,
     TriangleVert,
     TriangleTransformVert,
     Count
