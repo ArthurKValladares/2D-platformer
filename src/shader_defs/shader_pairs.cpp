@@ -1,85 +1,18 @@
 #include "shader_pairs.h"
 
 uint32_t ShaderPair::vertex_num_floats() const {
-    switch (vertex_ty)
-    {
-        case ShaderSource::TriangleVert: {
-            return triangle_vert.vertex_num_floats();
-            break;
-        }
-        case ShaderSource::TriangleTransformVert: {
-            return triangle_transform_vert.vertex_num_floats();
-            break;
-        }
-        default: {
-            assert(false);
-            return 0;
-        }
-    }
+    return vertex->vertex_num_floats();
 }
 
 DescriptorSetData ShaderPair::draw_texture_binding() const {
-    switch (fragment_ty)
-    {
-        case ShaderSource::TriangleFrag: {
-            return triangle_frag.draw_texture_binding();
-        }
-        case ShaderSource::TriangleColorFrag: {
-            return triangle_color_frag.draw_texture_binding();
-        }
-        default: {
-            assert(false);
-            return DescriptorSetData{};
-        }
-    }
+    return fragment->draw_texture_binding();
 }
 
 TextureSource ShaderPair::draw_texture() const {
-    switch (fragment_ty)
-    {
-        case ShaderSource::TriangleFrag: {
-            return triangle_frag.texture_binding;
-        }
-        case ShaderSource::TriangleColorFrag: {
-            return triangle_color_frag.texture_binding;
-        }
-        default: {
-            assert(false);
-            return TextureSource::Count;
-        }
-    }
+    return fragment->draw_texture();
 }
 
 void ShaderPair::append_push_constant_data(std::vector<PushConstantData>& pcs) const {
-    switch (vertex_ty)
-    {
-        case ShaderSource::TriangleVert: {
-            triangle_vert.append_push_constant_data(pcs);
-            break;
-        }
-        case ShaderSource::TriangleTransformVert: {
-            triangle_transform_vert.append_push_constant_data(pcs);
-            break;
-        }
-        default: {
-            assert(false);
-            break;
-        }
-    }
-
-    switch (fragment_ty)
-    {
-        case ShaderSource::TriangleFrag: {
-            triangle_frag.append_push_constant_data(pcs);
-            break;
-        }
-        case ShaderSource::TriangleColorFrag: {
-            triangle_color_frag.append_push_constant_data(pcs);
-            break;
-        }
-        default: {
-            assert(false);
-            break;
-        }
-    }
+    vertex->append_push_constant_data(pcs);
+    fragment->append_push_constant_data(pcs);
 }

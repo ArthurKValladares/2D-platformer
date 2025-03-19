@@ -5,13 +5,19 @@
 
 #include "../renderer/draw.h"
 
+#include "shader.h"
+
 struct TriangleVertex {
     glm::vec3 in_position;
     glm::vec3 in_color;
 };
 
-struct TriangleVert {
+struct TriangleVert final : VertexShader {
     TriangleVert() {}
+
+    ShaderSource source() const {
+        return ShaderSource::TriangleVert;
+    }
 
     uint32_t vertex_num_floats() const {
         return sizeof(TriangleVertex) / sizeof(float);

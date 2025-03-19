@@ -6,6 +6,8 @@
 void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
     if (renderable && !renderable->is_empty()) {
         const ShaderPair& shaders = renderable->shaders();
+        const ShaderSource vertex_ty = shaders.vertex->source();
+        const ShaderSource fragment_ty = shaders.fragment->source();
 
         const TextureSource draw_texture = shaders.draw_texture();
         const uint32_t first_index = data.indices.size();
@@ -15,8 +17,8 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
 
         DrawCommand dc = DrawCommand{
             .texture_id = texture_id(draw_texture),
-            .vertex_id = shader_id(shaders.vertex_ty),
-            .fragment_id = shader_id(shaders.fragment_ty),
+            .vertex_id = shader_id(vertex_ty),
+            .fragment_id = shader_id(fragment_ty),
             .index_count = index_count,
             .first_index = first_index
         };
@@ -27,15 +29,15 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         const ImageData image_data = ImageData(texture_path(draw_texture));
         renderer->upload_texture(texture_id(draw_texture), image_data.texture_create_info());
 
-        renderer->upload_shader(shader_id(shaders.vertex_ty), shader_path(shaders.vertex_ty));
-        renderer->upload_shader(shader_id(shaders.fragment_ty), shader_path(shaders.fragment_ty));
+        renderer->upload_shader(shader_id(vertex_ty), shader_path(vertex_ty));
+        renderer->upload_shader(shader_id(fragment_ty), shader_path(fragment_ty));
 
-        renderer->upload_pipeline(shader_id(shaders.vertex_ty), shader_id(shaders.fragment_ty));
+        renderer->upload_pipeline(shader_id(vertex_ty), shader_id(fragment_ty));
 
         renderer->upload_material(
             texture_id(draw_texture),
-            shader_id(shaders.vertex_ty),
-            shader_id(shaders.fragment_ty),
+            shader_id(vertex_ty),
+            shader_id(fragment_ty),
             shaders.draw_texture_binding().set
         );
     }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "../assets.h"
 
 #include "shared.h"
@@ -16,22 +18,13 @@
 struct ShaderPair {
     ShaderPair() {}
 
-    void with_triangle_vert(TriangleVert vert) {
-        vertex_ty = ShaderSource::TriangleVert;
-        triangle_vert = vert;
-    }
-    void with_triangle_transform_vert(TriangleTransformVert vert) {
-        vertex_ty = ShaderSource::TriangleTransformVert;
-        triangle_transform_vert = vert;
-    }
-    void with_triangle_frag(TriangleFrag frag) {
-        fragment_ty = ShaderSource::TriangleFrag;
-        triangle_frag = frag;
-    }
-    void with_triangle_color_frag(TriangleColorFrag frag) {
-        fragment_ty = ShaderSource::TriangleColorFrag;
-        triangle_color_frag = frag;
-    }
+    template<class V, class F>
+    requires std::is_base_of_v<VertexShader, V> &&
+        std::is_base_of_v<FragmentShader, F>
+    ShaderPair(V vertex, F fragment)
+        : vertex(new V(std::move(vertex)))
+        , fragment(new F(std::move(fragment)))
+    {}
 
     uint32_t vertex_num_floats() const;
 
@@ -41,16 +34,7 @@ struct ShaderPair {
     TextureSource draw_texture() const;
 
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const;
-
-    ShaderSource vertex_ty;
-    union {
-        TriangleVert triangle_vert;
-        TriangleTransformVert triangle_transform_vert;
-    };
     
-    ShaderSource fragment_ty;
-    union {
-        TriangleFrag triangle_frag;
-        TriangleColorFrag triangle_color_frag;
-    };
+    std::unique_ptr<VertexShader> vertex;
+    std::unique_ptr<FragmentShader> fragment;
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "shared.h"
+#include "shader.h"
 
 #include "../assets.h"
 #include "../renderer/draw.h"
@@ -11,17 +12,25 @@
 
 #include <glm/vec3.hpp>
 
-struct TriangleColorFrag {
+struct TriangleColorFrag final : FragmentShader {
     TriangleColorFrag() {}
     TriangleColorFrag(TextureSource texture, glm::vec3 color = glm::vec3(0.0))
         :  texture_binding(texture)
     {}
 
+    ShaderSource source() const {
+        return ShaderSource::TriangleColorFrag;
+    }
+    
     DescriptorSetData draw_texture_binding() const {
         return DescriptorSetData{
             .set = 0,
             .binding = 0
         };
+    }
+
+    virtual TextureSource draw_texture() const {
+        return texture_binding;
     }
 
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {

@@ -9,12 +9,8 @@
 struct QuadDraw final : RenderableInterface {
     QuadDraw(Rect2D rect, TextureSource texture)
         : rect(rect)
-    {
-        ShaderPair pair;
-        pair.with_triangle_vert(TriangleVert());
-        pair.with_triangle_frag(TriangleFrag(texture));
-        shader_pair = pair;
-    }
+        , shader_pair(TriangleVert(), TriangleFrag(texture))
+    {}
 
     bool is_empty() const {
         return rect.is_zero_sized();

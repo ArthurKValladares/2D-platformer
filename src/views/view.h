@@ -25,15 +25,10 @@ struct View {
     View()
     {}
 
-    // TODO: is there a way to do this without needing all these specific cosntructors?
-    View(QuadDraw in_draw)
-        : renderable(new QuadDraw(std::move(in_draw)))
-    {}
-    View(MovingQuadDraw in_draw)
-        : renderable(new MovingQuadDraw(std::move(in_draw)))
-    {}
-    View(ColorQuadDraw in_draw)
-        : renderable(new ColorQuadDraw(std::move(in_draw)))
+    template<class T>
+    requires std::is_base_of_v<RenderableInterface, T>
+    View(T renderable)
+        : renderable(new T(std::move(renderable)))
     {}
 
     void push_child(View view)  {

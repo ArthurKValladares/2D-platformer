@@ -6,18 +6,24 @@
 
 #include "../renderer/draw.h"
 
+#include "shader.h"
+
 struct TriangleTransformVertex {
     glm::vec3 in_position;
     glm::vec3 in_color;
 };
 
 
-struct TriangleTransformVert {
+struct TriangleTransformVert final : VertexShader {
     TriangleTransformVert() {}
     TriangleTransformVert(glm::mat4 render_matrix)
         : render_matrix(render_matrix)
     {}
     
+    ShaderSource source() const {
+        return ShaderSource::TriangleTransformVert;
+    }
+
     uint32_t vertex_num_floats() const {
         return sizeof(TriangleTransformVertex) / sizeof(float);
     }

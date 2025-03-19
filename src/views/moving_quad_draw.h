@@ -11,22 +11,21 @@
 struct MovingQuadDraw final : RenderableInterface{
     MovingQuadDraw(Rect2D rect, TextureSource texture)
         : rect(rect)
-    {
-        ShaderPair pair;
-        pair.with_triangle_transform_vert(
-            TriangleTransformVert(glm::mat4(1.0))
-        );
-        pair.with_triangle_frag(TriangleFrag(texture));
-        shader_pair = pair;
-    }
+        , shader_pair(
+            TriangleTransformVert(glm::mat4(1.0)),
+            TriangleFrag(texture)
+        )
+    {}
 
     bool is_empty() const {
         return rect.is_zero_sized();
     }
 
     void update(const ViewUpdateData& data) {
+        TriangleTransformVert* triangle_transform_vert = dynamic_cast<TriangleTransformVert*>(shader_pair.vertex.get());
+
         const double offset = sin(data.elapsed_seconds) * 0.1;
-        shader_pair.triangle_transform_vert.render_matrix = 
+        triangle_transform_vert->render_matrix = 
             glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
     }
     
