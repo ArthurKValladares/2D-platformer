@@ -43,7 +43,7 @@ struct TriangleDataVert final : VertexShader {
     }
 
     uint32_t vertex_num_floats() const {
-        return sizeof(TriangleDataVert) / sizeof(float);
+        return sizeof(TriangleDataVertex) / sizeof(float);
     }
     
     void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {

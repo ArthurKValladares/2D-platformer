@@ -11,6 +11,8 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
 
         const uint32_t first_index = data.indices.size();
 
+        const uint64_t test_1 = data.vertices.size();
+        const uint64_t test_2 = shaders.vertex_num_floats();
         const uint32_t index_count = renderable->index_data(data.vertices.size() / shaders.vertex_num_floats(), data.indices);
         renderable->vertex_data(data.vertices);
 
