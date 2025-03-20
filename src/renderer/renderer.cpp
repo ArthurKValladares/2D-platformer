@@ -230,6 +230,12 @@ Renderer::Renderer(Window& window) {
     pool_info.maxSets = static_cast<uint32_t>(max_descriptor_count * 2);
     chk(vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptor_pool));
 
+
+    vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(device, "vkCmdPushDescriptorSetKHR");
+    if (!vkCmdPushDescriptorSetKHR) {
+        std::cout << "Could not get a valid function pointer for vkCmdPushDescriptorSetKHR" << std::endl;
+        exit(-1);
+    }
 }
 
 Renderer::~Renderer() {
@@ -332,6 +338,7 @@ void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
         allocator,
         VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        VMA_MEMORY_USAGE_AUTO,
         data,
         size_bytes
     );
@@ -342,6 +349,7 @@ void Renderer::upload_vertex_data(void* data, uint64_t size_bytes) {
         allocator,
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        VMA_MEMORY_USAGE_AUTO,
         data,
         size_bytes
     );
@@ -491,6 +499,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
                 const Texture& texture = textures[set_data.texture_id];
                 write.pImageInfo = &texture.descriptor;
             }
+            write_descriptor_sets.push_back(write);
         }
         vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, write_descriptor_sets.size(), write_descriptor_sets.data());
 

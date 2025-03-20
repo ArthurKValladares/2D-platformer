@@ -21,7 +21,6 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
             .first_index = first_index
         };
         shaders.append_push_constant_data(dc.pcs);
-        data.draws.push_back(dc);
 
         // Upload draw data
         shaders.append_descriptor_sets(dc.sets);
@@ -33,6 +32,8 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
                 renderer->upload_texture(data.texture_id, image_data.texture_create_info());
             }
         }
+
+        data.draws.push_back(dc);
 
         renderer->upload_shader(shader_id(vertex_ty), shader_path(vertex_ty));
         renderer->upload_shader(shader_id(fragment_ty), shader_path(fragment_ty));

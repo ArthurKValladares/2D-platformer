@@ -22,6 +22,7 @@ struct TriangleDataVert final : VertexShader {
         render_matrix_buffer = Buffer(
             renderer->get_allocator(),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VMA_ALLOCATION_CREATE_MAPPED_BIT,
             VMA_MEMORY_USAGE_CPU_TO_GPU,
             &this->render_matrix,
             sizeof(glm::mat4)
@@ -53,5 +54,6 @@ struct TriangleDataVert final : VertexShader {
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 
     glm::mat4 render_matrix;
+    // TODO: I'm leaking this for now but its fine, it won't live here in the end
     Buffer render_matrix_buffer;
 };

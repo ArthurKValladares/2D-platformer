@@ -61,6 +61,7 @@ private:
 	inline static VkPhysicalDeviceVulkan11Features enabled_features11{};
 	inline static VkPhysicalDeviceVulkan12Features enabled_features12{};
 	inline static VkPhysicalDeviceVulkan13Features enabled_features13{};
+    PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR{ VK_NULL_HANDLE };
     
     const VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_4_BIT;
     uint32_t image_index = 0;

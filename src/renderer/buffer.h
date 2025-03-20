@@ -9,7 +9,7 @@
 struct Buffer {
     Buffer() {}
 
-    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, uint64_t size_bytes) {
+    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes) {
         size_bytes = size_bytes;
         VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -18,7 +18,7 @@ struct Buffer {
         };
         VmaAllocationCreateInfo buffer_alloc_ci = {
             .flags = allocation_flags,
-            .usage = VMA_MEMORY_USAGE_AUTO
+            .usage = vma_usage
         };
         chk(vmaCreateBuffer(allocator, &buffer_ci, &buffer_alloc_ci, &raw, &allocation, nullptr));
 
@@ -27,8 +27,8 @@ struct Buffer {
         descriptor.range = size_bytes;
     }
 
-    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, void* data, uint64_t size_bytes)
-        : Buffer(allocator, usage, allocation_flags, size_bytes)
+    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, void* data, uint64_t size_bytes)
+        : Buffer(allocator, usage, allocation_flags, vma_usage, size_bytes)
     {
         void* buffer_ptr = nullptr;
         vmaMapMemory(allocator, allocation, &buffer_ptr);
@@ -37,12 +37,12 @@ struct Buffer {
     }
 
     template<class T>
-    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, T* data, uint64_t length)
-        : Buffer(allocator, usage, allocation_flags, (void*) data, length * sizeof(T))
+    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, T* data, uint64_t length)
+        : Buffer(allocator, usage, allocation_flags, vma_usage, (void*) data, length * sizeof(T))
     {}
     template<class T>
-    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, const std::vector<T>& data)
-        : Buffer(allocator, usage, allocation_flags, data.data(), data.size())
+    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, const std::vector<T>& data)
+        : Buffer(allocator, usage, allocation_flags, vma_usage, data.data(), data.size())
     {}
 
     void destroy(VmaAllocator allocator);
