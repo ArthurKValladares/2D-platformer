@@ -21,6 +21,10 @@ struct Buffer {
             .usage = VMA_MEMORY_USAGE_AUTO
         };
         chk(vmaCreateBuffer(allocator, &buffer_ci, &buffer_alloc_ci, &raw, &allocation, nullptr));
+
+        descriptor.buffer = raw;
+        descriptor.offset = 0;
+        descriptor.range = size_bytes;
     }
 
     Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, void* data, uint64_t size_bytes)
@@ -46,4 +50,5 @@ struct Buffer {
     VmaAllocation allocation = VK_NULL_HANDLE;
     VkBuffer raw = VK_NULL_HANDLE;
     uint64_t size_bytes = 0;
+    VkDescriptorBufferInfo descriptor;
 };

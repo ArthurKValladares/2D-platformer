@@ -15,9 +15,8 @@
 
 #include "views/view.h"
 
-// TODO: The way I'm handling descriptor sets is very messy.
-// Look at using push descriptors instead
-// https://github.com/SaschaWillems/Vulkan/blob/master/examples/pushdescriptors/pushdescriptors.cpp
+// TODO: It's weird that I'm handling textures and buffers so differently,
+// Take the `Buffer` out of `TriangleDataVert` later
 
 int main(int argc, char *argv[]) {
     Window window = Window();
@@ -40,6 +39,7 @@ int main(int argc, char *argv[]) {
         TextureSource::Test3
     ));
     root_view.push_child(DataQuadDraw(
+        &renderer,
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test4
     ));

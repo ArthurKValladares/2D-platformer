@@ -10,14 +10,8 @@
 #include "buffer.h"
 #include "texture.h"
 #include "draw.h"
-#include "material.h"
 #include "pipeline.h"
 #include "resource_ids.h"
-
-struct DescriptorSetData {
-    uint32_t set;
-    uint32_t binding;
-};
 
 struct Window;
 struct Renderer {
@@ -28,7 +22,6 @@ struct Renderer {
     void upload_texture(TextureID id, const TextureCreateInfo& texture_cis);
     void upload_shader(ShaderID id, const char* path);
     void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id);
-    void upload_material(TextureID texture_id, ShaderID vertex_shader_id, ShaderID fragment_shader_id, DescriptorSetData data);
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
@@ -45,6 +38,9 @@ struct Renderer {
     }
     VkDescriptorPool get_descriptor_pool() {
         return descriptor_pool;
+    }
+    VmaAllocator get_allocator() {
+        return allocator;
     }
 
     const ShaderData& get_shader_data(ShaderID shader_id) const {
@@ -111,7 +107,6 @@ private:
 
     std::unordered_map<TextureID, Texture> textures;
     std::unordered_map<ShaderID, ShaderData> shaders;
-    std::unordered_map<MaterialID, Material> materials;
     std::unordered_map<PipelineID, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;
     std::unordered_map<PipelineID, VkPipelineLayout> pipeline_layouts;
     std::unordered_map<PipelineID, Pipeline> pipelines;

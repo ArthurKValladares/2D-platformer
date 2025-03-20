@@ -5,6 +5,16 @@
 #include <vulkan/vulkan.h>
 
 #include "resource_ids.h"
+#include "buffer.h"
+
+struct DescriptorSetData {
+    uint32_t set;
+    uint32_t binding;
+    VkDescriptorType ty;
+    // TODO: Might need some more data on exactly how to use the texture/buffer in the future
+    TextureID texture_id;
+    const Buffer* buffer;
+};
 
 struct PushConstantData {
     VkShaderStageFlags stage_flags;
@@ -15,10 +25,10 @@ struct PushConstantData {
 
 // TODO: very incomplete, just the bare minimum for testing
 struct DrawCommand {
-    TextureID texture_id;
     ShaderID vertex_id;
     ShaderID fragment_id;
     uint32_t index_count;
     uint32_t first_index;
+    std::vector<DescriptorSetData> sets;
     std::vector<PushConstantData> pcs;
 };

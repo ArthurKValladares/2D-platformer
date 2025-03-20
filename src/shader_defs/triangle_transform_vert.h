@@ -28,6 +28,8 @@ struct TriangleTransformVert final : VertexShader {
         return sizeof(TriangleTransformVertex) / sizeof(float);
     }
 
+    void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {}
+
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {
         pcs.push_back(PushConstantData {
             .stage_flags = VK_SHADER_STAGE_VERTEX_BIT,

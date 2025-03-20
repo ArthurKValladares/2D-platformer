@@ -327,16 +327,6 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
     }
 }
 
-void Renderer::upload_material(TextureID texture_id, ShaderID vertex_shader_id, ShaderID fragment_shader_id, DescriptorSetData data) {
-    PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
-    MaterialID material_id(texture_id, vertex_shader_id, fragment_shader_id);
-    if (!materials.contains(material_id)) {
-        const std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
-        const Texture& texture = textures.at(texture_id);
-        materials.try_emplace(material_id, this, &texture, layouts[data.set], data.binding);
-    }
-}
-
 void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
     i_buffer = Buffer(
         allocator,
@@ -478,13 +468,31 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 
     for (const DrawCommand& draw : draws) {
         const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id); 
-        const MaterialID material_id(draw.texture_id, draw.vertex_id, draw.fragment_id);
-        const Material& material = materials[material_id];
         const Pipeline& pipeline = pipelines[pipeline_id];
         const VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
-        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &material.descriptor_set, 0, nullptr);
+
+        // TODO: This is hard-coded to set 0 for now, need to be a map, but a fixed-size one (so an array)
+        // With the size being the max number of allowed descriptor sets.
+        // Same with BindingsMap
+        std::vector<VkWriteDescriptorSet> write_descriptor_sets{};
+        for (const DescriptorSetData& set_data : draw.sets) {
+            VkWriteDescriptorSet write = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.dstSet = 0,
+				.dstBinding = set_data.binding,
+				.descriptorCount = 1,
+				.descriptorType = set_data.ty,
+            };
+            if (set_data.ty == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+                write.pBufferInfo = &set_data.buffer->descriptor;
+            } else if (set_data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+                const Texture& texture = textures[set_data.texture_id];
+                write.pImageInfo = &texture.descriptor;
+            }
+        }
+        vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, write_descriptor_sets.size(), write_descriptor_sets.data());
 
         for (const PushConstantData& pc : draw.pcs) {
             vkCmdPushConstants(cb, pipeline_layout, pc.stage_flags, pc.offset, pc.size, pc.p_data);

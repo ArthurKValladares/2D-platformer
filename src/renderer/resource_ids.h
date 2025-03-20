@@ -45,23 +45,6 @@ struct PipelineID {
     ShaderID fragment;
 };
 
-struct MaterialID {
-    MaterialID() {}
-    explicit MaterialID(TextureID texture, ShaderID vertex, ShaderID fragment)
-        : texture(texture)
-        , vertex(vertex)
-        , fragment(fragment)
-    {}
-
-    bool operator==(const MaterialID &other) const {
-        return texture == other.texture && vertex == other.vertex && fragment == other.fragment;
-    }
-
-    TextureID texture;
-    ShaderID vertex;
-    ShaderID fragment;
-};
-
 template<typename T>
 std::size_t make_hash(const T& v)
 {
@@ -100,18 +83,6 @@ namespace std
         size_t operator()(const PipelineID& p) const
         {
             size_t h= make_hash(p.vertex);
-            hash_combine(h, make_hash(p.fragment));
-            return h;
-        }
-    };
-
-    template<>
-    struct hash<MaterialID>
-    {
-        size_t operator()(const MaterialID& p) const
-        {
-            size_t h= make_hash(p.texture);
-            hash_combine(h, make_hash(p.vertex));
             hash_combine(h, make_hash(p.fragment));
             return h;
         }

@@ -7,9 +7,9 @@
 #include "renderable.h"
 
 struct DataQuadDraw final : RenderableInterface {
-    DataQuadDraw(Rect2D rect, TextureSource texture)
+    DataQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, glm::mat4 render_matrix = glm::mat4(1.0))
         : rect(rect)
-        , shader_pair(TriangleDataVert(), TriangleDataFrag(texture))
+        , shader_pair(TriangleDataVert(renderer, render_matrix), TriangleDataFrag(texture))
     {}
 
     bool is_empty() const {

@@ -1,9 +1,12 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <vector>
 
+#include "../renderer/renderer.h"
 #include "../renderer/draw.h"
+#include "../renderer/buffer.h"
 
 #include "shader.h"
 
@@ -13,7 +16,23 @@ struct TriangleDataVertex {
 };
 
 struct TriangleDataVert final : VertexShader {
-    TriangleDataVert() {}
+    TriangleDataVert(Renderer* renderer, glm::mat4 render_matrix)
+        : render_matrix(render_matrix)
+    {
+        render_matrix_buffer = Buffer(
+            renderer->get_allocator(),
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VMA_MEMORY_USAGE_CPU_TO_GPU,
+            &this->render_matrix,
+            sizeof(glm::mat4)
+        );
+
+        // TODO: Add helper that does this to buffer
+        void* mapped_data;
+        vmaMapMemory(renderer->get_allocator(), render_matrix_buffer.allocation, &mapped_data);
+        memcpy(mapped_data, &render_matrix, sizeof(glm::mat4));
+        vmaUnmapMemory(renderer->get_allocator(), render_matrix_buffer.allocation);
+    }
 
     ShaderSource source() const {
         return ShaderSource::TriangleDataVert;
@@ -23,5 +42,16 @@ struct TriangleDataVert final : VertexShader {
         return sizeof(TriangleDataVert) / sizeof(float);
     }
     
+    void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {
+        sets.push_back(DescriptorSetData{
+            .set = 0,
+            .binding = 0,
+            .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .buffer = &render_matrix_buffer,
+        });
+    }
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
+
+    glm::mat4 render_matrix;
+    Buffer render_matrix_buffer;
 };
