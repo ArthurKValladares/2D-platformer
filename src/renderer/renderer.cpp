@@ -127,6 +127,7 @@ Renderer::Renderer(Window& window) {
     
     // Store properties/features/etc
     vkGetPhysicalDeviceProperties(physical_device, &properties);
+    const auto max_sets = properties.limits.maxBoundDescriptorSets;
     vkGetPhysicalDeviceFeatures(physical_device, &features);
     vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);
 
@@ -483,11 +484,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
         const VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
-
-        // TODO: This is hard-coded to set 0 for now, need to be a map, but a fixed-size one (so an array)
-        // With the size being the max number of allowed descriptor sets.
-        // Same with BindingsMap
-        std::vector<VkWriteDescriptorSet> write_descriptor_sets{};
+        
+        std::array<std::vector<VkWriteDescriptorSet>, MAX_NUM_DESCRIPTOR_SETS> write_descriptor_sets{};
         for (const DescriptorSetData& set_data : draw.sets) {
             VkWriteDescriptorSet write = {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -503,9 +501,13 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
                 const Texture& texture = textures[set_data.texture_id];
                 write.pImageInfo = &texture.descriptor;
             }
-            write_descriptor_sets.push_back(write);
+            write_descriptor_sets[set_data.set].push_back(write);
         }
-        vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, write_descriptor_sets.size(), write_descriptor_sets.data());
+        for (const std::vector<VkWriteDescriptorSet>& writes : write_descriptor_sets) {
+            if (!writes.empty()) {
+                vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, writes.size(), writes.data());
+            }
+        }
 
         for (const PushConstantData& pc : draw.pcs) {
             vkCmdPushConstants(cb, pipeline_layout, pc.stage_flags, pc.offset, pc.size, pc.p_data);

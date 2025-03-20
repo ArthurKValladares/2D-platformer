@@ -15,9 +15,6 @@
 
 #include "views/view.h"
 
-// TODO: It's weird that I'm handling textures and buffers so differently,
-// Take the `Buffer` out of `TriangleDataVert` later
-
 int main(int argc, char *argv[]) {
     Window window = Window();
 
