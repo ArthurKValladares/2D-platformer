@@ -23,5 +23,6 @@ struct TriangleVert final : VertexShader {
         return sizeof(TriangleVertex) / sizeof(float);
     }
     
+    void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {}
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 };

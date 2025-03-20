@@ -9,37 +9,38 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         const ShaderSource vertex_ty = shaders.vertex->source();
         const ShaderSource fragment_ty = shaders.fragment->source();
 
-        const TextureSource draw_texture = shaders.draw_texture();
         const uint32_t first_index = data.indices.size();
 
+        const uint64_t test_1 = data.vertices.size();
+        const uint64_t test_2 = shaders.vertex_num_floats();
         const uint32_t index_count = renderable->index_data(data.vertices.size() / shaders.vertex_num_floats(), data.indices);
         renderable->vertex_data(data.vertices);
 
         DrawCommand dc = DrawCommand{
-            .texture_id = texture_id(draw_texture),
             .vertex_id = shader_id(vertex_ty),
             .fragment_id = shader_id(fragment_ty),
             .index_count = index_count,
             .first_index = first_index
         };
         shaders.append_push_constant_data(dc.pcs);
-        data.draws.push_back(dc);
 
         // Upload draw data
-        const ImageData image_data = ImageData(texture_path(draw_texture));
-        renderer->upload_texture(texture_id(draw_texture), image_data.texture_create_info());
+        shaders.append_descriptor_sets(dc.sets);
+        for (const DescriptorSetData& data : dc.sets) {
+            if (data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+                // TODO: Its inefficient that i'm reacreating the ImageData even if the texture already exists.
+                // add a way to check that publicly to the renderer
+                const ImageData image_data = ImageData(texture_path(static_cast<TextureSource>(data.texture_id.id)));
+                renderer->upload_texture(data.texture_id, image_data.texture_create_info());
+            }
+        }
+
+        data.draws.push_back(dc);
 
         renderer->upload_shader(shader_id(vertex_ty), shader_path(vertex_ty));
         renderer->upload_shader(shader_id(fragment_ty), shader_path(fragment_ty));
 
         renderer->upload_pipeline(shader_id(vertex_ty), shader_id(fragment_ty));
-
-        renderer->upload_material(
-            texture_id(draw_texture),
-            shader_id(vertex_ty),
-            shader_id(fragment_ty),
-            shaders.draw_texture_binding()
-        );
     }
 
     for (const View& child : children) {

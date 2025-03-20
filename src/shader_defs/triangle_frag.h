@@ -17,12 +17,14 @@ struct TriangleFrag final : FragmentShader {
     ShaderSource source() const {
         return ShaderSource::TriangleFrag;
     }
-
-    DescriptorSetData draw_texture_binding() const {
-        return DescriptorSetData{
+    
+    void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {
+        sets.push_back(DescriptorSetData{
             .set = 0,
-            .binding = 0
-        };
+            .binding = 0,
+            .ty = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .texture_id = texture_id(texture_binding),
+        });
     }
 
     TextureSource draw_texture() const {

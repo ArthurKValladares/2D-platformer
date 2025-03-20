@@ -61,6 +61,7 @@ namespace initializers {
     inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(uint32_t binding_count = 0, const VkDescriptorSetLayoutBinding* p_bindings = nullptr) {
         return VkDescriptorSetLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
             .bindingCount = binding_count,
             .pBindings = p_bindings
         };

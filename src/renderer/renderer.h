@@ -10,25 +10,21 @@
 #include "buffer.h"
 #include "texture.h"
 #include "draw.h"
-#include "material.h"
 #include "pipeline.h"
 #include "resource_ids.h"
-
-struct DescriptorSetData {
-    uint32_t set;
-    uint32_t binding;
-};
 
 struct Window;
 struct Renderer {
     Renderer(Window& window);
     ~Renderer();
 
+    // TODO: the public API is still a bit messy wiht all the create/upload/request functions.
+    // standardize all that at some point
+
     // TODO: Efficient way to do this in a batch
     void upload_texture(TextureID id, const TextureCreateInfo& texture_cis);
     void upload_shader(ShaderID id, const char* path);
     void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id);
-    void upload_material(TextureID texture_id, ShaderID vertex_shader_id, ShaderID fragment_shader_id, DescriptorSetData data);
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
@@ -46,6 +42,9 @@ struct Renderer {
     VkDescriptorPool get_descriptor_pool() {
         return descriptor_pool;
     }
+    VmaAllocator get_allocator() {
+        return allocator;
+    }
 
     const ShaderData& get_shader_data(ShaderID shader_id) const {
         return shaders.at(shader_id);
@@ -57,6 +56,8 @@ struct Renderer {
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
     void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
     
+    BufferID request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes);
+    Buffer& get_buffer(BufferID id);
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
@@ -65,6 +66,7 @@ private:
 	inline static VkPhysicalDeviceVulkan11Features enabled_features11{};
 	inline static VkPhysicalDeviceVulkan12Features enabled_features12{};
 	inline static VkPhysicalDeviceVulkan13Features enabled_features13{};
+    PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR{ VK_NULL_HANDLE };
     
     const VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_4_BIT;
     uint32_t image_index = 0;
@@ -109,9 +111,9 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
+    std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;
     std::unordered_map<ShaderID, ShaderData> shaders;
-    std::unordered_map<MaterialID, Material> materials;
     std::unordered_map<PipelineID, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;
     std::unordered_map<PipelineID, VkPipelineLayout> pipeline_layouts;
     std::unordered_map<PipelineID, Pipeline> pipelines;
