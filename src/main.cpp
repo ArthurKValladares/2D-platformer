@@ -24,8 +24,6 @@ int main(int argc, char *argv[]) {
     Renderer renderer(window);
     
     // View-tree
-    // TODO: if i draw just the DataQuadDraw node, it works, with the rest it doesn't.
-    // Figure that out
     View root_view = View();
     root_view.push_child(QuadDraw(
         Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
