@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 #include <vector>
 
@@ -15,24 +16,26 @@ struct TriangleDataVertex {
     glm::vec3 in_color;
 };
 
+struct UniformData {
+    glm::mat4 render_matrix;
+    glm::vec4 color;
+};
+
 struct TriangleDataVert final : VertexShader {
-    TriangleDataVert(Renderer* renderer, glm::mat4 render_matrix)
-        : render_matrix(render_matrix)
+    TriangleDataVert(Renderer* renderer, glm::mat4 render_matrix, glm::vec4 color)
+        : uniform_data(UniformData{
+            .render_matrix = render_matrix,
+            .color = color,
+        })
     {
         render_matrix_buffer = Buffer(
             renderer->get_allocator(),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VMA_ALLOCATION_CREATE_MAPPED_BIT,
             VMA_MEMORY_USAGE_CPU_TO_GPU,
-            &this->render_matrix,
-            sizeof(glm::mat4)
+            &this->uniform_data,
+            sizeof(UniformData)
         );
-
-        // TODO: Add helper that does this to buffer
-        void* mapped_data;
-        vmaMapMemory(renderer->get_allocator(), render_matrix_buffer.allocation, &mapped_data);
-        memcpy(mapped_data, &render_matrix, sizeof(glm::mat4));
-        vmaUnmapMemory(renderer->get_allocator(), render_matrix_buffer.allocation);
     }
 
     ShaderSource source() const {
@@ -53,7 +56,7 @@ struct TriangleDataVert final : VertexShader {
     }
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 
-    glm::mat4 render_matrix;
     // TODO: I'm leaking this for now but its fine, it won't live here in the end
+    UniformData uniform_data;
     Buffer render_matrix_buffer;
 };

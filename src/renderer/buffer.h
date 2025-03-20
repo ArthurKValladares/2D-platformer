@@ -37,10 +37,6 @@ struct Buffer {
     }
 
     template<class T>
-    Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, T* data, uint64_t length)
-        : Buffer(allocator, usage, allocation_flags, vma_usage, (void*) data, length * sizeof(T))
-    {}
-    template<class T>
     Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, const std::vector<T>& data)
         : Buffer(allocator, usage, allocation_flags, vma_usage, data.data(), data.size())
     {}
