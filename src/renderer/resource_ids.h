@@ -17,6 +17,19 @@ struct TextureID {
     uint32_t id;
 };
 
+struct BufferID {
+    BufferID() {}
+    explicit BufferID(uint32_t id)
+        : id(id)
+    {}
+
+    bool operator==(const BufferID &other) const {
+        return id == other.id;
+    }
+
+    uint32_t id;
+};
+
 struct ShaderID {
     ShaderID() {}
     explicit ShaderID(uint32_t id)
@@ -65,6 +78,15 @@ namespace std
         size_t operator()(const TextureID& t) const
         {
             return make_hash(t.id);
+        }
+    };
+
+    template<>
+    struct hash<BufferID>
+    {
+        size_t operator()(const BufferID& b) const
+        {
+            return make_hash(b.id);
         }
     };
 

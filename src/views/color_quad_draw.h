@@ -30,6 +30,9 @@ struct ColorQuadDraw final : RenderableInterface{
     const ShaderPair& shaders() const {
         return shader_pair;
     }
+    ShaderPair& shaders() {
+        return shader_pair;
+    }
 
     uint64_t vertex_data(std::vector<float>& vertex_buffer) {
         return rect.vertex_data(vertex_buffer);    

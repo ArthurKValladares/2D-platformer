@@ -252,6 +252,9 @@ Renderer::~Renderer() {
     }
     v_buffer.destroy(allocator);
     i_buffer.destroy(allocator);
+    for (auto& [id, buffer] : buffers) {
+        buffer.destroy(allocator);
+    }
     for (auto& [id, texture] : textures) {
         texture.destroy(this);
     }
@@ -494,7 +497,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 				.descriptorType = set_data.ty,
             };
             if (set_data.ty == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
-                write.pBufferInfo = &set_data.buffer->descriptor;
+                const Buffer& buffer = buffers[set_data.buffer_id];
+                write.pBufferInfo = &buffer.descriptor;
             } else if (set_data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
                 const Texture& texture = textures[set_data.texture_id];
                 write.pImageInfo = &texture.descriptor;
@@ -602,4 +606,14 @@ void Renderer::flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queu
         // TODO: transfer
         vkFreeCommandBuffers(device, cmd_pool, 1, &command_buffer);
     }
+}
+
+BufferID Renderer::request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes)  {
+    const BufferID id = BufferID(buffers.size());
+    buffers.try_emplace(id, allocator, usage, allocation_flags, vma_usage, size_bytes);
+    return id;
+}
+
+Buffer& Renderer::get_buffer(BufferID id) {
+    return buffers[id];
 }

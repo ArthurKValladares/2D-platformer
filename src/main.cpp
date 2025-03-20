@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
         const auto finish{std::chrono::steady_clock::now()};
         const std::chrono::duration<double> elapsed_seconds{finish - start};
         const ViewUpdateData update_data = ViewUpdateData{
+            .renderer = &renderer,
             .elapsed_seconds = elapsed_seconds.count()
         };
 

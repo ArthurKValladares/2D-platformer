@@ -28,12 +28,10 @@ struct TriangleDataVert final : VertexShader {
             .color = color,
         })
     {
-        render_matrix_buffer = Buffer(
-            renderer->get_allocator(),
+        buffer_id = renderer->request_buffer(
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VMA_ALLOCATION_CREATE_MAPPED_BIT,
             VMA_MEMORY_USAGE_CPU_TO_GPU,
-            &this->uniform_data,
             sizeof(UniformData)
         );
     }
@@ -51,15 +49,16 @@ struct TriangleDataVert final : VertexShader {
             .set = 0,
             .binding = 0,
             .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .buffer = &render_matrix_buffer,
+            .buffer_id = buffer_id,
         });
     }
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 
-    void update_buffer() {
-        render_matrix_buffer.write_to(&uniform_data, sizeof(UniformData));
+    void update_buffer(Renderer* renderer) {
+        Buffer& buffer = renderer->get_buffer(buffer_id);
+        buffer.write_to(&uniform_data, sizeof(UniformData));
     }
-    // TODO: I'm leaking this for now but its fine, it won't live here in the end
+
     UniformData uniform_data;
-    Buffer render_matrix_buffer;
+    BufferID buffer_id;
 };

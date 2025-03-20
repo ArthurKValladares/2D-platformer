@@ -18,6 +18,9 @@ struct Renderer {
     Renderer(Window& window);
     ~Renderer();
 
+    // TODO: the public API is still a bit messy wiht all the create/upload/request functions.
+    // standardize all that at some point
+
     // TODO: Efficient way to do this in a batch
     void upload_texture(TextureID id, const TextureCreateInfo& texture_cis);
     void upload_shader(ShaderID id, const char* path);
@@ -53,6 +56,8 @@ struct Renderer {
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
     void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
     
+    BufferID request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes);
+    Buffer& get_buffer(BufferID id);
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
@@ -106,6 +111,7 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
+    std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;
     std::unordered_map<ShaderID, ShaderData> shaders;
     std::unordered_map<PipelineID, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;

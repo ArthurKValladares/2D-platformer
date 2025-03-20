@@ -28,10 +28,13 @@ struct DataQuadDraw final : RenderableInterface {
         const double b = abs(cos(data.elapsed_seconds * 0.25));
         triagle_data_vert->uniform_data.color = glm::vec4(r, g, b, 1.0);
 
-        triagle_data_vert->update_buffer();
+        triagle_data_vert->update_buffer(data.renderer);
     }
     
     const ShaderPair& shaders() const {
+        return shader_pair;
+    }
+    ShaderPair& shaders() {
         return shader_pair;
     }
 

@@ -13,7 +13,7 @@ struct DescriptorSetData {
     VkDescriptorType ty;
     // TODO: Might need some more data on exactly how to use the texture/buffer in the future
     TextureID texture_id;
-    const Buffer* buffer;
+    BufferID buffer_id;
 };
 
 struct PushConstantData {
