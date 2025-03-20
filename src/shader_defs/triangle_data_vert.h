@@ -56,6 +56,9 @@ struct TriangleDataVert final : VertexShader {
     }
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 
+    void update_buffer() {
+        render_matrix_buffer.write_to(&uniform_data, sizeof(UniformData));
+    }
     // TODO: I'm leaking this for now but its fine, it won't live here in the end
     UniformData uniform_data;
     Buffer render_matrix_buffer;

@@ -10,6 +10,7 @@ struct Buffer {
     Buffer() {}
 
     Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes) {
+        this->allocator = allocator;
         size_bytes = size_bytes;
         VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -30,10 +31,7 @@ struct Buffer {
     Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, void* data, uint64_t size_bytes)
         : Buffer(allocator, usage, allocation_flags, vma_usage, size_bytes)
     {
-        void* buffer_ptr = nullptr;
-        vmaMapMemory(allocator, allocation, &buffer_ptr);
-        memcpy(buffer_ptr, data, size_bytes);
-        vmaUnmapMemory(allocator, allocation);
+        write_to(data, size_bytes);
     }
 
     template<class T>
@@ -41,8 +39,16 @@ struct Buffer {
         : Buffer(allocator, usage, allocation_flags, vma_usage, data.data(), data.size())
     {}
 
+    void write_to(void* data, uint64_t size_bytes) {
+        void* buffer_ptr = nullptr;
+        vmaMapMemory(allocator, allocation, &buffer_ptr);
+        memcpy(buffer_ptr, data, size_bytes);
+        vmaUnmapMemory(allocator, allocation);
+    }
+
     void destroy(VmaAllocator allocator);
 
+    VmaAllocator allocator;
     VmaAllocation allocation = VK_NULL_HANDLE;
     VkBuffer raw = VK_NULL_HANDLE;
     uint64_t size_bytes = 0;
