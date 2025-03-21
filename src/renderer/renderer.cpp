@@ -283,6 +283,10 @@ Renderer::~Renderer() {
     vkDestroyInstance(instance, nullptr);
 }
 
+bool Renderer::contains_texture(TextureID id) const {
+    return textures.contains(id);
+}
+
 void Renderer::upload_texture(TextureID id, const TextureCreateInfo& ci) {
     if (!textures.contains(id)) {
         textures.try_emplace(id, this, ci);

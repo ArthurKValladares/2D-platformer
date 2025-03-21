@@ -22,7 +22,9 @@ struct Renderer {
     // standardize all that at some point
 
     // TODO: Efficient way to do this in a batch
+    bool contains_texture(TextureID id) const;
     void upload_texture(TextureID id, const TextureCreateInfo& texture_cis);
+
     void upload_shader(ShaderID id, const char* path);
     void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id);
 

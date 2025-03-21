@@ -27,9 +27,7 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         // Upload draw data
         shaders.append_descriptor_sets(dc.sets);
         for (const DescriptorSetData& data : dc.sets) {
-            if (data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
-                // TODO: Its inefficient that i'm reacreating the ImageData even if the texture already exists.
-                // add a way to check that publicly to the renderer
+            if (data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && !renderer->contains_texture(data.texture_id)) {
                 const ImageData image_data = ImageData(texture_path(static_cast<TextureSource>(data.texture_id.id)));
                 renderer->upload_texture(data.texture_id, image_data.texture_create_info());
             }
