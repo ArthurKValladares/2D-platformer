@@ -14,6 +14,7 @@
 #include "moving_quad_draw.h"
 #include "color_quad_draw.h"
 #include "data_quad_draw.h"
+#include "controllable_quad_draw.h"
 
 struct ViewDrawData {
     std::vector<float> vertices = {};

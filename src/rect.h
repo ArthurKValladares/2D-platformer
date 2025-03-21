@@ -23,6 +23,13 @@ struct Rect2D {
         , max_y(max_y)
     {}
 
+    Point2Df32 center() const {
+        return Point2Df32{
+            .x = (max_x - min_x) / 2.f + min_x,
+            .y = (max_y - min_y) / 2.f + min_y
+        };
+    }
+
     bool is_zero_sized() const {
         return min_x == max_x || min_y == max_y;
     }
