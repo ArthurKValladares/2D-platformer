@@ -4,6 +4,17 @@ project(2d-platformer)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Dear ImGui
+set(IMGUI_DIR ./third-party/imgui)
+set(IMGUI_SRCS
+    ${IMGUI_DIR}/backends/imgui_impl_sdl3.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+)
+
 ### Create Executable
 add_executable(${PROJECT_NAME}
   # renderer
@@ -23,13 +34,19 @@ add_executable(${PROJECT_NAME}
   src/util.cpp
   src/image.cpp
   src/main.cpp
+  ### third-party
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp
+  # Imgui
+  ${IMGUI_SRCS}
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
   third-party/stb
   third-party/SPIRV-Reflect-vulkan-sdk
-  third-party/glm)
+  third-party/glm
+  ${IMGUI_DIR}
+  ${IMGUI_DIR}/backends
+)
 
 ### Vulkan setup
 find_package(Vulkan REQUIRED)

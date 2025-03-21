@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
         if (keyboard_state.is_down(SDLK_ESCAPE)) {
             quit = true;
         }
+        renderer.process_sdl_event(&e);
 
         const std::chrono::steady_clock::time_point finish{std::chrono::steady_clock::now()};
         const std::chrono::duration<double>         elapsed_seconds{finish - start};
@@ -80,6 +81,7 @@ int main(int argc, char *argv[]) {
 
         root_view.update(update_data);
         
+        renderer.setup_imgui_draw();
         renderer.render(window, data.draws);
     }
 

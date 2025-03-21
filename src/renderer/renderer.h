@@ -4,14 +4,15 @@
 #include <unordered_map>
 
 #include <vma/vk_mem_alloc.h>
-
-#define MAX_FRAMES_IN_FLIGHT 2
+#include <SDL3/SDL.h>
 
 #include "buffer.h"
 #include "texture.h"
 #include "draw.h"
 #include "pipeline.h"
 #include "resource_ids.h"
+
+#define MAX_FRAMES_IN_FLIGHT 2
 
 struct Window;
 struct Renderer {
@@ -60,6 +61,9 @@ struct Renderer {
     
     BufferID request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes);
     Buffer& get_buffer(BufferID id);
+
+    void process_sdl_event(const SDL_Event* e);
+    void setup_imgui_draw();
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
@@ -112,6 +116,7 @@ private:
     std::vector<VkSemaphore> render_semaphores;
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
+    VkDescriptorPool imgui_descriptor_pool = VK_NULL_HANDLE;
 
     std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;

@@ -95,4 +95,40 @@ namespace initializers {
             .pName = "main"
         };
     }
+
+    inline VkRenderingAttachmentInfo rendering_attachment_info(VkImageView view, VkImageLayout layout, VkImageView resolve_image_view, VkClearValue* clear = nullptr) {
+        VkRenderingAttachmentInfo color_attachment {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .pNext = nullptr,
+            .imageView = view,
+            .imageLayout = layout,
+            .resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+            .resolveImageView = resolve_image_view,
+            .resolveImageLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        };
+
+        if (clear) {
+            color_attachment.clearValue = *clear;
+        }
+    
+        return color_attachment;
+    }
+
+    inline VkRenderingInfo rendering_info(VkExtent2D render_extent, VkRenderingAttachmentInfo* color_attachment, VkRenderingAttachmentInfo* depth_attachment = nullptr)
+    {
+        return VkRenderingInfo {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+            .renderArea = {
+                .extent = render_extent
+            },
+            .layerCount = 1,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = color_attachment,
+            .pDepthAttachment = depth_attachment,
+            .pStencilAttachment = nullptr,
+        };
+    }
+    
 };

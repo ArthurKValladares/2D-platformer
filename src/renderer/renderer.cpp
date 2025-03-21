@@ -9,6 +9,10 @@
 #include <SDL3/SDL_vulkan.h>
 #include <VkBootstrap.h>
 
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_vulkan.h"
+
 #include "../util.h"
 #include "../window.h"
 
@@ -237,6 +241,62 @@ Renderer::Renderer(Window& window) {
         std::cout << "Could not get a valid function pointer for vkCmdPushDescriptorSetKHR" << std::endl;
         exit(-1);
     }
+
+    //
+    // imgui, move it later
+    //
+
+    // Create Imgui-exclusice Descriptor pool
+	// NOTE: This pool is huge, but copied from demo
+	const VkDescriptorPoolSize imgui_pool_sizes[] = { 
+        { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+    };
+
+	VkDescriptorPoolCreateInfo imgui_pool_info = {};
+    imgui_pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    imgui_pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    imgui_pool_info.maxSets = 1000;
+    imgui_pool_info.poolSizeCount = ArrayCount(imgui_pool_sizes);
+    imgui_pool_info.pPoolSizes = imgui_pool_sizes;
+
+	chk(vkCreateDescriptorPool(device, &imgui_pool_info, nullptr, &imgui_descriptor_pool));
+
+	// Initialize Imgui library
+	ImGui::CreateContext();
+
+	ImGui_ImplSDL3_InitForVulkan(window.raw);
+
+	ImGui_ImplVulkan_InitInfo vulkan_init_info = {};
+	vulkan_init_info.Instance = instance;
+	vulkan_init_info.PhysicalDevice = physical_device;
+	vulkan_init_info.Device = device;
+	vulkan_init_info.Queue = graphics_queue;
+	vulkan_init_info.DescriptorPool = imgui_descriptor_pool;
+	vulkan_init_info.MinImageCount = 3;
+	vulkan_init_info.ImageCount = 3;
+	vulkan_init_info.UseDynamicRendering = true;
+
+	vulkan_init_info.PipelineRenderingCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO
+    };
+	vulkan_init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+	vulkan_init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &image_format;
+
+	vulkan_init_info.MSAASamples = VK_SAMPLE_COUNT_4_BIT;
+
+	ImGui_ImplVulkan_Init(&vulkan_init_info);
+
+	ImGui_ImplVulkan_CreateFontsTexture();
 }
 
 Renderer::~Renderer() {
@@ -273,6 +333,8 @@ Renderer::~Renderer() {
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vmaDestroyAllocator(allocator);
     vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
+    ImGui_ImplVulkan_Shutdown();
+    vkDestroyDescriptorPool(device, imgui_descriptor_pool, nullptr);
     for (auto& [id, layouts] : descriptor_set_layouts) {
         for (VkDescriptorSetLayout layout : layouts) {
             vkDestroyDescriptorSetLayout(device, layout, nullptr);
@@ -450,14 +512,15 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .clearValue = {.color = { 0.0f, 0.0f, 0.2f, 1.0f }}
     };
-    Size2Di32 window_size = window.get_size();
+    const Size2Di32 window_size = window.get_size();
+    const VkExtent2D window_extent = VkExtent2D{
+        .width = (uint32_t) window_size.width,
+        .height = (uint32_t) window_size.height
+    };
     VkRenderingInfo renderingInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
         .renderArea = {
-            .extent = {
-                .width = (uint32_t) window_size.width,
-                .height = (uint32_t) window_size.height
-            }
+            .extent = window_extent
         },
         .layerCount = 1,
         .colorAttachmentCount = 1,
@@ -475,10 +538,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     };
     vkCmdSetViewport(cb, 0, 1, &vp);
     VkRect2D scissor = {
-        .extent = {
-            .width = (uint32_t) window_size.width,
-            .height = (uint32_t) window_size.height
-        }
+        .extent = window_extent
     };
     vkCmdSetScissor(cb, 0, 1, &scissor);
 
@@ -525,6 +585,19 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     }
 
     vkCmdEndRendering(cb);
+
+    //
+    // Imgui move later
+    //
+    VkRenderingAttachmentInfo color_attachment = initializers::rendering_attachment_info(render_image_view, VK_IMAGE_LAYOUT_GENERAL, swapchain_image_views[image_index]);
+	VkRenderingInfo rendering_info = initializers::rendering_info(window_extent, &color_attachment);
+
+    vkCmdBeginRendering(cb, &rendering_info);
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
+    vkCmdEndRendering(cb);
+    //
+    //
+    //
 
     VkImageMemoryBarrier barrier1 = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -626,4 +699,22 @@ BufferID Renderer::request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateF
 
 Buffer& Renderer::get_buffer(BufferID id) {
     return buffers[id];
+}
+
+void Renderer::process_sdl_event(const SDL_Event* e) {
+    ImGui_ImplSDL3_ProcessEvent(e);
+}
+
+void Renderer::setup_imgui_draw() {
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+
+    ImGui::NewFrame();
+    ImGui::Begin("Imgui Test");
+
+    ImGui::Text("Frame Index %i", frame_index);
+
+    ImGui::End();
+    ImGui::Render();
+
 }
