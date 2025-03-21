@@ -5,6 +5,7 @@
 
 struct ViewUpdateData {
     Renderer* renderer;
-    double elapsed_seconds;
+    double total_elapsed_seconds;
+    double frame_dt;
     const KeyboardState& keyboard_state;
 };

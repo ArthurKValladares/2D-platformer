@@ -19,13 +19,13 @@ struct DataQuadDraw final : RenderableInterface {
     void update(const ViewUpdateData& data) {
         TriangleDataVert* triagle_data_vert = dynamic_cast<TriangleDataVert*>(shader_pair.vertex.get());
 
-        const double offset = cos(data.elapsed_seconds) * 0.1;
+        const double offset = cos(data.total_elapsed_seconds) * 0.1;
         triagle_data_vert->uniform_data.render_matrix = 
             glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
 
-        const double r = abs(tan(data.elapsed_seconds));
-        const double g = abs(sin(data.elapsed_seconds * 0.5));
-        const double b = abs(cos(data.elapsed_seconds * 0.25));
+        const double r = abs(tan(data.total_elapsed_seconds));
+        const double g = abs(sin(data.total_elapsed_seconds * 0.5));
+        const double b = abs(cos(data.total_elapsed_seconds * 0.25));
         triagle_data_vert->uniform_data.color = glm::vec4(r, g, b, 1.0);
 
         triagle_data_vert->update_buffer(data.renderer);

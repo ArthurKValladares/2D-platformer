@@ -2,7 +2,6 @@
 
 #include "point.h"
 #include "size.h"
-#include "vec.h"
 
 #include <vector>
 

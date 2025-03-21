@@ -23,25 +23,33 @@ struct ControllableQuadDraw final : RenderableInterface{
     }
 
     void update(const ViewUpdateData& data) {
-        // TODO: need a dt thing
-        const auto displacement = 0.01;
+        constexpr float displacement_per_second = 0.5;
+
+        glm::vec2 movement_vec{0.0, 0.0};
         if (data.keyboard_state.is_down(SDLK_A)) {
-            pos.x -= displacement;
+            movement_vec.x -= 1.0;
         }
         if (data.keyboard_state.is_down(SDLK_W)){
-            pos.y += displacement;
+            movement_vec.y += 1.0;
         }
         if (data.keyboard_state.is_down(SDLK_S)){
-            pos.y -= displacement;
+            movement_vec.y -= 1.0;
         }
         if (data.keyboard_state.is_down(SDLK_D)){
-            pos.x += displacement;
+            movement_vec.x += 1.0;
         }
+        if (glm::length(movement_vec) > 0.0) {
+            movement_vec = glm::normalize(movement_vec);
 
-        TriangleTransformVert* triangle_transform_vert = dynamic_cast<TriangleTransformVert*>(shader_pair.vertex.get());
+            const float displacement = displacement_per_second * data.frame_dt;
+            const glm::vec2 displacement_vec = movement_vec * displacement;
+            pos.x += displacement_vec.x;
+            pos.y += displacement_vec.y;
 
-        triangle_transform_vert->render_matrix = 
-            glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, 0.0));
+            TriangleTransformVert* triangle_transform_vert = dynamic_cast<TriangleTransformVert*>(shader_pair.vertex.get());
+            triangle_transform_vert->render_matrix = 
+                glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, 0.0));
+        }
     }
     
     const ShaderPair& shaders() const {

@@ -48,7 +48,8 @@ int main(int argc, char *argv[]) {
     ViewDrawData data = root_view.get_draw_data(&renderer);
 
     KeyboardState keyboard_state;
-    const auto start{std::chrono::steady_clock::now()};
+    const std::chrono::steady_clock::time_point  start =std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point        last_frame = start;
     SDL_Event e;
     SDL_zero(e);
     bool quit = false;
@@ -66,11 +67,14 @@ int main(int argc, char *argv[]) {
             quit = true;
         }
 
-        const auto finish{std::chrono::steady_clock::now()};
-        const std::chrono::duration<double> elapsed_seconds{finish - start};
+        const std::chrono::steady_clock::time_point finish{std::chrono::steady_clock::now()};
+        const std::chrono::duration<double>         elapsed_seconds{finish - start};
+        const std::chrono::duration<double>         frame_dt{finish - last_frame};
+        last_frame = finish;
         const ViewUpdateData update_data = ViewUpdateData{
             .renderer = &renderer,
-            .elapsed_seconds = elapsed_seconds.count(),
+            .total_elapsed_seconds = elapsed_seconds.count(),
+            .frame_dt = frame_dt.count(),
             .keyboard_state = keyboard_state,
         };
 

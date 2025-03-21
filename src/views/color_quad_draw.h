@@ -21,9 +21,9 @@ struct ColorQuadDraw final : RenderableInterface{
     void update(const ViewUpdateData& data) {
         TriangleColorFrag* triangle_color_frag = dynamic_cast<TriangleColorFrag*>(shader_pair.fragment.get());
 
-        const double r = abs(sin(data.elapsed_seconds));
-        const double g = abs(cos(data.elapsed_seconds * 0.5));
-        const double b = abs(tan(data.elapsed_seconds * 0.25));
+        const double r = abs(sin(data.total_elapsed_seconds));
+        const double g = abs(cos(data.total_elapsed_seconds * 0.5));
+        const double b = abs(tan(data.total_elapsed_seconds * 0.25));
         triangle_color_frag->color = glm::vec3(r, g, b);
     }
     
