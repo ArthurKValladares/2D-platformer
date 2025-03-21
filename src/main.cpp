@@ -40,7 +40,11 @@ int main(int argc, char *argv[]) {
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test4
     ));
-
+    // TODO: Have this guy be player-controllable
+    root_view.push_child(QuadDraw(
+        Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
+        TextureSource::Akv
+    ));
     ViewDrawData data = root_view.get_draw_data(&renderer);
 
     const auto start{std::chrono::steady_clock::now()};
