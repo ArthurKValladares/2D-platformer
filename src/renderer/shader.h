@@ -6,9 +6,8 @@
 #include <vulkan/vulkan.h>
 #include "spirv_reflect.h"
 
-// TODO: could just be a vector later
 #define MAX_NUM_DESCRIPTOR_SETS 4
-using BindingsMap = std::vector<std::vector<VkDescriptorSetLayoutBinding>>;
+using BindingsMap = std::array<std::vector<VkDescriptorSetLayoutBinding>, MAX_NUM_DESCRIPTOR_SETS>;
 
 struct ShaderData {
     ShaderData() {}

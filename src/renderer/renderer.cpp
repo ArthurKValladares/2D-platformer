@@ -305,15 +305,19 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
         // Descriptor set layout
         BindingsMap bindings_map;
         const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
-        bindings_map.resize(num_sets);
+        assert(num_sets <= 4);
         vert_shader_data.append_layout_bindings(bindings_map);
         frag_shader_data.append_layout_bindings(bindings_map);
     
         std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
-        layouts.resize(bindings_map.size());
         for (uint64_t i = 0; i < bindings_map.size(); ++i) {
-            VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
-            chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layouts[i]));
+            const std::vector<VkDescriptorSetLayoutBinding>& bindings = bindings_map[i];
+            if (!bindings.empty()) {
+                VkDescriptorSetLayout layout;
+                VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
+                chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
+                layouts.push_back(layout);
+            }
         }
     
         // Push constants
