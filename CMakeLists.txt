@@ -22,7 +22,6 @@ add_executable(${PROJECT_NAME}
   src/window.cpp
   src/util.cpp
   src/image.cpp
-  src/assets.cpp
   src/main.cpp
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp
