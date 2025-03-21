@@ -33,11 +33,6 @@ enum class TextureSource : uint32_t {
 for texture in textures:
     cog.outl("%s," % texture)
 ]]]*/
-Akv,
-Test1,
-Test2,
-Test3,
-Test4,
 //[[[end]]]
     Count
 };
@@ -50,12 +45,6 @@ enum class ShaderSource : uint32_t {
 for shader in shaders:
     cog.outl("%s," % shader)
 ]]]*/
-TriangleFrag,
-TriangleVert,
-TriangleColorFrag,
-TriangleDataFrag,
-TriangleDataVert,
-TriangleTransformVert,
 //[[[end]]]
     Count
 };

@@ -1,0 +1,1 @@
+cog -o .\src\assets.h .\src\assets.cog.h

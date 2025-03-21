@@ -33,3 +33,6 @@
 
 # Build folder
 build
+
+# Generated files
+src/assets.h
