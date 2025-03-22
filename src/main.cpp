@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
     bool quit = false;
     while (!quit) {
         while(SDL_PollEvent(&e)) {
+            renderer.process_sdl_event(&e);
             if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP) {
                 keyboard_state.on_keyboard_event(e.key);
             } else if (e.type == SDL_EVENT_QUIT ) {
@@ -66,7 +67,6 @@ int main(int argc, char *argv[]) {
         if (keyboard_state.is_down(SDLK_ESCAPE)) {
             quit = true;
         }
-        renderer.process_sdl_event(&e);
 
         const std::chrono::steady_clock::time_point finish{std::chrono::steady_clock::now()};
         const std::chrono::duration<double>         elapsed_seconds{finish - start};

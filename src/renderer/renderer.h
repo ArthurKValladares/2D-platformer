@@ -76,7 +76,7 @@ private:
     
     const VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_4_BIT;
     uint32_t image_index = 0;
-    uint32_t frame_index = 0;
+    uint32_t frame_count = 0;
 
     VkInstance instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT debug_messenger = VK_NULL_HANDLE;

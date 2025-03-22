@@ -477,6 +477,8 @@ void Renderer::resize_swapchain(Window& window) {
 }
 
 void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
+    const uint32_t frame_index = frame_count % MAX_FRAMES_IN_FLIGHT;
+
     vkWaitForFences(device, 1, &fences[frame_index], true, UINT64_MAX);
     vkResetFences(device, 1, &fences[frame_index]);
 
@@ -542,6 +544,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     };
     vkCmdSetScissor(cb, 0, 1, &scissor);
 
+    // TODO: This data should probably be in the `DrawCommand`
     VkDeviceSize v_offset = 0;
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer.raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
@@ -638,10 +641,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     };
     chk(vkQueuePresentKHR(graphics_queue, &present_info));
 
-    ++frame_index;
-    if (frame_index >= MAX_FRAMES_IN_FLIGHT) {
-        frame_index = 0;
-    }
+    ++frame_count;
 }
 
 VkCommandBuffer Renderer::create_command_buffer(VkCommandBufferLevel level, bool begin, VkQueueFlagBits queue_ty)
@@ -712,9 +712,8 @@ void Renderer::setup_imgui_draw() {
     ImGui::NewFrame();
     ImGui::Begin("Imgui Test");
 
-    ImGui::Text("Frame Index %i", frame_index);
+    ImGui::Text("Frame Index %u", frame_count);
 
     ImGui::End();
     ImGui::Render();
-
 }
