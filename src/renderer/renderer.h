@@ -14,6 +14,10 @@
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
+struct ImguiData {
+    double frame_dt;
+};
+
 struct Window;
 struct Renderer {
     Renderer(Window& window);
@@ -63,7 +67,7 @@ struct Renderer {
     Buffer& get_buffer(BufferID id);
 
     void process_sdl_event(const SDL_Event* e);
-    void setup_imgui_draw();
+    void setup_imgui_draw(const ImguiData& data);
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);

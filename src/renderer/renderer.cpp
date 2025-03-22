@@ -503,32 +503,20 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     };
     vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier0);
 
-    VkRenderingAttachmentInfo colorAttachmentInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-        .imageView = render_image_view,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-        .resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
-        .resolveImageView = swapchain_image_views[image_index],
-        .resolveImageLayout = VK_IMAGE_LAYOUT_GENERAL,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .clearValue = {.color = { 0.0f, 0.0f, 0.2f, 1.0f }}
-    };
     const Size2Di32 window_size = window.get_size();
     const VkExtent2D window_extent = VkExtent2D{
         .width = (uint32_t) window_size.width,
         .height = (uint32_t) window_size.height
     };
-    VkRenderingInfo renderingInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .renderArea = {
-            .extent = window_extent
-        },
-        .layerCount = 1,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachmentInfo,
-    };
-    vkCmdBeginRendering(cb, &renderingInfo);
+    const VkClearValue clear = VkClearValue{ .color = { 0.0f, 0.0f, 0.2f, 1.0f } };
+    VkRenderingAttachmentInfo color_attachment_info = initializers::rendering_attachment_info(
+        render_image_view,
+        VK_IMAGE_LAYOUT_GENERAL,
+        swapchain_image_views[image_index],
+        &clear
+    );
+    VkRenderingInfo rendering_info = initializers::rendering_info(window_extent, &color_attachment_info);
+    vkCmdBeginRendering(cb, &rendering_info);
 
     VkViewport vp = {
         .x = 0,
@@ -592,8 +580,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     //
     // Imgui move later
     //
-    VkRenderingAttachmentInfo color_attachment = initializers::rendering_attachment_info(render_image_view, VK_IMAGE_LAYOUT_GENERAL, swapchain_image_views[image_index]);
-	VkRenderingInfo rendering_info = initializers::rendering_info(window_extent, &color_attachment);
+    color_attachment_info = initializers::rendering_attachment_info(render_image_view, VK_IMAGE_LAYOUT_GENERAL, swapchain_image_views[image_index]);
+	rendering_info = initializers::rendering_info(window_extent, &color_attachment_info);
 
     vkCmdBeginRendering(cb, &rendering_info);
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
@@ -705,7 +693,7 @@ void Renderer::process_sdl_event(const SDL_Event* e) {
     ImGui_ImplSDL3_ProcessEvent(e);
 }
 
-void Renderer::setup_imgui_draw() {
+void Renderer::setup_imgui_draw(const ImguiData& data) {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplSDL3_NewFrame();
 
@@ -713,6 +701,7 @@ void Renderer::setup_imgui_draw() {
     ImGui::Begin("Imgui Test");
 
     ImGui::Text("Frame Index %u", frame_count);
+    ImGui::Text("Frame dt %f", data.frame_dt);
 
     ImGui::End();
     ImGui::Render();

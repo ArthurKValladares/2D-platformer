@@ -81,7 +81,9 @@ int main(int argc, char *argv[]) {
 
         root_view.update(update_data);
         
-        renderer.setup_imgui_draw();
+        renderer.setup_imgui_draw(ImguiData{
+            .frame_dt = frame_dt.count()
+        });
         renderer.render(window, data.draws);
     }
 

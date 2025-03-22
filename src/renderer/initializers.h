@@ -96,7 +96,7 @@ namespace initializers {
         };
     }
 
-    inline VkRenderingAttachmentInfo rendering_attachment_info(VkImageView view, VkImageLayout layout, VkImageView resolve_image_view, VkClearValue* clear = nullptr) {
+    inline VkRenderingAttachmentInfo rendering_attachment_info(VkImageView view, VkImageLayout layout, VkImageView resolve_image_view, const VkClearValue* clear = nullptr) {
         VkRenderingAttachmentInfo color_attachment {
             .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
             .pNext = nullptr,
