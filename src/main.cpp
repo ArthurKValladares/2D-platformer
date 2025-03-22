@@ -17,6 +17,8 @@
 #include "views/view.h"
 
 int main(int argc, char *argv[]) {
+    const std::chrono::steady_clock::time_point app_start = std::chrono::steady_clock::now();
+
     Window window = Window();
 
     Renderer renderer(window);
@@ -43,17 +45,22 @@ int main(int argc, char *argv[]) {
     ));
     root_view.push_child(ControllableQuadDraw(
         Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
-        TextureSource::Akv
+        0.0,
+        {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4}
     ));
     ViewDrawData data = root_view.get_draw_data(&renderer);
 
     KeyboardState keyboard_state;
-    const std::chrono::steady_clock::time_point  start =std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point        last_frame = start;
+    std::chrono::steady_clock::time_point last_frame = std::chrono::steady_clock::now();
     SDL_Event e;
     SDL_zero(e);
     bool quit = false;
     while (!quit) {
+        const std::chrono::steady_clock::time_point frame_start = std::chrono::steady_clock::now();
+        const std::chrono::duration<double>         elapsed_seconds = frame_start - app_start;
+        const std::chrono::duration<double>         frame_dt = frame_start - last_frame;
+        last_frame = frame_start;
+
         while(SDL_PollEvent(&e)) {
             renderer.process_sdl_event(&e);
             if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP) {
@@ -68,22 +75,17 @@ int main(int argc, char *argv[]) {
             quit = true;
         }
 
-        const std::chrono::steady_clock::time_point finish{std::chrono::steady_clock::now()};
-        const std::chrono::duration<double>         elapsed_seconds{finish - start};
-        const std::chrono::duration<double>         frame_dt{finish - last_frame};
-        last_frame = finish;
-        const ViewUpdateData update_data = ViewUpdateData{
+        root_view.update(ViewUpdateData{
             .renderer = &renderer,
             .total_elapsed_seconds = elapsed_seconds.count(),
             .frame_dt = frame_dt.count(),
             .keyboard_state = keyboard_state,
-        };
-
-        root_view.update(update_data);
+        });
         
         renderer.setup_imgui_draw(ImguiData{
             .frame_dt = frame_dt.count()
         });
+
         renderer.render(window, data.draws);
     }
 

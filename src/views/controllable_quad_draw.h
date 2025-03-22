@@ -5,17 +5,19 @@
 
 #include "shared.h"
 #include "renderable.h"
+#include "animatable.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ControllableQuadDraw final : RenderableInterface{
-    ControllableQuadDraw(Rect2D rect, TextureSource texture)
+    ControllableQuadDraw(Rect2D rect, double start_time, std::vector<TextureSource> textures)
         : rect(rect)
         , pos(rect.center())
         , shader_pair(
             TriangleTransformVert(glm::mat4(1.0)),
-            TriangleFrag(texture)
+            TriangleFrag(textures[0])
         )
+        , sprite(3.0, start_time, std::move(textures))
     {}
 
     bool is_empty() const {
@@ -70,4 +72,7 @@ struct ControllableQuadDraw final : RenderableInterface{
     Point2Df32 pos;
     Rect2D rect;
     ShaderPair shader_pair;
+    // TODO: Now I realize that its weird that the shader itself holds the texture.
+    // It should be in the view just like here, and the view should communicate witht the shader
+    SpriteAnimation sprite;
 };
