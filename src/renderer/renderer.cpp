@@ -331,6 +331,7 @@ Renderer::~Renderer() {
     }
     vkDestroySwapchainKHR(device, swapchain, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
+    purgatory.destroy(this);
     vmaDestroyAllocator(allocator);
     vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
     ImGui_ImplVulkan_Shutdown();
@@ -340,7 +341,6 @@ Renderer::~Renderer() {
             vkDestroyDescriptorSetLayout(device, layout, nullptr);
         }
     }
-    purgatory.destroy(this);
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);

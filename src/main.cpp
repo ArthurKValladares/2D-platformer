@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
         // TODO: This is a bad way to do this, I'll fix later
         const int mod_count = renderer.get_frame_count() % 100;
-        if (mod_count < 50) {
+        if (mod_count > 50) {
             root_view.push_child(QuadDraw(
                 Rect2D(Point2Df32{ -0.875f,  -0.875f }, Size2Df32{0.25, 0.25}),
                 TextureSource::Akv
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 
         renderer.render(window, data.draws);
 
-        if (mod_count < 50) {
+        if (mod_count > 50) {
             root_view.children.pop_back();
         }
     }
