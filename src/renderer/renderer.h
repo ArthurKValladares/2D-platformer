@@ -11,8 +11,8 @@
 #include "draw.h"
 #include "pipeline.h"
 #include "resource_ids.h"
-
-#define MAX_FRAMES_IN_FLIGHT 2
+#include "purgatory.h"
+#include "tools.h"
 
 struct ImguiData {
     double frame_dt;
@@ -35,6 +35,13 @@ struct Renderer {
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
+
+    uint32_t get_frame_count() const {
+        return frame_count;
+    }
+    uint32_t get_frame_index() const {
+        return get_frame_count() % MAX_FRAMES_IN_FLIGHT;
+    }
 
     void resize_swapchain(Window& window);
 
@@ -128,6 +135,8 @@ private:
     std::unordered_map<PipelineID, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;
     std::unordered_map<PipelineID, VkPipelineLayout> pipeline_layouts;
     std::unordered_map<PipelineID, Pipeline> pipelines;
+
+    Purgatory purgatory;
 
     friend class Texture;
 };

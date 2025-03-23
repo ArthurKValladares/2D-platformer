@@ -3,7 +3,6 @@
 #include "buffer.h"
 #include "renderer.h"
 #include "initializers.h"
-#include "tools.h"
 
 #include <cassert>
 

@@ -11,7 +11,7 @@ struct Buffer {
 
     Buffer(VmaAllocator allocator, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes) {
         this->allocator = allocator;
-        size_bytes = size_bytes;
+        this->size_bytes = size_bytes;
         VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .size = size_bytes,

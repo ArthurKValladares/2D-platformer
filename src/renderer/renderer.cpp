@@ -340,6 +340,7 @@ Renderer::~Renderer() {
             vkDestroyDescriptorSetLayout(device, layout, nullptr);
         }
     }
+    purgatory.destroy(this);
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);
@@ -418,6 +419,16 @@ void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
             size_bytes
         );
     } else {
+        if (i_buffer.size_bytes < size_bytes) {
+            purgatory.buffers[get_frame_index()].push_back(i_buffer);
+            i_buffer = Buffer(
+                allocator,
+                VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                VMA_MEMORY_USAGE_AUTO,
+                size_bytes
+            );
+        }
         i_buffer.write_to(data, size_bytes);
     }
 }
@@ -433,6 +444,16 @@ void Renderer::upload_vertex_data(void* data, uint64_t size_bytes) {
             size_bytes
         );
     } else {
+        if (v_buffer.size_bytes < size_bytes) {
+            purgatory.buffers[get_frame_index()].push_back(v_buffer);
+            v_buffer = Buffer(
+                allocator,
+                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                VMA_MEMORY_USAGE_AUTO,
+                size_bytes
+            );
+        }
         v_buffer.write_to(data, size_bytes);
     }
 }
@@ -485,14 +506,14 @@ void Renderer::resize_swapchain(Window& window) {
 }
 
 void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
-    const uint32_t frame_index = frame_count % MAX_FRAMES_IN_FLIGHT;
+    const uint32_t frame_idx = get_frame_index();
 
-    vkWaitForFences(device, 1, &fences[frame_index], true, UINT64_MAX);
-    vkResetFences(device, 1, &fences[frame_index]);
+    vkWaitForFences(device, 1, &fences[frame_idx], true, UINT64_MAX);
+    vkResetFences(device, 1, &fences[frame_idx]);
 
-    vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, present_semaphores[frame_index], VK_NULL_HANDLE, &image_index);
+    vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, present_semaphores[frame_idx], VK_NULL_HANDLE, &image_index);
 
-    VkCommandBuffer& cb = command_buffers[frame_index];
+    VkCommandBuffer& cb = command_buffers[frame_idx];
     VkCommandBufferBeginInfo cb_bi{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
@@ -619,18 +640,18 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &present_semaphores[frame_index],
+        .pWaitSemaphores = &present_semaphores[frame_idx],
         .pWaitDstStageMask = &wait_stages,
         .commandBufferCount = 1,
         .pCommandBuffers = &cb,
         .signalSemaphoreCount = 1,
-        .pSignalSemaphores = &render_semaphores[frame_index],
+        .pSignalSemaphores = &render_semaphores[frame_idx],
     };
-    vkQueueSubmit(graphics_queue, 1, &submit_info, fences[frame_index]);
+    vkQueueSubmit(graphics_queue, 1, &submit_info, fences[frame_idx]);
     VkPresentInfoKHR present_info = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &render_semaphores[frame_index],
+        .pWaitSemaphores = &render_semaphores[frame_idx],
         .swapchainCount = 1,
         .pSwapchains = &swapchain,
         .pImageIndices = &image_index
