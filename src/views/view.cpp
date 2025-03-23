@@ -50,11 +50,6 @@ ViewDrawData View::get_draw_data(Renderer* renderer) {
     ViewDrawData data = {};
     append_draw_data(renderer, data);
 
-    if (!data.draws.empty()) {
-        renderer->upload_index_data(&data.indices[0], data.indices.size() * sizeof(uint32_t));
-        renderer->upload_vertex_data(&data.vertices[0], data.vertices.size() * sizeof(float));
-    }
-
     return data;
 }
 
@@ -65,5 +60,12 @@ void View::update(const ViewUpdateData& data) {
 
     for (View& child : children) {
         child.update(data);
+    }
+}
+
+void ViewDrawData::upload_vertex_index_data(Renderer* renderer) {
+    if (!draws.empty()) {
+        renderer->upload_index_data(&indices[0], indices.size() * sizeof(uint32_t));
+        renderer->upload_vertex_data(&vertices[0], vertices.size() * sizeof(float));
     }
 }

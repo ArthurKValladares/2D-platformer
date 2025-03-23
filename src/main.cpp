@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
         0.0,
         {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4}
     ));
-    ViewDrawData data = root_view.get_draw_data(&renderer);
 
     KeyboardState keyboard_state;
     std::chrono::steady_clock::time_point last_frame = std::chrono::steady_clock::now();
@@ -81,6 +80,8 @@ int main(int argc, char *argv[]) {
             .frame_dt = frame_dt.count(),
             .keyboard_state = keyboard_state,
         });
+        ViewDrawData data = root_view.get_draw_data(&renderer);
+        data.upload_vertex_index_data(&renderer);
         
         renderer.setup_imgui_draw(ImguiData{
             .frame_dt = frame_dt.count()

@@ -408,25 +408,33 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
 }
 
 void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
-    i_buffer = Buffer(
-        allocator,
-        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-        VMA_MEMORY_USAGE_AUTO,
-        data,
-        size_bytes
-    );
+    if (i_buffer.raw == VK_NULL_HANDLE) {
+        i_buffer = Buffer(
+            allocator,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+            VMA_MEMORY_USAGE_AUTO,
+            data,
+            size_bytes
+        );
+    } else {
+        i_buffer.write_to(data, size_bytes);
+    }
 }
 
 void Renderer::upload_vertex_data(void* data, uint64_t size_bytes) {
-    v_buffer = Buffer(
-        allocator,
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-        VMA_MEMORY_USAGE_AUTO,
-        data,
-        size_bytes
-    );
+    if (v_buffer.raw == VK_NULL_HANDLE) {
+        v_buffer = Buffer(
+            allocator,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+            VMA_MEMORY_USAGE_AUTO,
+            data,
+            size_bytes
+        );
+    } else {
+        v_buffer.write_to(data, size_bytes);
+    }
 }
 
 void Renderer::resize_swapchain(Window& window) {

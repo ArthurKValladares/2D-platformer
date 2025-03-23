@@ -52,6 +52,9 @@ struct ControllableQuadDraw final : RenderableInterface{
             triangle_transform_vert->render_matrix = 
                 glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, 0.0));
         }
+
+        TriangleFrag* triangle_frag = dynamic_cast<TriangleFrag*>(shader_pair.fragment.get());
+        triangle_frag->texture_binding = sprite.texture_at(data.total_elapsed_seconds);
     }
     
     const ShaderPair& shaders() const {
@@ -72,7 +75,5 @@ struct ControllableQuadDraw final : RenderableInterface{
     Point2Df32 pos;
     Rect2D rect;
     ShaderPair shader_pair;
-    // TODO: Now I realize that its weird that the shader itself holds the texture.
-    // It should be in the view just like here, and the view should communicate witht the shader
     SpriteAnimation sprite;
 };

@@ -33,7 +33,7 @@ struct AnimatableFloat {
         const double elapsed = curr_time - start_time;
         const double remainder = fmod(elapsed, duration);
         const double progress = remainder / duration;
-        return lerp(start_val, end_val, remainder);
+        return lerp(start_val, end_val, progress);
     }
 
     double start_val, end_val;
@@ -53,7 +53,7 @@ struct SpriteAnimation {
 
     TextureSource texture_at(double curr_time) {
         const double val_at = animatable.value_at(curr_time);
-        const uint32_t texture_idx = std::roundf(val_at * textures.size());
+        const uint32_t texture_idx = std::floor(val_at * textures.size());
         return textures[texture_idx];
     }
 

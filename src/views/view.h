@@ -17,6 +17,8 @@
 #include "controllable_quad_draw.h"
 
 struct ViewDrawData {
+    void upload_vertex_index_data(Renderer* renderer);
+    
     std::vector<float> vertices = {};
     std::vector<uint32_t> indices = {};
     std::vector<DrawCommand> draws = {};
