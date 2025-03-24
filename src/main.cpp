@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     // TODO: Right now this stuff is pretty bad and each View/VertShader has its own
     // buffer.
     // THis needs to be a global descriptor thinng that is shared amongst all views.
-    OrthographicCamera camera = OrthographicCamera(1.0, 1.0);
+    OrthographicCamera camera = OrthographicCamera(2.0, 2.0);
     const glm::mat4 proj_matrix = camera.get_proj_matrix();
 
     // View-tree

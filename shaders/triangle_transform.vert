@@ -16,8 +16,8 @@ layout( push_constant ) uniform constants
 
 
 void main() {
-    //gl_Position = sceneData.proj * PushConstants.render_matrix * vec4(inPosition, 1.0);
-    gl_Position = PushConstants.render_matrix * vec4(inPosition, 1.0);
+    gl_Position = sceneData.proj * PushConstants.render_matrix * vec4(inPosition, 1.0);
+    //gl_Position = PushConstants.render_matrix * vec4(inPosition, 1.0);
 
     fragTexCoord = inColor.xy;
 }
