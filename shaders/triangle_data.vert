@@ -1,10 +1,10 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform SceneData{
+layout(set = 0, binding = 0) uniform GlobalData{
     mat4 proj;
 } globalData;
 
-layout(set = 1, binding = 0) uniform SceneData{
+layout(set = 0, binding = 2) uniform SceneData{
     mat4 transform;
 	vec4 color;
 } sceneData;

@@ -56,7 +56,6 @@ int main(int argc, char *argv[]) {
         TextureSource::Test1,
         global_data_buffer
     ));
-    /*
     root_view.push_child(MovingQuadDraw(
         &renderer,
         Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
@@ -70,12 +69,14 @@ int main(int argc, char *argv[]) {
         TextureSource::Test3,
         global_data_buffer
     ));
+    /*
     root_view.push_child(DataQuadDraw(
         &renderer,
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test4,
         global_data_buffer
     ));
+    */
     root_view.push_child(ControllableQuadDraw(
         &renderer,
         Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
@@ -83,7 +84,6 @@ int main(int argc, char *argv[]) {
         {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
         global_data_buffer
     ));
-    */
 
     KeyboardState keyboard_state;
     std::chrono::steady_clock::time_point last_frame = std::chrono::steady_clock::now();
@@ -110,7 +110,6 @@ int main(int argc, char *argv[]) {
             quit = true;
         }
 
-        /*
         // TODO: This is a bad way to do this, I'll fix later
         const int mod_count = renderer.get_frame_count() % 100;
         if (mod_count > 50) {
@@ -121,7 +120,6 @@ int main(int argc, char *argv[]) {
                 global_data_buffer
             ));
         }
-        */
 
         root_view.update(ViewUpdateData{
             .renderer = &renderer,
@@ -138,11 +136,9 @@ int main(int argc, char *argv[]) {
 
         renderer.render(window, data.draws);
 
-        /*
         if (mod_count > 50) {
             root_view.children.pop_back();
         }
-        */
     }
 
     return 0;

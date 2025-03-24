@@ -52,8 +52,8 @@ struct TriangleDataVert final : VertexShader {
             .buffer_id = global_data_buffer,
         });
         sets.push_back(DescriptorSetData{
-            .set = 1,
-            .binding = 0,
+            .set = 0,
+            .binding = 2,
             .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .buffer_id = uniform_buffer,
         });
