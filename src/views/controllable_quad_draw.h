@@ -10,11 +10,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ControllableQuadDraw final : RenderableInterface{
-    ControllableQuadDraw(Renderer* renderer, Rect2D rect, double start_time, std::vector<TextureSource> textures, glm::mat4 proj)
+    ControllableQuadDraw(Renderer* renderer, Rect2D rect, double start_time, std::vector<TextureSource> textures, BufferID global_data_buffer)
         : rect(rect)
         , pos(rect.center())
         , shader_pair(
-            TriangleTransformVert(renderer, glm::mat4(1.0), proj),
+            TriangleTransformVert(renderer, glm::mat4(1.0), global_data_buffer),
             TriangleFrag(textures[0])
         )
         , sprite(3.0, start_time, std::move(textures))
@@ -55,9 +55,6 @@ struct ControllableQuadDraw final : RenderableInterface{
 
         TriangleFrag* triangle_frag = dynamic_cast<TriangleFrag*>(shader_pair.fragment.get());
         triangle_frag->texture_binding = sprite.texture_at(data.total_elapsed_seconds);
-
-        TriangleTransformVert* triangle_transform_vert = dynamic_cast<TriangleTransformVert*>(shader_pair.vertex.get());
-        triangle_transform_vert->update_buffer(data.renderer);
     }
     
     const ShaderPair& shaders() const {

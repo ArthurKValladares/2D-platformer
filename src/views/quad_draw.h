@@ -7,19 +7,16 @@
 #include "renderable.h"
 
 struct QuadDraw final : RenderableInterface {
-    QuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, glm::mat4 proj)
+    QuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
         : rect(rect)
-        , shader_pair(TriangleVert(renderer, proj), TriangleFrag(texture))
+        , shader_pair(TriangleVert(renderer, global_data_buffer), TriangleFrag(texture))
     {}
 
     bool is_empty() const {
         return rect.is_zero_sized();
     }
 
-    void update(const ViewUpdateData& data) {
-        TriangleVert* triangle_vert = dynamic_cast<TriangleVert*>(shader_pair.vertex.get());
-        triangle_vert->update_buffer(data.renderer);
-    }
+    void update(const ViewUpdateData& data) {}
     
     const ShaderPair& shaders() const {
         return shader_pair;

@@ -3,9 +3,15 @@
 #include <cstdint>
 #include <vector>
 
+#include <glm/mat4x4.hpp>
+
 #include "../renderer/draw.h"
 #include "../renderer/renderer.h"
 #include "../assets.h"
+
+struct GlobalData {
+    glm::mat4 proj_matrix;
+};
 
 // TODO: same optimization question as renderable
 struct VertexShader{

@@ -24,7 +24,7 @@ struct TriangleColorFrag final : FragmentShader {
     
     void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {
         sets.push_back(DescriptorSetData{
-            .set = 0,
+            .set = 1,
             .binding = 1,
             .ty = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .texture_id = texture_id(texture_binding),

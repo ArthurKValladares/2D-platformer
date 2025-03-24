@@ -381,7 +381,7 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
             const std::vector<VkDescriptorSetLayoutBinding>& bindings = bindings_map[i];
             if (!bindings.empty()) {
                 VkDescriptorSetLayout layout;
-                VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
+                VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings);
                 chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
                 layouts.push_back(layout);
             }
@@ -573,6 +573,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         
+        // TODO: can simplify this once i change the data in draw.sets
         std::array<std::vector<VkWriteDescriptorSet>, MAX_NUM_DESCRIPTOR_SETS> write_descriptor_sets{};
         for (const DescriptorSetData& set_data : draw.sets) {
             VkWriteDescriptorSet write = {
@@ -582,6 +583,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 				.descriptorCount = 1,
 				.descriptorType = set_data.ty,
             };
+
             if (set_data.ty == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
                 const Buffer& buffer = buffers[set_data.buffer_id];
                 write.pBufferInfo = &buffer.descriptor;
@@ -589,11 +591,13 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
                 const Texture& texture = textures[set_data.texture_id];
                 write.pImageInfo = &texture.descriptor;
             }
+
             write_descriptor_sets[set_data.set].push_back(write);
         }
-        for (const std::vector<VkWriteDescriptorSet>& writes : write_descriptor_sets) {
+        for (uint32_t set_idx = 0; set_idx < MAX_NUM_DESCRIPTOR_SETS; ++set_idx) {
+            const std::vector<VkWriteDescriptorSet>& writes = write_descriptor_sets[set_idx];
             if (!writes.empty()) {
-                vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, writes.size(), writes.data());
+                vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, set_idx, writes.size(), writes.data());
             }
         }
 

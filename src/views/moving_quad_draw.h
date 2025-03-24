@@ -9,10 +9,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct MovingQuadDraw final : RenderableInterface{
-    MovingQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, glm::mat4 proj)
+    MovingQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
         : rect(rect)
         , shader_pair(
-            TriangleTransformVert(renderer, glm::mat4(1.0), proj),
+            TriangleTransformVert(renderer, glm::mat4(1.0), global_data_buffer),
             TriangleFrag(texture)
         )
     {}
@@ -27,8 +27,6 @@ struct MovingQuadDraw final : RenderableInterface{
         const double offset = sin(data.total_elapsed_seconds) * 0.1;
         triangle_transform_vert->render_matrix = 
             glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
-
-        triangle_transform_vert->update_buffer(data.renderer);
     }
     
     const ShaderPair& shaders() const {

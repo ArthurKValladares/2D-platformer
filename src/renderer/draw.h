@@ -29,6 +29,7 @@ struct DrawCommand {
     ShaderID fragment_id;
     uint32_t index_count;
     uint32_t first_index;
+    // TODO: This should be std::array<std::vector<DescriptorSetData>, MAX_DESCRITOR_SETS>
     std::vector<DescriptorSetData> sets;
     std::vector<PushConstantData> pcs;
 };

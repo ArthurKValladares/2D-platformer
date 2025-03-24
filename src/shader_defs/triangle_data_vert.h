@@ -2,7 +2,6 @@
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
 #include <vector>
 
 #include "../renderer/renderer.h"
@@ -18,19 +17,18 @@ struct TriangleDataVertex {
 
 struct TriangleDataVert final : VertexShader {
     struct UniformData {
-        glm::mat4 proj_matrix;
         glm::mat4 render_matrix;
         glm::vec4 color;
     };
     
-    TriangleDataVert(Renderer* renderer, glm::mat4 proj_matrix, glm::mat4 render_matrix, glm::vec4 color)
+    TriangleDataVert(Renderer* renderer, BufferID global_data_buffer, glm::mat4 render_matrix, glm::vec4 color)
         : uniform_data(UniformData{
-            .proj_matrix = proj_matrix,
             .render_matrix = render_matrix,
             .color = color,
         })
+        , global_data_buffer(global_data_buffer)
     {
-        buffer_id = renderer->request_buffer(
+        uniform_buffer = renderer->request_buffer(
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VMA_ALLOCATION_CREATE_MAPPED_BIT,
             VMA_MEMORY_USAGE_CPU_TO_GPU,
@@ -51,16 +49,23 @@ struct TriangleDataVert final : VertexShader {
             .set = 0,
             .binding = 0,
             .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .buffer_id = buffer_id,
+            .buffer_id = global_data_buffer,
+        });
+        sets.push_back(DescriptorSetData{
+            .set = 1,
+            .binding = 0,
+            .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .buffer_id = uniform_buffer,
         });
     }
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 
     void update_buffer(Renderer* renderer) {
-        Buffer& buffer = renderer->get_buffer(buffer_id);
+        Buffer& buffer = renderer->get_buffer(uniform_buffer);
         buffer.write_to(&uniform_data, sizeof(UniformData));
     }
 
     UniformData uniform_data;
-    BufferID buffer_id;
+    BufferID uniform_buffer;
+    BufferID global_data_buffer;
 };

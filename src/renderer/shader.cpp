@@ -111,13 +111,14 @@ void ShaderData::append_layout_bindings(BindingsMap& bindings_map) const {
         
         for (uint64_t i = 0; i < binding_count; ++i) {
             const SpvReflectDescriptorBinding* spv_binding = set->bindings[i];
-    
-            bindings.push_back(VkDescriptorSetLayoutBinding{
-                .binding = spv_binding->binding,
+            const uint32_t binding = spv_binding->binding;
+            bindings.resize(binding + 1);
+            bindings[binding] = VkDescriptorSetLayoutBinding{
+                .binding = binding,
                 .descriptorType = from_spv(spv_binding->descriptor_type),
                 .descriptorCount = spv_binding->count,
                 .stageFlags = shader_stage()
-            });
+            };
         }
     }
 }
