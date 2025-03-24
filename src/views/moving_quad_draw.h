@@ -27,6 +27,8 @@ struct MovingQuadDraw final : RenderableInterface{
         const double offset = sin(data.total_elapsed_seconds) * 0.1;
         triangle_transform_vert->render_matrix = 
             glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
+
+        triangle_transform_vert->update_buffer(data.renderer);
     }
     
     const ShaderPair& shaders() const {

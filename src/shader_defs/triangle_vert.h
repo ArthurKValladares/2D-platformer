@@ -30,10 +30,6 @@ struct TriangleVert final : VertexShader {
             VMA_MEMORY_USAGE_CPU_TO_GPU,
             sizeof(UniformData)
         );
-
-        // TODO: Update buffer
-        Buffer& buffer = renderer->get_buffer(buffer_id);
-        buffer.write_to(&uniform_data, sizeof(UniformData));
     }
 
     ShaderSource source() const {
@@ -54,6 +50,11 @@ struct TriangleVert final : VertexShader {
     }
 
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
+
+    void update_buffer(Renderer* renderer) {
+        Buffer& buffer = renderer->get_buffer(buffer_id);
+        buffer.write_to(&uniform_data, sizeof(UniformData));
+    }
 
     UniformData uniform_data;
     BufferID buffer_id;

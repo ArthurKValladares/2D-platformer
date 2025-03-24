@@ -32,10 +32,6 @@ struct TriangleTransformVert final : VertexShader {
             VMA_MEMORY_USAGE_CPU_TO_GPU,
             sizeof(UniformData)
         );
-
-        // TODO: Update buffer
-        Buffer& buffer = renderer->get_buffer(buffer_id);
-        buffer.write_to(&uniform_data, sizeof(UniformData));
     }
     
     ShaderSource source() const {
@@ -62,6 +58,11 @@ struct TriangleTransformVert final : VertexShader {
             .size = sizeof(glm::mat4),
             .p_data = &render_matrix
         });
+    }
+
+    void update_buffer(Renderer* renderer) {
+        Buffer& buffer = renderer->get_buffer(buffer_id);
+        buffer.write_to(&uniform_data, sizeof(UniformData));
     }
 
     glm::mat4 render_matrix;

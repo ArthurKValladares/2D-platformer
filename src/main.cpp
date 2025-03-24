@@ -17,6 +17,12 @@
 
 #include "views/view.h"
 
+// TODO: engine architecture
+// descriptor set number 0 will be used for engine-global resources
+// descriptor set number 1 will be used for per-"pass" resources
+// descriptor set number 2 will be used for material resources
+// descriptor set number 3 will be used for per-object resources
+
 int main(int argc, char *argv[]) {
     const std::chrono::steady_clock::time_point app_start = std::chrono::steady_clock::now();
 
@@ -27,7 +33,7 @@ int main(int argc, char *argv[]) {
     // TODO: Right now this stuff is pretty bad and each View/VertShader has its own
     // buffer.
     // THis needs to be a global descriptor thinng that is shared amongst all views.
-    OrthographicCamera camera = OrthographicCamera(2.0, 2.0);
+    OrthographicCamera camera = OrthographicCamera(glm::vec2(0.0), 2.0, 2.0);
     const glm::mat4 proj_matrix = camera.get_proj_matrix();
 
     // View-tree

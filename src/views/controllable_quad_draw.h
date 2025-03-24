@@ -55,6 +55,9 @@ struct ControllableQuadDraw final : RenderableInterface{
 
         TriangleFrag* triangle_frag = dynamic_cast<TriangleFrag*>(shader_pair.fragment.get());
         triangle_frag->texture_binding = sprite.texture_at(data.total_elapsed_seconds);
+
+        TriangleTransformVert* triangle_transform_vert = dynamic_cast<TriangleTransformVert*>(shader_pair.vertex.get());
+        triangle_transform_vert->update_buffer(data.renderer);
     }
     
     const ShaderPair& shaders() const {

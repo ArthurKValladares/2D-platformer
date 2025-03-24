@@ -16,7 +16,10 @@ struct QuadDraw final : RenderableInterface {
         return rect.is_zero_sized();
     }
 
-    void update(const ViewUpdateData& _data) {}
+    void update(const ViewUpdateData& data) {
+        TriangleVert* triangle_vert = dynamic_cast<TriangleVert*>(shader_pair.vertex.get());
+        triangle_vert->update_buffer(data.renderer);
+    }
     
     const ShaderPair& shaders() const {
         return shader_pair;
