@@ -1,5 +1,9 @@
 #version 450
 
+layout(set = 0, binding = 0) uniform SceneData{
+    mat4 proj;
+} sceneData;
+
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 
@@ -12,6 +16,7 @@ layout( push_constant ) uniform constants
 
 
 void main() {
+    //gl_Position = sceneData.proj * PushConstants.render_matrix * vec4(inPosition, 1.0);
     gl_Position = PushConstants.render_matrix * vec4(inPosition, 1.0);
 
     fragTexCoord = inColor.xy;

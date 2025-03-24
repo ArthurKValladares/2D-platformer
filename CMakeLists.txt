@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
   src/window.cpp
   src/util.cpp
   src/image.cpp
+  src/camera.cpp
   src/main.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project

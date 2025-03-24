@@ -9,10 +9,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct MovingQuadDraw final : RenderableInterface{
-    MovingQuadDraw(Rect2D rect, TextureSource texture)
+    MovingQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, glm::mat4 proj)
         : rect(rect)
         , shader_pair(
-            TriangleTransformVert(glm::mat4(1.0)),
+            TriangleTransformVert(renderer, glm::mat4(1.0), proj),
             TriangleFrag(texture)
         )
     {}

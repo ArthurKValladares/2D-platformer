@@ -7,9 +7,9 @@
 #include "renderable.h"
 
 struct QuadDraw final : RenderableInterface {
-    QuadDraw(Rect2D rect, TextureSource texture)
+    QuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, glm::mat4 proj)
         : rect(rect)
-        , shader_pair(TriangleVert(), TriangleFrag(texture))
+        , shader_pair(TriangleVert(renderer, proj), TriangleFrag(texture))
     {}
 
     bool is_empty() const {

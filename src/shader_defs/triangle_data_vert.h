@@ -16,14 +16,16 @@ struct TriangleDataVertex {
     glm::vec3 in_color;
 };
 
-struct UniformData {
-    glm::mat4 render_matrix;
-    glm::vec4 color;
-};
-
 struct TriangleDataVert final : VertexShader {
-    TriangleDataVert(Renderer* renderer, glm::mat4 render_matrix, glm::vec4 color)
+    struct UniformData {
+        glm::mat4 proj_matrix;
+        glm::mat4 render_matrix;
+        glm::vec4 color;
+    };
+    
+    TriangleDataVert(Renderer* renderer, glm::mat4 proj_matrix, glm::mat4 render_matrix, glm::vec4 color)
         : uniform_data(UniformData{
+            .proj_matrix = proj_matrix,
             .render_matrix = render_matrix,
             .color = color,
         })

@@ -9,9 +9,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ColorQuadDraw final : RenderableInterface{
-    ColorQuadDraw(Rect2D rect, TextureSource texture)
+    ColorQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, glm::mat4 proj)
         : rect(rect)
-        , shader_pair(TriangleVert(), TriangleColorFrag(texture))
+        , shader_pair(TriangleVert(renderer, proj), TriangleColorFrag(texture))
     {}
 
     bool is_empty() const {

@@ -13,6 +13,7 @@
 #include "util.h"
 #include "image.h"
 #include "keyboard_state.h"
+#include "camera.h"
 
 #include "views/view.h"
 
@@ -23,30 +24,45 @@ int main(int argc, char *argv[]) {
 
     Renderer renderer(window);
     
+    // TODO: Right now this stuff is pretty bad and each View/VertShader has its own
+    // buffer.
+    // THis needs to be a global descriptor thinng that is shared amongst all views.
+    OrthographicCamera camera = OrthographicCamera(1.0, 1.0);
+    const glm::mat4 proj_matrix = camera.get_proj_matrix();
+
     // View-tree
     View root_view = View();
     root_view.push_child(QuadDraw(
+        &renderer,
         Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test1
+        TextureSource::Test1,
+        proj_matrix
     ));
     root_view.push_child(MovingQuadDraw(
+        &renderer,
         Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test2
+        TextureSource::Test2,
+        proj_matrix
     )
     );
     root_view.push_child(ColorQuadDraw(
+        &renderer,
         Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test3
+        TextureSource::Test3,
+        proj_matrix
     ));
     root_view.push_child(DataQuadDraw(
         &renderer,
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test4
+        TextureSource::Test4,
+        proj_matrix
     ));
     root_view.push_child(ControllableQuadDraw(
+        &renderer,
         Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
         0.0,
-        {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4}
+        {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
+        proj_matrix
     ));
 
     KeyboardState keyboard_state;
@@ -78,8 +94,10 @@ int main(int argc, char *argv[]) {
         const int mod_count = renderer.get_frame_count() % 100;
         if (mod_count > 50) {
             root_view.push_child(QuadDraw(
+                &renderer,
                 Rect2D(Point2Df32{ -0.875f,  -0.875f }, Size2Df32{0.25, 0.25}),
-                TextureSource::Akv
+                TextureSource::Akv,
+                proj_matrix
             ));
         }
 
