@@ -38,7 +38,15 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         renderer->upload_shader(shader_id(vertex_ty), shader_path(vertex_ty));
         renderer->upload_shader(shader_id(fragment_ty), shader_path(fragment_ty));
 
-        renderer->upload_pipeline(shader_id(vertex_ty), shader_id(fragment_ty));
+        // TODO: Smarter later
+        const ShaderData& vert_data = renderer->get_shader_data(shader_id(vertex_ty));
+        const ShaderData& frag_data = renderer->get_shader_data(shader_id(fragment_ty));
+        std::vector<VkDescriptorSetLayoutBinding> bindings = {};
+        vert_data.append_layout_bindings_at(0, bindings);
+        frag_data.append_layout_bindings_at(0, bindings);
+        const DescriptorSetID id = renderer->upload_descriptor_set_layout(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR);
+
+        renderer->upload_pipeline(shader_id(vertex_ty), shader_id(fragment_ty), {&id, 1});
     }
 
     for (const View& child : children) {

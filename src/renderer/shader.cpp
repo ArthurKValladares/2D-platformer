@@ -102,22 +102,26 @@ uint32_t ShaderData::max_descriptor_set() const {
     return max;
 }
 
-void ShaderData::append_layout_bindings(BindingsMap& bindings_map) const {
-    for (SpvReflectDescriptorSet* set : descriptor_sets) {
-        const uint32_t set_idx = set->set;
-        const uint32_t binding_count = set->binding_count;
-
-        std::vector<VkDescriptorSetLayoutBinding>& bindings = bindings_map[set_idx];
-        
-        for (uint64_t i = 0; i < binding_count; ++i) {
-            const SpvReflectDescriptorBinding* spv_binding = set->bindings[i];
-            bindings.push_back(VkDescriptorSetLayoutBinding{
-                .binding = spv_binding->binding,
-                .descriptorType = from_spv(spv_binding->descriptor_type),
-                .descriptorCount = spv_binding->count,
-                .stageFlags = shader_stage()
-            });
+void ShaderData::append_layout_bindings_at(uint32_t set_idx, std::vector<VkDescriptorSetLayoutBinding>& bindings) const {
+    SpvReflectDescriptorSet* set = nullptr;
+    for (SpvReflectDescriptorSet* curr_set : descriptor_sets) {
+        if (curr_set->set == set_idx) {
+            set = curr_set;
         }
+    }
+    if (set == nullptr) {
+        return;
+    }
+
+    const uint32_t binding_count = set->binding_count;
+    for (uint64_t i = 0; i < binding_count; ++i) {
+        const SpvReflectDescriptorBinding* spv_binding = set->bindings[i];
+        bindings.push_back(VkDescriptorSetLayoutBinding{
+            .binding = spv_binding->binding,
+            .descriptorType = from_spv(spv_binding->descriptor_type),
+            .descriptorCount = spv_binding->count,
+            .stageFlags = shader_stage()
+        });
     }
 }
 

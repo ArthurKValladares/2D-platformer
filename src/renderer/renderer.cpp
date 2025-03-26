@@ -336,10 +336,8 @@ Renderer::~Renderer() {
     vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
     ImGui_ImplVulkan_Shutdown();
     vkDestroyDescriptorPool(device, imgui_descriptor_pool, nullptr);
-    for (auto& [id, layouts] : descriptor_set_layouts) {
-        for (VkDescriptorSetLayout layout : layouts) {
-            vkDestroyDescriptorSetLayout(device, layout, nullptr);
-        }
+    for (auto& [id, layout] : descriptor_set_layouts) {
+        vkDestroyDescriptorSetLayout(device, layout, nullptr);
     }
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
@@ -363,37 +361,20 @@ void Renderer::upload_shader(ShaderID id, const char* path) {
     }
 }
 
-void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id) {
+DescriptorSetID Renderer::upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags) {
+    const DescriptorSetID id = DescriptorSetID(descriptor_set_layouts.size());
+    VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings, flags);
+    VkDescriptorSetLayout layout;
+    chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
+    descriptor_set_layouts.emplace(id, layout);
+    return id;
+}
+
+void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetID> layout_ids) {
     const PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
     if (!pipelines.contains(pipeline_id)) {
         const ShaderData& vert_shader_data = shaders[vertex_shader_id];
         const ShaderData& frag_shader_data = shaders[fragment_shader_id];
-    
-        // Descriptor set layout
-        BindingsMap bindings_map;
-        const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
-        assert(num_sets <= 4);
-        vert_shader_data.append_layout_bindings(bindings_map);
-        frag_shader_data.append_layout_bindings(bindings_map);
-    
-        std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
-        uint32_t last_set = 0;
-        for (uint64_t i = 0; i < bindings_map.size(); ++i) {
-            if (!bindings_map[i].empty()) {
-                last_set = i;
-            }
-        }
-        for (uint64_t i = 0; i < bindings_map.size(); ++i) {
-            const std::vector<VkDescriptorSetLayoutBinding>& bindings = bindings_map[i];
-            if (!bindings.empty()) {
-                VkDescriptorSetLayout layout;
-                VkDescriptorSetLayoutCreateInfo layout_info = i == last_set 
-                    ? initializers::descriptor_set_create_info(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR)
-                    : initializers::descriptor_set_create_info(bindings);
-                chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
-                layouts.push_back(layout);
-            }
-        }
     
         // Push constants
         std::vector<VkPushConstantRange> push_constant_ranges;
@@ -402,6 +383,10 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
     
         // Pipeline layout
         VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
+        std::vector<VkDescriptorSetLayout> layouts = {};
+        for (DescriptorSetID id : layout_ids) {
+            layouts.push_back(descriptor_set_layouts[id]);
+        }
         VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
         pipeline_layout_ci.pPushConstantRanges = push_constant_ranges.data();
         pipeline_layout_ci.pushConstantRangeCount = push_constant_ranges.size();
