@@ -25,6 +25,7 @@ add_executable(${PROJECT_NAME}
   src/renderer/shader.cpp
   src/renderer/pipeline.cpp
   src/renderer/purgatory.cpp
+  src/renderer/descriptor_set.cpp
   # shader defs
   src/shader_defs/shader_pairs.cpp
   # views

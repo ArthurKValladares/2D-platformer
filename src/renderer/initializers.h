@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include <vector>
+#include <span>
 
 namespace initializers {
     inline VkImageCreateInfo image_create_info() {
@@ -66,11 +66,8 @@ namespace initializers {
             .pBindings = p_bindings
         };
     }
-    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const std::vector<VkDescriptorSetLayoutBinding>& bindings, VkDescriptorSetLayoutCreateFlags flags = {}) {
+    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags = {}) {
         return descriptor_set_create_info((uint32_t) bindings.size(), bindings.data(), flags);
-    }
-    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const VkDescriptorSetLayoutBinding& binding, VkDescriptorSetLayoutCreateFlags flags = {}) {
-        return descriptor_set_create_info(1, &binding);
     }
 
     inline VkPipelineLayoutCreateInfo pipeline_layout_create_info(uint32_t set_layout_count = 0, const VkDescriptorSetLayout* set_layouts = nullptr) {
@@ -80,7 +77,7 @@ namespace initializers {
             .pSetLayouts = set_layouts
         };
     }
-    inline VkPipelineLayoutCreateInfo pipeline_layout_create_info(const std::vector<VkDescriptorSetLayout>& set_layouts) {
+    inline VkPipelineLayoutCreateInfo pipeline_layout_create_info(std::span<const VkDescriptorSetLayout> set_layouts) {
         return pipeline_layout_create_info((uint32_t) set_layouts.size(), set_layouts.data());
     }
     inline VkPipelineLayoutCreateInfo pipeline_layout_create_info(const VkDescriptorSetLayout& set_layouts) {

@@ -53,10 +53,10 @@ struct Renderer {
     VkDevice get_device() const {
         return device;
     }
-    VkDescriptorPool get_descriptor_pool() {
+    VkDescriptorPool get_descriptor_pool() const {
         return descriptor_pool;
     }
-    VmaAllocator get_allocator() {
+    VmaAllocator get_allocator() const {
         return allocator;
     }
 
