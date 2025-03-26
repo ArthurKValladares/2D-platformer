@@ -2,9 +2,15 @@
 
 #pragma once
 
-
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
+
+#include "keyboard_state.h"
+
+struct CameraUpdateData {
+    double frame_dt;
+    const KeyboardState& keyboard_state;
+};
 
 struct OrthographicCamera {
     OrthographicCamera(glm::vec2 pos, float size_x, float size_y)
@@ -14,6 +20,8 @@ struct OrthographicCamera {
     {}
 
     glm::mat4 get_proj_matrix();
+
+    void update(const CameraUpdateData& data);
 
     float size_x;
     float size_y;

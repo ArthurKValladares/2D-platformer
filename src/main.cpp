@@ -19,9 +19,7 @@
 
 // TODO: engine architecture
 // descriptor set number 0 will be used for engine-global resources
-// descriptor set number 1 will be used for per-"pass" resources
-// descriptor set number 2 will be used for material resources
-// descriptor set number 3 will be used for per-object resources
+// descriptor set number 1 will be used for per-object resources (using push descriptors)
 
 int main(int argc, char *argv[]) {
     const std::chrono::steady_clock::time_point app_start = std::chrono::steady_clock::now();
@@ -108,16 +106,13 @@ int main(int argc, char *argv[]) {
             quit = true;
         }
 
-        // TODO: This is a bad way to do this, I'll fix later
-        const int mod_count = renderer.get_frame_count() % 100;
-        if (mod_count > 50) {
-            root_view.push_child(QuadDraw(
-                &renderer,
-                Rect2D(Point2Df32{ -0.875f,  -0.875f }, Size2Df32{0.25, 0.25}),
-                TextureSource::Akv,
-                global_data_buffer
-            ));
-        }
+        camera.update(CameraUpdateData{
+            .frame_dt = frame_dt.count(),
+            .keyboard_state = keyboard_state,
+        });
+        global_data.proj_matrix = camera.get_proj_matrix();
+        Buffer& buffer = renderer.get_buffer(global_data_buffer);
+        buffer.write_to(&global_data, sizeof(GlobalData));
 
         root_view.update(ViewUpdateData{
             .renderer = &renderer,
@@ -133,10 +128,6 @@ int main(int argc, char *argv[]) {
         });
 
         renderer.render(window, data.draws);
-
-        if (mod_count > 50) {
-            root_view.children.pop_back();
-        }
     }
 
     return 0;
