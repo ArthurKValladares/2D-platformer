@@ -69,14 +69,12 @@ int main(int argc, char *argv[]) {
         TextureSource::Test3,
         global_data_buffer
     ));
-    /*
     root_view.push_child(DataQuadDraw(
         &renderer,
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test4,
         global_data_buffer
     ));
-    */
     root_view.push_child(ControllableQuadDraw(
         &renderer,
         Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
