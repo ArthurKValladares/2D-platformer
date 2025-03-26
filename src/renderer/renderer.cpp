@@ -377,11 +377,19 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
         frag_shader_data.append_layout_bindings(bindings_map);
     
         std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
+        uint32_t last_set = 0;
+        for (uint64_t i = 0; i < bindings_map.size(); ++i) {
+            if (!bindings_map[i].empty()) {
+                last_set = i;
+            }
+        }
         for (uint64_t i = 0; i < bindings_map.size(); ++i) {
             const std::vector<VkDescriptorSetLayoutBinding>& bindings = bindings_map[i];
             if (!bindings.empty()) {
                 VkDescriptorSetLayout layout;
-                VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings);
+                VkDescriptorSetLayoutCreateInfo layout_info = i == last_set 
+                    ? initializers::descriptor_set_create_info(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR)
+                    : initializers::descriptor_set_create_info(bindings);
                 chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
                 layouts.push_back(layout);
             }

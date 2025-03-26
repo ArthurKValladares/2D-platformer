@@ -58,7 +58,7 @@ namespace initializers {
         };
     }
 
-    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(uint32_t binding_count = 0, const VkDescriptorSetLayoutBinding* p_bindings = nullptr) {
+    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(uint32_t binding_count = 0, const VkDescriptorSetLayoutBinding* p_bindings = nullptr, VkDescriptorSetLayoutCreateFlags flags = {}) {
         return VkDescriptorSetLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
             .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
@@ -66,10 +66,10 @@ namespace initializers {
             .pBindings = p_bindings
         };
     }
-    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const std::vector<VkDescriptorSetLayoutBinding>& bindings) {
-        return descriptor_set_create_info((uint32_t) bindings.size(), bindings.data());
+    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const std::vector<VkDescriptorSetLayoutBinding>& bindings, VkDescriptorSetLayoutCreateFlags flags = {}) {
+        return descriptor_set_create_info((uint32_t) bindings.size(), bindings.data(), flags);
     }
-    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const VkDescriptorSetLayoutBinding& binding) {
+    inline VkDescriptorSetLayoutCreateInfo descriptor_set_create_info(const VkDescriptorSetLayoutBinding& binding, VkDescriptorSetLayoutCreateFlags flags = {}) {
         return descriptor_set_create_info(1, &binding);
     }
 
