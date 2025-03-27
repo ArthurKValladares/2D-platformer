@@ -28,15 +28,23 @@ int main(int argc, char *argv[]) {
 
     Renderer renderer(window);
     
-    // TODO: Right now this stuff is pretty bad and each View/VertShader has its own
-    // buffer.
-    // THis needs to be a global descriptor thinng that is shared amongst all views.
+    // TODO: Doing this here for now, very sloppy tho.
+    std::vector<VkDescriptorSetLayoutBinding> bindings = {
+        VkDescriptorSetLayoutBinding {
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+        }
+    };
+    renderer->upload_descriptor_set_layout(bindings);
+    // TODO: need to create the actual set and then bind it in the render function
+
     OrthographicCamera camera = OrthographicCamera(glm::vec2(0.0), 2.0, 2.0);
-    const glm::mat4 proj_matrix = camera.get_proj_matrix();
+
     GlobalData global_data = GlobalData{
         .proj_matrix = camera.get_proj_matrix()
     };
-
     BufferID global_data_buffer = renderer.request_buffer(
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VMA_ALLOCATION_CREATE_MAPPED_BIT,

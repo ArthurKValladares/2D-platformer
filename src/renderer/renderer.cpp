@@ -361,8 +361,8 @@ void Renderer::upload_shader(ShaderID id, const char* path) {
     }
 }
 
-DescriptorSetID Renderer::upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags) {
-    const DescriptorSetID id = DescriptorSetID(descriptor_set_layouts.size());
+DescriptorSetLayoutID Renderer::upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags) {
+    const DescriptorSetLayoutID id = DescriptorSetLayoutID(descriptor_set_layouts.size());
     VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings, flags);
     VkDescriptorSetLayout layout;
     chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
@@ -370,7 +370,7 @@ DescriptorSetID Renderer::upload_descriptor_set_layout(std::span<const VkDescrip
     return id;
 }
 
-void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetID> layout_ids) {
+void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetLayoutID> layout_ids) {
     const PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
     if (!pipelines.contains(pipeline_id)) {
         const ShaderData& vert_shader_data = shaders[vertex_shader_id];
@@ -384,7 +384,7 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
         // Pipeline layout
         VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
         std::vector<VkDescriptorSetLayout> layouts = {};
-        for (DescriptorSetID id : layout_ids) {
+        for (DescriptorSetLayoutID id : layout_ids) {
             layouts.push_back(descriptor_set_layouts[id]);
         }
         VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);

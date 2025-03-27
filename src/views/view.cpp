@@ -38,13 +38,18 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
             }
         }
 
-        // TODO: Smarter later
-        std::vector<VkDescriptorSetLayoutBinding> bindings = {};
-        vert_data.append_layout_bindings_at(0, bindings);
-        frag_data.append_layout_bindings_at(0, bindings);
-        const DescriptorSetID id = renderer->upload_descriptor_set_layout(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR);
+        // TODO: I'm hard-coding the layout id for the global set to be 0 for now, not necessarily true
+        std::vector<DescriptorSetLayoutID> layout_ids = {DescriptorSetLayoutID(0)};
+        const uint32_t max_set = std::max(vert_data.max_descriptor_set(), frag_data.max_descriptor_set());
+        for (uint32_t layout_idx = GLOBAL_DESCRIPTOR_SET_IDX + 1; layout_idx <= max_set; ++layout_idx) {
+            std::vector<VkDescriptorSetLayoutBinding> bindings = {};
+            vert_data.append_layout_bindings_at(layout_idx, bindings);
+            frag_data.append_layout_bindings_at(layout_idx, bindings);
+            const DescriptorSetLayoutID layout_id = renderer->upload_descriptor_set_layout(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR);
+            layout_ids.push_back(layout_id);
+        }
 
-        renderer->upload_pipeline(vert_id, frag_id, {&id, 1});
+        renderer->upload_pipeline(vert_id, frag_id, layout_ids);
 
         data.draws.push_back(dc);
     }

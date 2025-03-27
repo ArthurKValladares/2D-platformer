@@ -9,6 +9,8 @@
 #include "../renderer/renderer.h"
 #include "../assets.h"
 
+#define GLOBAL_DESCRIPTOR_SET_IDX 0
+
 struct GlobalData {
     glm::mat4 proj_matrix;
 };

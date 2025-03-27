@@ -30,13 +30,13 @@ struct BufferID {
     uint32_t id;
 };
 
-struct DescriptorSetID {
-    DescriptorSetID() {}
-    explicit DescriptorSetID(uint32_t id)
+struct DescriptorSetLayoutID {
+    DescriptorSetLayoutID() {}
+    explicit DescriptorSetLayoutID(uint32_t id)
         : id(id)
     {}
 
-    bool operator==(const DescriptorSetID &other) const {
+    bool operator==(const DescriptorSetLayoutID &other) const {
         return id == other.id;
     }
 
@@ -105,9 +105,9 @@ namespace std
     };
 
     template<>
-    struct hash<DescriptorSetID>
+    struct hash<DescriptorSetLayoutID>
     {
-        size_t operator()(const DescriptorSetID& d) const
+        size_t operator()(const DescriptorSetLayoutID& d) const
         {
             return make_hash(d.id);
         }

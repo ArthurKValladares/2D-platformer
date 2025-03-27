@@ -33,8 +33,8 @@ struct Renderer {
 
     void upload_shader(ShaderID id, const char* path);
 
-    DescriptorSetID upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags = {});
-    void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetID> layout_ids);
+    DescriptorSetLayoutID upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags = {});
+    void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetLayoutID> layout_ids);
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
@@ -135,7 +135,7 @@ private:
     std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;
     std::unordered_map<ShaderID, ShaderData> shaders;
-    std::unordered_map<DescriptorSetID, VkDescriptorSetLayout> descriptor_set_layouts;
+    std::unordered_map<DescriptorSetLayoutID, VkDescriptorSetLayout> descriptor_set_layouts;
     std::unordered_map<PipelineID, VkPipelineLayout> pipeline_layouts;
     std::unordered_map<PipelineID, Pipeline> pipelines;
 
