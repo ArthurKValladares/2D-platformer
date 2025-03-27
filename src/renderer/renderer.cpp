@@ -566,9 +566,10 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         
-        // TODO: can simplify this once i change the data in draw.sets
-        std::array<std::vector<VkWriteDescriptorSet>, MAX_NUM_DESCRIPTOR_SETS> write_descriptor_sets{};
-        for (const DescriptorSetData& set_data : draw.sets) {
+        // TODO: non-push sets
+
+        std::vector<VkWriteDescriptorSet> writes{};
+        for (const PushDescriptorSetData& set_data : draw.push_set_data) {
             VkWriteDescriptorSet write = {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 				.dstSet = 0,
@@ -585,13 +586,10 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
                 write.pImageInfo = &texture.descriptor;
             }
 
-            write_descriptor_sets[set_data.set].push_back(write);
+            writes.push_back(write);
         }
-        for (uint32_t set_idx = 0; set_idx < MAX_NUM_DESCRIPTOR_SETS; ++set_idx) {
-            const std::vector<VkWriteDescriptorSet>& writes = write_descriptor_sets[set_idx];
-            if (!writes.empty()) {
-                vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, set_idx, writes.size(), writes.data());
-            }
+        if (!writes.empty()) {
+            vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, draw.push_set_idx, writes.size(), writes.data());
         }
 
         for (const PushConstantData& pc : draw.pcs) {

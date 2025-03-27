@@ -1,8 +1,8 @@
 #include "shader_pairs.h"
 
-void ShaderPair::append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {
-    vertex->append_descriptor_sets(sets);
-    fragment->append_descriptor_sets(sets);
+void ShaderPair::append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const {
+    vertex->append_push_descriptor_sets(sets);
+    fragment->append_push_descriptor_sets(sets);
 }
 
 void ShaderPair::append_push_constant_data(std::vector<PushConstantData>& pcs) const {

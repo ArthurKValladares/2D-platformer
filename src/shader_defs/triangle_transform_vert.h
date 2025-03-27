@@ -29,8 +29,8 @@ struct TriangleTransformVert final : VertexShader {
         return sizeof(TriangleTransformVertex) / sizeof(float);
     }
 
-    void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {
-        sets.push_back(DescriptorSetData{
+    void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const {
+        sets.push_back(PushDescriptorSetData{
             .set = 0,
             .binding = 0,
             .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,

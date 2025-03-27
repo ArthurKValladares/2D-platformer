@@ -7,7 +7,7 @@
 #include "resource_ids.h"
 #include "buffer.h"
 
-struct DescriptorSetData {
+struct PushDescriptorSetData {
     uint32_t set;
     uint32_t binding;
     VkDescriptorType ty;
@@ -30,6 +30,7 @@ struct DrawCommand {
     uint32_t index_count;
     uint32_t first_index;
     // TODO: This should be std::array<std::vector<DescriptorSetData>, MAX_DESCRITOR_SETS>
-    std::vector<DescriptorSetData> sets;
+    uint32_t push_set_idx;
+    std::vector<PushDescriptorSetData> push_set_data;
     std::vector<PushConstantData> pcs;
 };

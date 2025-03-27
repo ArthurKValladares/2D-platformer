@@ -22,8 +22,8 @@ struct TriangleColorFrag final : FragmentShader {
         return ShaderSource::TriangleColorFrag;
     }
     
-    void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const {
-        sets.push_back(DescriptorSetData{
+    void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const {
+        sets.push_back(PushDescriptorSetData{
             .set = 0,
             .binding = 1,
             .ty = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
