@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <span>
 #include <unordered_map>
 
 #include <vma/vk_mem_alloc.h>
@@ -31,7 +32,11 @@ struct Renderer {
     void upload_texture(TextureID id, const TextureCreateInfo& texture_cis);
 
     void upload_shader(ShaderID id, const char* path);
-    void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id);
+
+    DescriptorSetLayoutID upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags = {});
+    DescriptorSetID upload_descriptor_set(DescriptorSetLayoutID layout_id);
+
+    void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetLayoutID> layout_ids);
 
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
@@ -53,10 +58,10 @@ struct Renderer {
     VkDevice get_device() const {
         return device;
     }
-    VkDescriptorPool get_descriptor_pool() {
+    VkDescriptorPool get_descriptor_pool() const {
         return descriptor_pool;
     }
-    VmaAllocator get_allocator() {
+    VmaAllocator get_allocator() const {
         return allocator;
     }
 
@@ -65,6 +70,9 @@ struct Renderer {
     }
     const VkPipelineLayout& get_pipeline_layout(PipelineID pipeline_id) const {
         return pipeline_layouts.at(pipeline_id);
+    }
+    VkDescriptorSet get_descriptor_set_at(DescriptorSetID set_id) const {
+        return descriptor_sets.at(set_id);
     }
 
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
@@ -132,7 +140,8 @@ private:
     std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;
     std::unordered_map<ShaderID, ShaderData> shaders;
-    std::unordered_map<PipelineID, std::vector<VkDescriptorSetLayout>> descriptor_set_layouts;
+    std::unordered_map<DescriptorSetLayoutID, VkDescriptorSetLayout> descriptor_set_layouts;
+    std::unordered_map<DescriptorSetID, VkDescriptorSet> descriptor_sets;
     std::unordered_map<PipelineID, VkPipelineLayout> pipeline_layouts;
     std::unordered_map<PipelineID, Pipeline> pipelines;
 

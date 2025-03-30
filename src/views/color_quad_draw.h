@@ -9,9 +9,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ColorQuadDraw final : RenderableInterface{
-    ColorQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, glm::mat4 proj)
+    ColorQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
         : rect(rect)
-        , shader_pair(TriangleVert(renderer, proj), TriangleColorFrag(texture))
+        , shader_pair(TriangleVert(renderer, global_data_buffer), TriangleColorFrag(texture))
     {}
 
     bool is_empty() const {
@@ -25,9 +25,6 @@ struct ColorQuadDraw final : RenderableInterface{
         const double g = abs(cos(data.total_elapsed_seconds * 0.5));
         const double b = abs(tan(data.total_elapsed_seconds * 0.25));
         triangle_color_frag->color = glm::vec3(r, g, b);
-
-        TriangleVert* triangle_vert = dynamic_cast<TriangleVert*>(shader_pair.vertex.get());
-        triangle_vert->update_buffer(data.renderer);
     }
     
     const ShaderPair& shaders() const {

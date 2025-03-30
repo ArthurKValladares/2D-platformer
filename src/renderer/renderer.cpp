@@ -336,10 +336,8 @@ Renderer::~Renderer() {
     vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
     ImGui_ImplVulkan_Shutdown();
     vkDestroyDescriptorPool(device, imgui_descriptor_pool, nullptr);
-    for (auto& [id, layouts] : descriptor_set_layouts) {
-        for (VkDescriptorSetLayout layout : layouts) {
-            vkDestroyDescriptorSetLayout(device, layout, nullptr);
-        }
+    for (auto& [id, layout] : descriptor_set_layouts) {
+        vkDestroyDescriptorSetLayout(device, layout, nullptr);
     }
     vkDestroyDevice(device, nullptr);
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
@@ -363,29 +361,38 @@ void Renderer::upload_shader(ShaderID id, const char* path) {
     }
 }
 
-void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id) {
+DescriptorSetLayoutID Renderer::upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags) {
+    const DescriptorSetLayoutID id = DescriptorSetLayoutID(descriptor_set_layouts.size());
+
+    VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings, flags);
+    VkDescriptorSetLayout layout;
+    chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
+    descriptor_set_layouts.emplace(id, layout);
+
+    return id;
+}
+
+DescriptorSetID Renderer::upload_descriptor_set(DescriptorSetLayoutID layout_id) {
+    VkDescriptorSetLayout& layout = descriptor_set_layouts[layout_id];
+    const DescriptorSetID id = DescriptorSetID(descriptor_sets.size());
+
+    VkDescriptorSetAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool = descriptor_pool;
+    alloc_info.descriptorSetCount = 1;
+    alloc_info.pSetLayouts = &layout;
+    VkDescriptorSet set;
+    chk(vkAllocateDescriptorSets(device, &alloc_info, &set));
+    descriptor_sets.emplace(id, set);
+
+    return id;
+}
+
+void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetLayoutID> layout_ids) {
     const PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
     if (!pipelines.contains(pipeline_id)) {
         const ShaderData& vert_shader_data = shaders[vertex_shader_id];
         const ShaderData& frag_shader_data = shaders[fragment_shader_id];
-    
-        // Descriptor set layout
-        BindingsMap bindings_map;
-        const uint32_t num_sets = std::max(vert_shader_data.max_descriptor_set(), frag_shader_data.max_descriptor_set()) + 1;
-        assert(num_sets <= 4);
-        vert_shader_data.append_layout_bindings(bindings_map);
-        frag_shader_data.append_layout_bindings(bindings_map);
-    
-        std::vector<VkDescriptorSetLayout>& layouts = descriptor_set_layouts[pipeline_id];
-        for (uint64_t i = 0; i < bindings_map.size(); ++i) {
-            const std::vector<VkDescriptorSetLayoutBinding>& bindings = bindings_map[i];
-            if (!bindings.empty()) {
-                VkDescriptorSetLayout layout;
-                VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings_map[i]);
-                chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
-                layouts.push_back(layout);
-            }
-        }
     
         // Push constants
         std::vector<VkPushConstantRange> push_constant_ranges;
@@ -394,6 +401,10 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
     
         // Pipeline layout
         VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
+        std::vector<VkDescriptorSetLayout> layouts = {};
+        for (DescriptorSetLayoutID id : layout_ids) {
+            layouts.push_back(descriptor_set_layouts[id]);
+        }
         VkPipelineLayoutCreateInfo pipeline_layout_ci = initializers::pipeline_layout_create_info(layouts);
         pipeline_layout_ci.pPushConstantRanges = push_constant_ranges.data();
         pipeline_layout_ci.pushConstantRangeCount = push_constant_ranges.size();
@@ -573,8 +584,18 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         
-        std::array<std::vector<VkWriteDescriptorSet>, MAX_NUM_DESCRIPTOR_SETS> write_descriptor_sets{};
-        for (const DescriptorSetData& set_data : draw.sets) {
+        // descriptors
+        std::vector<VkDescriptorSet> bind_sets = {};
+        for (const DescriptorSetID& set_id : draw.set_ids) {
+            bind_sets.push_back(descriptor_sets.at(set_id));
+        }
+        if (!bind_sets.empty()) {
+            vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, bind_sets.size(), bind_sets.data(), 0, nullptr);
+        }
+
+        // Push descriptors
+        std::vector<VkWriteDescriptorSet> writes{};
+        for (const PushDescriptorSetData& set_data : draw.push_set_data) {
             VkWriteDescriptorSet write = {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 				.dstSet = 0,
@@ -582,6 +603,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 				.descriptorCount = 1,
 				.descriptorType = set_data.ty,
             };
+
             if (set_data.ty == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
                 const Buffer& buffer = buffers[set_data.buffer_id];
                 write.pBufferInfo = &buffer.descriptor;
@@ -589,14 +611,14 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
                 const Texture& texture = textures[set_data.texture_id];
                 write.pImageInfo = &texture.descriptor;
             }
-            write_descriptor_sets[set_data.set].push_back(write);
+
+            writes.push_back(write);
         }
-        for (const std::vector<VkWriteDescriptorSet>& writes : write_descriptor_sets) {
-            if (!writes.empty()) {
-                vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, writes.size(), writes.data());
-            }
+        if (!writes.empty()) {
+            vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, draw.push_set_idx, writes.size(), writes.data());
         }
 
+        // Push constants
         for (const PushConstantData& pc : draw.pcs) {
             vkCmdPushConstants(cb, pipeline_layout, pc.stage_flags, pc.offset, pc.size, pc.p_data);
         }

@@ -4,6 +4,7 @@
 #include <functional>
 
 // TODO: A lot of these IDs are still inneficient, can be better later
+// TODO: Also way too much duplicated code, make macros for it or something
 struct TextureID {
     TextureID() {}
     explicit TextureID(uint32_t id)
@@ -24,6 +25,32 @@ struct BufferID {
     {}
 
     bool operator==(const BufferID &other) const {
+        return id == other.id;
+    }
+
+    uint32_t id;
+};
+
+struct DescriptorSetLayoutID {
+    DescriptorSetLayoutID() {}
+    explicit DescriptorSetLayoutID(uint32_t id)
+        : id(id)
+    {}
+
+    bool operator==(const DescriptorSetLayoutID &other) const {
+        return id == other.id;
+    }
+
+    uint32_t id;
+};
+
+struct DescriptorSetID {
+    DescriptorSetID() {}
+    explicit DescriptorSetID(uint32_t id)
+        : id(id)
+    {}
+
+    bool operator==(const DescriptorSetID &other) const {
         return id == other.id;
     }
 
@@ -87,6 +114,24 @@ namespace std
         size_t operator()(const BufferID& b) const
         {
             return make_hash(b.id);
+        }
+    };
+
+    template<>
+    struct hash<DescriptorSetLayoutID>
+    {
+        size_t operator()(const DescriptorSetLayoutID& d) const
+        {
+            return make_hash(d.id);
+        }
+    };
+
+    template<>
+    struct hash<DescriptorSetID>
+    {
+        size_t operator()(const DescriptorSetID& d) const
+        {
+            return make_hash(d.id);
         }
     };
 

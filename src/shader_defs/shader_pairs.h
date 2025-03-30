@@ -28,7 +28,7 @@ struct ShaderPair {
         , fragment(new F(std::move(fragment)))
     {}
 
-    void append_descriptor_sets(std::vector<DescriptorSetData>& sets) const;
+    void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const;
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const;
 
     uint32_t vertex_num_floats() const;

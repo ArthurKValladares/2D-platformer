@@ -20,7 +20,7 @@ struct ShaderData {
     
     uint32_t max_descriptor_set() const;
 
-    void append_layout_bindings(BindingsMap& bindings) const;
+    void append_layout_bindings_at(uint32_t set_idx, std::vector<VkDescriptorSetLayoutBinding>& bindings) const;
 
     void get_vertex_input_data(
         VkVertexInputBindingDescription* binding_desc,

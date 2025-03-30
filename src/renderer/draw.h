@@ -7,7 +7,7 @@
 #include "resource_ids.h"
 #include "buffer.h"
 
-struct DescriptorSetData {
+struct PushDescriptorSetData {
     uint32_t set;
     uint32_t binding;
     VkDescriptorType ty;
@@ -29,6 +29,11 @@ struct DrawCommand {
     ShaderID fragment_id;
     uint32_t index_count;
     uint32_t first_index;
-    std::vector<DescriptorSetData> sets;
+    // regular sets
+    std::vector<DescriptorSetID> set_ids;
+    // push sets
+    uint32_t push_set_idx;
+    std::vector<PushDescriptorSetData> push_set_data;
+    // push constants
     std::vector<PushConstantData> pcs;
 };

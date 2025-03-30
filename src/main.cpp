@@ -19,22 +19,55 @@
 
 // TODO: engine architecture
 // descriptor set number 0 will be used for engine-global resources
-// descriptor set number 1 will be used for per-"pass" resources
-// descriptor set number 2 will be used for material resources
-// descriptor set number 3 will be used for per-object resources
+// descriptor set number 1 will be used for per-object resources (using push descriptors)
 
 int main(int argc, char *argv[]) {
     const std::chrono::steady_clock::time_point app_start = std::chrono::steady_clock::now();
 
     Window window = Window();
+    OrthographicCamera camera = OrthographicCamera(glm::vec2(0.0), 2.0, 2.0);
 
     Renderer renderer(window);
     
-    // TODO: Right now this stuff is pretty bad and each View/VertShader has its own
-    // buffer.
-    // THis needs to be a global descriptor thinng that is shared amongst all views.
-    OrthographicCamera camera = OrthographicCamera(glm::vec2(0.0), 2.0, 2.0);
-    const glm::mat4 proj_matrix = camera.get_proj_matrix();
+    // TODO: Doing this here for now, very sloppy tho.
+    std::vector<VkDescriptorSetLayoutBinding> bindings = {
+        VkDescriptorSetLayoutBinding {
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+        }
+    };
+    const DescriptorSetLayoutID layout_id = renderer.upload_descriptor_set_layout(bindings);
+    const DescriptorSetID set_id = renderer.upload_descriptor_set(layout_id);
+   
+    // Create global data buffer
+    GlobalData global_data = GlobalData{
+        .proj_matrix = camera.get_proj_matrix()
+    };
+    BufferID global_data_buffer = renderer.request_buffer(
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VMA_ALLOCATION_CREATE_MAPPED_BIT,
+        VMA_MEMORY_USAGE_CPU_TO_GPU,
+        sizeof(GlobalData)
+    );
+    Buffer& buffer = renderer.get_buffer(global_data_buffer);
+    buffer.write_to(&global_data, sizeof(GlobalData));
+
+    // Write buffer to global set
+    VkDescriptorBufferInfo buffer_info{};
+    buffer_info.buffer = buffer.raw;
+    buffer_info.offset = 0;
+    buffer_info.range = sizeof(GlobalData);
+    std::array<VkWriteDescriptorSet, 1> descriptor_writes{};
+    descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptor_writes[0].dstSet = renderer.get_descriptor_set_at(set_id);
+    descriptor_writes[0].dstBinding = 0;
+    descriptor_writes[0].dstArrayElement = 0;
+    descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptor_writes[0].descriptorCount = 1;
+    descriptor_writes[0].pBufferInfo = &buffer_info;
+    vkUpdateDescriptorSets(renderer.get_device(), static_cast<uint32_t>(descriptor_writes.size()), descriptor_writes.data(), 0, nullptr);
 
     // View-tree
     View root_view = View();
@@ -42,33 +75,33 @@ int main(int argc, char *argv[]) {
         &renderer,
         Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test1,
-        proj_matrix
+        global_data_buffer
     ));
     root_view.push_child(MovingQuadDraw(
         &renderer,
         Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test2,
-        proj_matrix
+        global_data_buffer
     )
     );
     root_view.push_child(ColorQuadDraw(
         &renderer,
         Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test3,
-        proj_matrix
+        global_data_buffer
     ));
     root_view.push_child(DataQuadDraw(
         &renderer,
         Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
         TextureSource::Test4,
-        proj_matrix
+        global_data_buffer
     ));
     root_view.push_child(ControllableQuadDraw(
         &renderer,
         Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
         0.0,
         {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
-        proj_matrix
+        global_data_buffer
     ));
 
     KeyboardState keyboard_state;
@@ -96,16 +129,13 @@ int main(int argc, char *argv[]) {
             quit = true;
         }
 
-        // TODO: This is a bad way to do this, I'll fix later
-        const int mod_count = renderer.get_frame_count() % 100;
-        if (mod_count > 50) {
-            root_view.push_child(QuadDraw(
-                &renderer,
-                Rect2D(Point2Df32{ -0.875f,  -0.875f }, Size2Df32{0.25, 0.25}),
-                TextureSource::Akv,
-                proj_matrix
-            ));
-        }
+        camera.update(CameraUpdateData{
+            .frame_dt = frame_dt.count(),
+            .keyboard_state = keyboard_state,
+        });
+        global_data.proj_matrix = camera.get_proj_matrix();
+        Buffer& buffer = renderer.get_buffer(global_data_buffer);
+        buffer.write_to(&global_data, sizeof(GlobalData));
 
         root_view.update(ViewUpdateData{
             .renderer = &renderer,
@@ -121,10 +151,6 @@ int main(int argc, char *argv[]) {
         });
 
         renderer.render(window, data.draws);
-
-        if (mod_count > 50) {
-            root_view.children.pop_back();
-        }
     }
 
     return 0;
