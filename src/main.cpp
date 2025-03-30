@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     const std::chrono::steady_clock::time_point app_start = std::chrono::steady_clock::now();
 
     Window window = Window();
+    OrthographicCamera camera = OrthographicCamera(glm::vec2(0.0), 2.0, 2.0);
 
     Renderer renderer(window);
     
@@ -37,11 +38,10 @@ int main(int argc, char *argv[]) {
             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
         }
     };
-    renderer->upload_descriptor_set_layout(bindings);
-    // TODO: need to create the actual set and then bind it in the render function
-
-    OrthographicCamera camera = OrthographicCamera(glm::vec2(0.0), 2.0, 2.0);
-
+    const DescriptorSetLayoutID layout_id = renderer.upload_descriptor_set_layout(bindings);
+    const DescriptorSetID set_id = renderer.upload_descriptor_set(layout_id);
+   
+    // Create global data buffer
     GlobalData global_data = GlobalData{
         .proj_matrix = camera.get_proj_matrix()
     };
@@ -53,6 +53,21 @@ int main(int argc, char *argv[]) {
     );
     Buffer& buffer = renderer.get_buffer(global_data_buffer);
     buffer.write_to(&global_data, sizeof(GlobalData));
+
+    // Write buffer to global set
+    VkDescriptorBufferInfo buffer_info{};
+    buffer_info.buffer = buffer.raw;
+    buffer_info.offset = 0;
+    buffer_info.range = sizeof(GlobalData);
+    std::array<VkWriteDescriptorSet, 1> descriptor_writes{};
+    descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptor_writes[0].dstSet = renderer.get_descriptor_set_at(set_id);
+    descriptor_writes[0].dstBinding = 0;
+    descriptor_writes[0].dstArrayElement = 0;
+    descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptor_writes[0].descriptorCount = 1;
+    descriptor_writes[0].pBufferInfo = &buffer_info;
+    vkUpdateDescriptorSets(renderer.get_device(), static_cast<uint32_t>(descriptor_writes.size()), descriptor_writes.data(), 0, nullptr);
 
     // View-tree
     View root_view = View();

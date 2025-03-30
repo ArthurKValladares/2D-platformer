@@ -46,14 +46,8 @@ struct TriangleDataVert final : VertexShader {
     
     void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const {
         sets.push_back(PushDescriptorSetData{
-            .set = 0,
-            .binding = 0,
-            .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .buffer_id = global_data_buffer,
-        });
-        sets.push_back(PushDescriptorSetData{
-            .set = 0,
-            .binding = 2,
+            .set = 1,
+            .binding = 1,
             .ty = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .buffer_id = uniform_buffer,
         });

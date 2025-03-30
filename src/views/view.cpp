@@ -3,6 +3,7 @@
 
 #include "../renderer/renderer.h"
 
+// TODO: This function is very messy, clean it up and make the logic clear
 void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
     if (renderable && !renderable->is_empty()) {
         const ShaderPair&  shaders   = renderable->shaders();
@@ -30,6 +31,8 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
 
         shaders.append_push_constant_data(dc.pcs);
 
+        // TODO: Also hard-coded, can be better
+        dc.push_set_idx = 1;
         shaders.append_push_descriptor_sets(dc.push_set_data);
         for (const PushDescriptorSetData& data : dc.push_set_data) {
             if (data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && !renderer->contains_texture(data.texture_id)) {
@@ -38,8 +41,12 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
             }
         }
 
-        // TODO: I'm hard-coding the layout id for the global set to be 0 for now, not necessarily true
-        std::vector<DescriptorSetLayoutID> layout_ids = {DescriptorSetLayoutID(0)};
+        // TODO: I'm hard-coding the layout and set id for the global set to be 0 for now, not necessarily true.
+        // I need to guarantee that they are the first I add to the renderer, which i'm not really doing atm
+        dc.set_ids.push_back(DescriptorSetID(GLOBAL_DESCRIPTOR_SET_IDX));
+        std::vector<DescriptorSetLayoutID> layout_ids = {
+            DescriptorSetLayoutID(GLOBAL_DESCRIPTOR_SET_IDX)
+        };
         const uint32_t max_set = std::max(vert_data.max_descriptor_set(), frag_data.max_descriptor_set());
         for (uint32_t layout_idx = GLOBAL_DESCRIPTOR_SET_IDX + 1; layout_idx <= max_set; ++layout_idx) {
             std::vector<VkDescriptorSetLayoutBinding> bindings = {};

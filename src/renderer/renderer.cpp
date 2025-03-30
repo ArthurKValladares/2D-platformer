@@ -363,10 +363,28 @@ void Renderer::upload_shader(ShaderID id, const char* path) {
 
 DescriptorSetLayoutID Renderer::upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags) {
     const DescriptorSetLayoutID id = DescriptorSetLayoutID(descriptor_set_layouts.size());
+
     VkDescriptorSetLayoutCreateInfo layout_info = initializers::descriptor_set_create_info(bindings, flags);
     VkDescriptorSetLayout layout;
     chk(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &layout));
     descriptor_set_layouts.emplace(id, layout);
+
+    return id;
+}
+
+DescriptorSetID Renderer::upload_descriptor_set(DescriptorSetLayoutID layout_id) {
+    VkDescriptorSetLayout& layout = descriptor_set_layouts[layout_id];
+    const DescriptorSetID id = DescriptorSetID(descriptor_sets.size());
+
+    VkDescriptorSetAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool = descriptor_pool;
+    alloc_info.descriptorSetCount = 1;
+    alloc_info.pSetLayouts = &layout;
+    VkDescriptorSet set;
+    chk(vkAllocateDescriptorSets(device, &alloc_info, &set));
+    descriptor_sets.emplace(id, set);
+
     return id;
 }
 
@@ -566,8 +584,16 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
         
-        // TODO: non-push sets
+        // descriptors
+        std::vector<VkDescriptorSet> bind_sets = {};
+        for (const DescriptorSetID& set_id : draw.set_ids) {
+            bind_sets.push_back(descriptor_sets.at(set_id));
+        }
+        if (!bind_sets.empty()) {
+            vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, bind_sets.size(), bind_sets.data(), 0, nullptr);
+        }
 
+        // Push descriptors
         std::vector<VkWriteDescriptorSet> writes{};
         for (const PushDescriptorSetData& set_data : draw.push_set_data) {
             VkWriteDescriptorSet write = {
@@ -592,6 +618,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
             vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, draw.push_set_idx, writes.size(), writes.data());
         }
 
+        // Push constants
         for (const PushConstantData& pc : draw.pcs) {
             vkCmdPushConstants(cb, pipeline_layout, pc.stage_flags, pc.offset, pc.size, pc.p_data);
         }
