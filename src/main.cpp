@@ -29,15 +29,7 @@ int main(int argc, char *argv[]) {
 
     Renderer renderer(window);
     
-    // TODO: Doing this here for now, very sloppy tho.
-    std::vector<VkDescriptorSetLayoutBinding> bindings = {
-        VkDescriptorSetLayoutBinding {
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
-        }
-    };
+    std::array<VkDescriptorSetLayoutBinding, 1> bindings = get_global_set_bindings();
     const DescriptorSetLayoutID layout_id = renderer.upload_descriptor_set_layout(bindings);
     const DescriptorSetID set_id = renderer.upload_descriptor_set(layout_id);
    
@@ -54,20 +46,7 @@ int main(int argc, char *argv[]) {
     Buffer& buffer = renderer.get_buffer(global_data_buffer);
     buffer.write_to(&global_data, sizeof(GlobalData));
 
-    // Write buffer to global set
-    VkDescriptorBufferInfo buffer_info{};
-    buffer_info.buffer = buffer.raw;
-    buffer_info.offset = 0;
-    buffer_info.range = sizeof(GlobalData);
-    std::array<VkWriteDescriptorSet, 1> descriptor_writes{};
-    descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptor_writes[0].dstSet = renderer.get_descriptor_set_at(set_id);
-    descriptor_writes[0].dstBinding = 0;
-    descriptor_writes[0].dstArrayElement = 0;
-    descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptor_writes[0].descriptorCount = 1;
-    descriptor_writes[0].pBufferInfo = &buffer_info;
-    vkUpdateDescriptorSets(renderer.get_device(), static_cast<uint32_t>(descriptor_writes.size()), descriptor_writes.data(), 0, nullptr);
+    update_global_set(&renderer, global_data_buffer, set_id);
 
     // View-tree
     View root_view = View();
