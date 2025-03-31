@@ -19,7 +19,7 @@ struct OrthographicCamera {
         , center(pos)
     {}
 
-    glm::mat4 get_proj_matrix();
+    glm::mat4 get_proj_matrix() const;
 
     void update(const CameraUpdateData& data);
 

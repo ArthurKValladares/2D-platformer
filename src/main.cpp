@@ -21,116 +21,154 @@
 // descriptor set number 0 will be used for engine-global resources
 // descriptor set number 1 will be used for per-object resources (using push descriptors)
 
-int main(int argc, char *argv[]) {
-    const std::chrono::steady_clock::time_point app_start = std::chrono::steady_clock::now();
+struct GlobalDescriptorSetData {
+    GlobalDescriptorSetData(Renderer& renderer, const OrthographicCamera& camera) 
+        : layout_id(renderer.upload_descriptor_set_layout(get_global_set_bindings()))
+        , set_id(renderer.upload_descriptor_set(layout_id))
+        , shader_data(GlobalShaderData{
+            .proj_matrix = camera.get_proj_matrix()
+        })
+        , buffer_id(renderer.request_buffer(
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VMA_ALLOCATION_CREATE_MAPPED_BIT,
+            VMA_MEMORY_USAGE_CPU_TO_GPU,
+            sizeof(GlobalShaderData)
+        ))
+    {}
 
-    Window window = Window();
-    OrthographicCamera camera = OrthographicCamera(glm::vec2(0.0), 2.0, 2.0);
+    void write_shader_data_to_buffer(Renderer& renderer) {
+        Buffer& buffer = renderer.get_buffer(buffer_id);
+        buffer.write_to(&shader_data, sizeof(GlobalShaderData));
+    }
 
-    Renderer renderer(window);
-    
-    std::array<VkDescriptorSetLayoutBinding, 1> bindings = get_global_set_bindings();
-    const DescriptorSetLayoutID layout_id = renderer.upload_descriptor_set_layout(bindings);
-    const DescriptorSetID set_id = renderer.upload_descriptor_set(layout_id);
-   
-    // Create global data buffer
-    GlobalData global_data = GlobalData{
-        .proj_matrix = camera.get_proj_matrix()
-    };
-    BufferID global_data_buffer = renderer.request_buffer(
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        VMA_ALLOCATION_CREATE_MAPPED_BIT,
-        VMA_MEMORY_USAGE_CPU_TO_GPU,
-        sizeof(GlobalData)
-    );
-    Buffer& buffer = renderer.get_buffer(global_data_buffer);
-    buffer.write_to(&global_data, sizeof(GlobalData));
+    DescriptorSetLayoutID layout_id;
+    DescriptorSetID set_id;
+    GlobalShaderData shader_data;
+    BufferID buffer_id;
+};
 
-    update_global_set(&renderer, global_data_buffer, set_id);
+struct App {
+    App() 
+    : app_start(std::chrono::steady_clock::now())
+    , keyboard_state(KeyboardState())
+    , camera(OrthographicCamera(glm::vec2(0.0), 2.0, 2.0))
+    , window(Window())
+    , renderer(window)
+    , global_set_data(GlobalDescriptorSetData(renderer, camera))
+    , root_view(View())
+    {
+        global_set_data.write_shader_data_to_buffer(renderer);
+        update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
+    }
 
-    // View-tree
-    View root_view = View();
-    root_view.push_child(QuadDraw(
-        &renderer,
-        Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test1,
-        global_data_buffer
-    ));
-    root_view.push_child(MovingQuadDraw(
-        &renderer,
-        Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test2,
-        global_data_buffer
-    )
-    );
-    root_view.push_child(ColorQuadDraw(
-        &renderer,
-        Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test3,
-        global_data_buffer
-    ));
-    root_view.push_child(DataQuadDraw(
-        &renderer,
-        Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-        TextureSource::Test4,
-        global_data_buffer
-    ));
-    root_view.push_child(ControllableQuadDraw(
-        &renderer,
-        Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
-        0.0,
-        {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
-        global_data_buffer
-    ));
+    void setup_view() {
+        root_view.children.clear();
 
-    KeyboardState keyboard_state;
-    std::chrono::steady_clock::time_point last_frame = std::chrono::steady_clock::now();
-    SDL_Event e;
-    SDL_zero(e);
-    bool quit = false;
-    while (!quit) {
-        const std::chrono::steady_clock::time_point frame_start = std::chrono::steady_clock::now();
-        const std::chrono::duration<double>         elapsed_seconds = frame_start - app_start;
-        const std::chrono::duration<double>         frame_dt = frame_start - last_frame;
-        last_frame = frame_start;
+        root_view.push_child(QuadDraw(
+            &renderer,
+            Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
+            TextureSource::Test1,
+            global_set_data.buffer_id
+        ));
+        root_view.push_child(MovingQuadDraw(
+            &renderer,
+            Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
+            TextureSource::Test2,
+            global_set_data.buffer_id
+        )
+        );
+        root_view.push_child(ColorQuadDraw(
+            &renderer,
+            Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
+            TextureSource::Test3,
+            global_set_data.buffer_id
+        ));
+        root_view.push_child(DataQuadDraw(
+            &renderer,
+            Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
+            TextureSource::Test4,
+            global_set_data.buffer_id
+        ));
+        root_view.push_child(ControllableQuadDraw(
+            &renderer,
+            Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
+            0.0,
+            {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
+            global_set_data.buffer_id
+        ));
+    }
 
-        while(SDL_PollEvent(&e)) {
-            renderer.process_sdl_event(&e);
-            if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP) {
-                keyboard_state.on_keyboard_event(e.key);
-            } else if (e.type == SDL_EVENT_QUIT ) {
-                quit = true;
-            } else if (e.type = SDL_EVENT_WINDOW_RESIZED) {
-                renderer.resize_swapchain(window);
-            }
-        }
-        if (keyboard_state.is_down(SDLK_ESCAPE)) {
-            quit = true;
-        }
-
+    void render( double total_elapse_seconds, double frame_dt) {
         camera.update(CameraUpdateData{
-            .frame_dt = frame_dt.count(),
+            .frame_dt = frame_dt,
             .keyboard_state = keyboard_state,
         });
-        global_data.proj_matrix = camera.get_proj_matrix();
-        Buffer& buffer = renderer.get_buffer(global_data_buffer);
-        buffer.write_to(&global_data, sizeof(GlobalData));
+
+        global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
+        global_set_data.write_shader_data_to_buffer(renderer);
 
         root_view.update(ViewUpdateData{
             .renderer = &renderer,
-            .total_elapsed_seconds = elapsed_seconds.count(),
-            .frame_dt = frame_dt.count(),
+            .total_elapsed_seconds = total_elapse_seconds,
+            .frame_dt = frame_dt,
             .keyboard_state = keyboard_state,
         });
         ViewDrawData data = root_view.get_draw_data(&renderer);
         data.upload_vertex_index_data(&renderer);
         
         renderer.setup_imgui_draw(ImguiData{
-            .frame_dt = frame_dt.count()
+            .frame_dt = frame_dt
         });
 
         renderer.render(window, data.draws);
     }
+
+    void render_loop() {
+        last_frame = std::chrono::steady_clock::now();
+
+        SDL_Event e;
+        SDL_zero(e);
+
+        bool quit = false;
+        while (!quit) {
+            const std::chrono::steady_clock::time_point frame_start = std::chrono::steady_clock::now();
+            const std::chrono::duration<double>         elapsed_seconds = frame_start - app_start;
+            const std::chrono::duration<double>         frame_dt = frame_start - last_frame;
+            last_frame = frame_start;
+    
+            while(SDL_PollEvent(&e)) {
+                renderer.process_sdl_event(&e);
+                if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP) {
+                    keyboard_state.on_keyboard_event(e.key);
+                } else if (e.type == SDL_EVENT_QUIT ) {
+                    quit = true;
+                } else if (e.type = SDL_EVENT_WINDOW_RESIZED) {
+                    renderer.resize_swapchain(window);
+                }
+            }
+            if (keyboard_state.is_down(SDLK_ESCAPE)) {
+                quit = true;
+            }
+    
+            render(elapsed_seconds.count(), frame_dt.count());
+        }
+    }
+
+    std::chrono::steady_clock::time_point app_start;
+    KeyboardState keyboard_state;
+    OrthographicCamera camera;
+    Window window;
+    Renderer renderer;
+    GlobalDescriptorSetData global_set_data;
+    View root_view;
+    std::chrono::steady_clock::time_point last_frame;
+};
+
+int main(int argc, char *argv[]) {
+    App app = App();
+    
+    app.setup_view();
+    app.render_loop();
 
     return 0;
 }

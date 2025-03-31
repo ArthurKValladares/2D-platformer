@@ -12,7 +12,7 @@
 
 #define GLOBAL_DESCRIPTOR_SET_IDX 0
 
-struct GlobalData {
+struct GlobalShaderData {
     glm::mat4 proj_matrix;
 };
 
@@ -33,7 +33,7 @@ inline void update_global_set(Renderer* renderer, BufferID global_buffer_id, Des
     VkDescriptorBufferInfo buffer_info{};
     buffer_info.buffer = global_buffer.raw;
     buffer_info.offset = 0;
-    buffer_info.range = sizeof(GlobalData);
+    buffer_info.range = sizeof(GlobalShaderData);
 
     std::array<VkWriteDescriptorSet, 1> descriptor_writes{};
     descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

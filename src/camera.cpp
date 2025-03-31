@@ -3,7 +3,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
 
-glm::mat4 OrthographicCamera::get_proj_matrix()
+glm::mat4 OrthographicCamera::get_proj_matrix() const
 {
     const float half_x = size_x / 2.0;
     const float half_y = size_y / 2.0;
