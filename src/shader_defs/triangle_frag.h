@@ -18,9 +18,12 @@ struct TriangleFrag final : FragmentShader {
         return ShaderSource::TriangleFrag;
     }
     
+    int32_t push_descriptor_set_idx() const {
+        return 1;
+    }
+
     void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const {
         sets.push_back(PushDescriptorSetData{
-            .set = 1,
             .binding = 0,
             .ty = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .texture_id = texture_id(texture_binding),

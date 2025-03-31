@@ -51,6 +51,7 @@ inline void update_global_set(Renderer* renderer, BufferID global_buffer_id, Des
 struct VertexShader{
     virtual ShaderSource source() const = 0;
 
+    virtual int32_t push_descriptor_set_idx() const = 0;
     virtual void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const = 0;
     virtual void append_push_constant_data(std::vector<PushConstantData>& pcs) const = 0;
 
@@ -60,6 +61,7 @@ struct VertexShader{
 struct FragmentShader{
     virtual ShaderSource source() const = 0;
 
+    virtual int32_t push_descriptor_set_idx() const = 0;
     virtual void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const = 0;
     virtual void append_push_constant_data(std::vector<PushConstantData>& pcs) const = 0;
 };

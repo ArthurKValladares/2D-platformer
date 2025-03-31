@@ -28,6 +28,7 @@ struct ShaderPair {
         , fragment(new F(std::move(fragment)))
     {}
 
+    int32_t push_descriptor_set_idx() const;
     void append_push_descriptor_sets(std::vector<PushDescriptorSetData>& sets) const;
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const;
 

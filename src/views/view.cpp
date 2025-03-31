@@ -31,18 +31,18 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
 
         shaders.append_push_constant_data(dc.pcs);
 
-        // TODO: Also hard-coded, can be better
-        dc.push_set_idx = 1;
-        shaders.append_push_descriptor_sets(dc.push_set_data);
-        for (const PushDescriptorSetData& data : dc.push_set_data) {
-            if (data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && !renderer->contains_texture(data.texture_id)) {
-                const ImageData image_data = ImageData(texture_path(static_cast<TextureSource>(data.texture_id.id)));
-                renderer->upload_texture(data.texture_id, image_data.texture_create_info());
+        const int32_t push_set_idx = shaders.push_descriptor_set_idx();
+        if (push_set_idx >= 0) {
+            dc.push_set_idx = push_set_idx;
+            shaders.append_push_descriptor_sets(dc.push_set_data);
+            for (const PushDescriptorSetData& data : dc.push_set_data) {
+                if (data.ty == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && !renderer->contains_texture(data.texture_id)) {
+                    const ImageData image_data = ImageData(texture_path(static_cast<TextureSource>(data.texture_id.id)));
+                    renderer->upload_texture(data.texture_id, image_data.texture_create_info());
+                }
             }
         }
 
-        // TODO: I'm hard-coding the layout and set id for the global set to be 0 for now, not necessarily true.
-        // I need to guarantee that they are the first I add to the renderer, which i'm not really doing atm
         dc.set_ids.push_back(DescriptorSetID(GLOBAL_DESCRIPTOR_SET_IDX));
         std::vector<DescriptorSetLayoutID> layout_ids = {
             DescriptorSetLayoutID(GLOBAL_DESCRIPTOR_SET_IDX)

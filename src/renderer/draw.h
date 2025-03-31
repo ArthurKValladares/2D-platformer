@@ -8,7 +8,6 @@
 #include "buffer.h"
 
 struct PushDescriptorSetData {
-    uint32_t set;
     uint32_t binding;
     VkDescriptorType ty;
     // TODO: Might need some more data on exactly how to use the texture/buffer in the future
@@ -23,7 +22,6 @@ struct PushConstantData {
     const void* p_data;
 };
 
-// TODO: very incomplete, just the bare minimum for testing
 struct DrawCommand {
     ShaderID vertex_id;
     ShaderID fragment_id;
