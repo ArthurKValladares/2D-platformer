@@ -93,7 +93,7 @@ struct App {
             &renderer,
             Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
             0.0,
-            {TextureSource::Akv, TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
+            {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
             global_set_data.buffer_id
         ));
     }

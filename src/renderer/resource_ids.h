@@ -3,72 +3,37 @@
 #include <cstdint>
 #include <functional>
 
+#define CREATE_ID(NAME)\
+struct NAME ## ID {\
+    NAME ## ID() {}\
+    explicit NAME ## ID(uint32_t id)\
+        : id(id)\
+    {}\
+\
+    bool operator==(const NAME ## ID &other) const {\
+        return id == other.id;\
+    }\
+\
+    uint32_t id;\
+};
+
+#define CREATE_HASH_FN(NAME)\
+template<>\
+struct hash<NAME ## ID>\
+{\
+    size_t operator()(const NAME ## ID& o) const\
+    {\
+        return make_hash(o.id);\
+    }\
+};
+
 // TODO: A lot of these IDs are still inneficient, can be better later
 // TODO: Also way too much duplicated code, make macros for it or something
-struct TextureID {
-    TextureID() {}
-    explicit TextureID(uint32_t id)
-        : id(id)
-    {}
-
-    bool operator==(const TextureID &other) const {
-        return id == other.id;
-    }
-
-    uint32_t id;
-};
-
-struct BufferID {
-    BufferID() {}
-    explicit BufferID(uint32_t id)
-        : id(id)
-    {}
-
-    bool operator==(const BufferID &other) const {
-        return id == other.id;
-    }
-
-    uint32_t id;
-};
-
-struct DescriptorSetLayoutID {
-    DescriptorSetLayoutID() {}
-    explicit DescriptorSetLayoutID(uint32_t id)
-        : id(id)
-    {}
-
-    bool operator==(const DescriptorSetLayoutID &other) const {
-        return id == other.id;
-    }
-
-    uint32_t id;
-};
-
-struct DescriptorSetID {
-    DescriptorSetID() {}
-    explicit DescriptorSetID(uint32_t id)
-        : id(id)
-    {}
-
-    bool operator==(const DescriptorSetID &other) const {
-        return id == other.id;
-    }
-
-    uint32_t id;
-};
-
-struct ShaderID {
-    ShaderID() {}
-    explicit ShaderID(uint32_t id)
-        : id(id)
-    {}
-
-    bool operator==(const ShaderID &other) const {
-        return id == other.id;
-    }
-
-    uint32_t id;
-};
+CREATE_ID(Texture)
+CREATE_ID(Buffer)
+CREATE_ID(DescriptorSetLayout)
+CREATE_ID(DescriptorSet)
+CREATE_ID(Shader)
 
 struct PipelineID {
     PipelineID() {}
@@ -99,50 +64,11 @@ inline void hash_combine(std::size_t& h, const std::size_t& v)
 
 namespace std
 {
-    template<>
-    struct hash<TextureID>
-    {
-        size_t operator()(const TextureID& t) const
-        {
-            return make_hash(t.id);
-        }
-    };
-
-    template<>
-    struct hash<BufferID>
-    {
-        size_t operator()(const BufferID& b) const
-        {
-            return make_hash(b.id);
-        }
-    };
-
-    template<>
-    struct hash<DescriptorSetLayoutID>
-    {
-        size_t operator()(const DescriptorSetLayoutID& d) const
-        {
-            return make_hash(d.id);
-        }
-    };
-
-    template<>
-    struct hash<DescriptorSetID>
-    {
-        size_t operator()(const DescriptorSetID& d) const
-        {
-            return make_hash(d.id);
-        }
-    };
-
-    template<>
-    struct hash<ShaderID>
-    {
-        size_t operator()(const ShaderID& t) const
-        {
-            return make_hash(t.id);
-        }
-    };
+    CREATE_HASH_FN(Texture)
+    CREATE_HASH_FN(Buffer)
+    CREATE_HASH_FN(DescriptorSetLayout)
+    CREATE_HASH_FN(DescriptorSet)
+    CREATE_HASH_FN(Shader)
 
     template<>
     struct hash<PipelineID>
