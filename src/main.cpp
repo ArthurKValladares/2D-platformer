@@ -61,9 +61,7 @@ struct App {
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
     }
 
-    void setup_view() {
-        root_view.children.clear();
-
+    void setup_view0() {
         root_view.push_child(QuadDraw(
             &renderer,
             Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
@@ -96,6 +94,42 @@ struct App {
             {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
             global_set_data.buffer_id
         ));
+    }
+
+    void setup_view1() {
+        root_view.push_child(ColorQuadDraw(
+            &renderer,
+            Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}),
+            TextureSource::Akv,
+            global_set_data.buffer_id
+        ));
+        root_view.push_child(ControllableQuadDraw(
+            &renderer,
+            Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}),
+            0.0,
+            {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
+            global_set_data.buffer_id
+        ));
+    }
+
+    void setup_view() {
+        root_view.children.clear();
+
+        switch (view_idx) {
+            case 0: {
+                setup_view0();
+                break;
+            }
+            case 1: {
+                setup_view1();
+                break;
+            }
+            default: {
+                assert(false);
+                break;
+            }
+        }
+        
     }
 
     void render( double total_elapse_seconds, double frame_dt) {
@@ -149,6 +183,10 @@ struct App {
             if (keyboard_state.is_down(SDLK_ESCAPE)) {
                 quit = true;
             }
+            if (keyboard_state.was_just_released(SDLK_P)) {
+                view_idx = (view_idx + 1) % num_view;
+                setup_view();
+            }
     
             render(elapsed_seconds.count(), frame_dt.count());
         }
@@ -162,6 +200,9 @@ struct App {
     GlobalDescriptorSetData global_set_data;
     View root_view;
     std::chrono::steady_clock::time_point last_frame;
+
+    uint32_t num_view = 2;
+    uint32_t view_idx = 0;
 };
 
 int main(int argc, char *argv[]) {
