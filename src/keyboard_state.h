@@ -27,7 +27,7 @@ struct KeyboardState {
         return just_released.contains(key);
     }
 
-    void on_keyboard_event(const SDL_KeyboardEvent& event) {
+    void process_sdl_event(const SDL_KeyboardEvent& event) {
         just_released.clear();
 
         const SDL_Keycode key = event.key;

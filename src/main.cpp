@@ -172,9 +172,9 @@ struct App {
     
             while(SDL_PollEvent(&e)) {
                 renderer.process_sdl_event(&e);
-                if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP) {
-                    keyboard_state.on_keyboard_event(e.key);
-                } else if (e.type == SDL_EVENT_QUIT ) {
+                keyboard_state.process_sdl_event(e.key);
+
+                if (e.type == SDL_EVENT_QUIT ) {
                     quit = true;
                 } else if (e.type = SDL_EVENT_WINDOW_RESIZED) {
                     renderer.resize_swapchain(window);
