@@ -83,6 +83,10 @@ struct Renderer {
 
     void process_sdl_event(const SDL_Event* e);
     void setup_imgui_draw(const ImguiData& data);
+
+    void set_imgui_fn(std::function<void(const ImguiData& data)> fn) {
+        imgui_fn = fn;
+    }
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
@@ -136,6 +140,7 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     VkDescriptorPool imgui_descriptor_pool = VK_NULL_HANDLE;
+    std::function<void(const ImguiData& data)> imgui_fn;
 
     std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;

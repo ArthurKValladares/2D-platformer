@@ -749,10 +749,9 @@ void Renderer::setup_imgui_draw(const ImguiData& data) {
     ImGui_ImplSDL3_NewFrame();
 
     ImGui::NewFrame();
-    ImGui::Begin("Imgui Test");
-
-    ImGui::Text("Frame Index %u", frame_count);
-    ImGui::Text("Frame dt %f", data.frame_dt);
+    if (imgui_fn) {
+        imgui_fn(data);
+    }
 
     ImGui::End();
     ImGui::Render();

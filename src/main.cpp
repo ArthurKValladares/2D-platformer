@@ -1,4 +1,5 @@
 #include <SDL3/SDL_main.h>
+#include "imgui.h"
 
 #include <iostream>
 #include <fstream>
@@ -59,6 +60,12 @@ struct App {
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
+
+        renderer.set_imgui_fn([](const ImguiData& data) {
+            ImGui::Begin("Imgui Test");
+
+            ImGui::Text("Frame dt %f", data.frame_dt);        
+        });
     }
 
     void setup_view0() {
