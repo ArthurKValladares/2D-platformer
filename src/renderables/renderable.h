@@ -9,11 +9,6 @@
 #include "../rect.h"
 
 #include "shared.h"
-#include "quad_draw.h"
-#include "moving_quad_draw.h"
-#include "color_quad_draw.h"
-#include "data_quad_draw.h"
-#include "controllable_quad_draw.h"
 
 struct ViewDrawData {
     void upload_vertex_index_data(Renderer* renderer);
@@ -21,6 +16,15 @@ struct ViewDrawData {
     std::vector<float> vertices = {};
     std::vector<uint32_t> indices = {};
     std::vector<DrawCommand> draws = {};
+};
+
+struct RenderableInterface {
+    virtual bool is_empty() const = 0;
+    virtual void update(const ViewUpdateData& data) = 0;
+    virtual const ShaderPair& shaders() const = 0;
+    virtual ShaderPair& shaders() = 0;
+    virtual uint64_t vertex_data(std::vector<float>& vertex_buffer) = 0;
+    virtual uint64_t index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) = 0;
 };
 
 struct Renderer;
@@ -34,8 +38,8 @@ struct Renderable {
         : renderable(new T(std::move(renderable)))
     {}
 
-    void push_child(Renderable view)  {
-        children.emplace_back(std::move(view));
+    void push_child(Renderable renderable)  {
+        children.emplace_back(std::move(renderable));
     }
 
     void update(const ViewUpdateData& data);
@@ -43,7 +47,8 @@ struct Renderable {
     void append_draw_data(Renderer* renderer, ViewDrawData& data) const;
     ViewDrawData get_draw_data(Renderer* renderer);
 
-    std::unique_ptr<RenderableInterface> renderable;
+    // TODO: I don't like this shared_ptr, make it a raw pointer later?
+    std::shared_ptr<RenderableInterface> renderable;
 
     std::vector<Renderable> children;
 };

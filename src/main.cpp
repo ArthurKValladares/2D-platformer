@@ -16,7 +16,7 @@
 #include "keyboard_state.h"
 #include "camera.h"
 
-#include "renderables/renderable.h"
+#include "renderables/includes.h"
 
 // TODO: engine architecture
 // descriptor set number 0 will be used for engine-global resources
@@ -56,7 +56,7 @@ struct App {
     , window(Window())
     , renderer(window)
     , global_set_data(GlobalDescriptorSetData(renderer, camera))
-    , root_renderable(Renderable())
+    , root_renderable(SelectableRenderable())
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -68,75 +68,63 @@ struct App {
         });
     }
 
-    void setup_renderable0() {
-        root_renderable.push_child(QuadDraw(
+    Renderable setup_renderable0() {
+        Renderable renderable;
+        renderable.push_child(QuadDraw(
             &renderer,
             Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test1,
             global_set_data.buffer_id
         ));
-        root_renderable.push_child(MovingQuadDraw(
+        renderable.push_child(MovingQuadDraw(
             &renderer,
             Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test2,
             global_set_data.buffer_id
-        )
-        );
-        root_renderable.push_child(ColorQuadDraw(
+        ));
+        renderable.push_child(ColorQuadDraw(
             &renderer,
             Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test3,
             global_set_data.buffer_id
         ));
-        root_renderable.push_child(DataQuadDraw(
+        renderable.push_child(DataQuadDraw(
             &renderer,
             Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test4,
             global_set_data.buffer_id
         ));
-        root_renderable.push_child(ControllableQuadDraw(
+        renderable.push_child(ControllableQuadDraw(
             &renderer,
             Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
             0.0,
             {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
             global_set_data.buffer_id
         ));
+        return renderable;
     }
 
-    void setup_renderable1() {
-        root_renderable.push_child(ColorQuadDraw(
+    Renderable setup_renderable1() {
+        Renderable renderable;
+        renderable.push_child(ColorQuadDraw(
             &renderer,
             Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}),
             TextureSource::Akv,
             global_set_data.buffer_id
         ));
-        root_renderable.push_child(ControllableQuadDraw(
+        renderable.push_child(ControllableQuadDraw(
             &renderer,
             Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}),
             0.0,
             {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
             global_set_data.buffer_id
         ));
+        return renderable;
     }
 
     void setup_renderable_tree() {
-        root_renderable.children.clear();
-
-        switch (renderable_idx) {
-            case 0: {
-                setup_renderable0();
-                break;
-            }
-            case 1: {
-                setup_renderable1();
-                break;
-            }
-            default: {
-                assert(false);
-                break;
-            }
-        }
-        
+        root_renderable.push_renderable(setup_renderable0());
+        root_renderable.push_renderable(setup_renderable1());
     }
 
     void render( double total_elapse_seconds, double frame_dt) {
@@ -148,13 +136,14 @@ struct App {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        root_renderable.update(ViewUpdateData{
+        Renderable& curr_renderable = root_renderable.get_curr_renderable();
+        curr_renderable.update(ViewUpdateData{
             .renderer = &renderer,
             .total_elapsed_seconds = total_elapse_seconds,
             .frame_dt = frame_dt,
             .keyboard_state = keyboard_state,
         });
-        ViewDrawData data = root_renderable.get_draw_data(&renderer);
+        ViewDrawData data = curr_renderable.get_draw_data(&renderer);
         data.upload_vertex_index_data(&renderer);
         
         renderer.setup_imgui_draw(ImguiData{
@@ -191,8 +180,7 @@ struct App {
                 quit = true;
             }
             if (keyboard_state.was_just_released(SDLK_P)) {
-                renderable_idx = (renderable_idx + 1) % num_renderable;
-                setup_renderable_tree();
+                root_renderable.set_idx((root_renderable.get_idx() + 1) % root_renderable.size());
             }
     
             render(elapsed_seconds.count(), frame_dt.count());
@@ -205,7 +193,7 @@ struct App {
     Window window;
     Renderer renderer;
     GlobalDescriptorSetData global_set_data;
-    Renderable root_renderable;
+    SelectableRenderable root_renderable;
     std::chrono::steady_clock::time_point last_frame;
 
     uint32_t num_renderable = 2;

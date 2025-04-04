@@ -3,7 +3,6 @@
 #include "../rect.h"
 #include "../shader_defs/shader_pairs.h"
 
-#include "shared.h"
 #include "renderable.h"
 
 struct QuadDraw final : RenderableInterface {
