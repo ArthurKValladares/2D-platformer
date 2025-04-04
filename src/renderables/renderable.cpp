@@ -1,10 +1,10 @@
-#include "view.h"
+#include "renderable.h"
 #include "../image.h"
 
 #include "../renderer/renderer.h"
 
 // TODO: This function is very messy, clean it up and make the logic clear
-void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
+void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
     if (renderable && !renderable->is_empty()) {
         const ShaderPair&  shaders   = renderable->shaders();
 
@@ -61,24 +61,24 @@ void View::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
         data.draws.push_back(dc);
     }
 
-    for (const View& child : children) {
+    for (const Renderable& child : children) {
         child.append_draw_data(renderer, data);
     }
 }
 
-ViewDrawData View::get_draw_data(Renderer* renderer) {
+ViewDrawData Renderable::get_draw_data(Renderer* renderer) {
     ViewDrawData data = {};
     append_draw_data(renderer, data);
 
     return data;
 }
 
-void View::update(const ViewUpdateData& data) {
+void Renderable::update(const ViewUpdateData& data) {
     if (renderable) {
         renderable->update(data);
     }
 
-    for (View& child : children) {
+    for (Renderable& child : children) {
         child.update(data);
     }
 }

@@ -8,13 +8,10 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-struct MovingQuadDraw final : RenderableInterface{
-    MovingQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
+struct ColorQuadDraw final : RenderableInterface {
+    ColorQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
         : rect(rect)
-        , shader_pair(
-            TriangleTransformVert(renderer, glm::mat4(1.0), global_data_buffer),
-            TriangleFrag(texture)
-        )
+        , shader_pair(TriangleVert(renderer, global_data_buffer), TriangleColorFrag(texture))
     {}
 
     bool is_empty() const {
@@ -22,11 +19,12 @@ struct MovingQuadDraw final : RenderableInterface{
     }
 
     void update(const ViewUpdateData& data) {
-        TriangleTransformVert* triangle_transform_vert = dynamic_cast<TriangleTransformVert*>(shader_pair.vertex.get());
+        TriangleColorFrag* triangle_color_frag = dynamic_cast<TriangleColorFrag*>(shader_pair.fragment.get());
 
-        const double offset = sin(data.total_elapsed_seconds) * 0.1;
-        triangle_transform_vert->render_matrix = 
-            glm::translate(glm::mat4(1.0f), glm::vec3(offset, 0.0, 0.0));
+        const double r = abs(sin(data.total_elapsed_seconds));
+        const double g = abs(cos(data.total_elapsed_seconds * 0.5));
+        const double b = abs(tan(data.total_elapsed_seconds * 0.25));
+        triangle_color_frag->color = glm::vec3(r, g, b);
     }
     
     const ShaderPair& shaders() const {
@@ -35,7 +33,7 @@ struct MovingQuadDraw final : RenderableInterface{
     ShaderPair& shaders() {
         return shader_pair;
     }
-    
+
     uint64_t vertex_data(std::vector<float>& vertex_buffer) {
         return rect.vertex_data(vertex_buffer);    
     }

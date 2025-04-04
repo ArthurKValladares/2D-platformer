@@ -16,7 +16,7 @@ glm::mat4 OrthographicCamera::get_proj_matrix() const
 }
 
 void OrthographicCamera::update(const CameraUpdateData& data) {
-    // TODO: Copied from controlable view, abstract
+    // TODO: Copied from controlable renderable, abstract
     constexpr float displacement_per_second = 1.5;
 
     glm::vec2 movement_vec{0.0, 0.0};

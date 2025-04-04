@@ -6,7 +6,6 @@
 #include <glm/mat4x4.hpp>
 
 #include "../renderer/draw.h"
-
 #include "../rect.h"
 
 #include "shared.h"
@@ -25,17 +24,17 @@ struct ViewDrawData {
 };
 
 struct Renderer;
-struct View {
-    View()
+struct Renderable {
+    Renderable()
     {}
 
     template<class T>
     requires std::is_base_of_v<RenderableInterface, T>
-    View(T renderable)
+    Renderable(T renderable)
         : renderable(new T(std::move(renderable)))
     {}
 
-    void push_child(View view)  {
+    void push_child(Renderable view)  {
         children.emplace_back(std::move(view));
     }
 
@@ -46,5 +45,5 @@ struct View {
 
     std::unique_ptr<RenderableInterface> renderable;
 
-    std::vector<View> children;
+    std::vector<Renderable> children;
 };

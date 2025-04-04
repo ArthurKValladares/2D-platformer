@@ -28,8 +28,8 @@ add_executable(${PROJECT_NAME}
   src/renderer/descriptor_set.cpp
   # shader defs
   src/shader_defs/shader_pairs.cpp
-  # views
-  src/views/view.cpp
+  # renderables
+  src/renderables/renderable.cpp
   # main
   src/rect.cpp
   src/window.cpp
