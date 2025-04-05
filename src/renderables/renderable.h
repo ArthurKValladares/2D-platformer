@@ -48,6 +48,9 @@ struct Renderable {
     ViewDrawData get_draw_data(Renderer* renderer);
 
     // TODO: I don't like this shared_ptr, make it a raw pointer later?
+    // Or it could be even better if i turned this into an index and made it more of an
+    // ECS-like thing, would also help with some other stuff I think.
+    // This whole Renderable idea is not great atm, re-think it
     std::shared_ptr<RenderableInterface> renderable;
 
     std::vector<Renderable> children;

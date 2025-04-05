@@ -27,31 +27,28 @@ struct Renderer {
     // TODO: the public API is still a bit messy wiht all the create/upload/request functions.
     // standardize all that at some point
 
-    // TODO: Efficient way to do this in a batch
-    bool contains_texture(TextureID id) const;
+    // 
+    // Upload/create functions
+    //
     void upload_texture(TextureID id, const TextureCreateInfo& texture_cis);
-
     void upload_shader(ShaderID id, const char* path);
-
     DescriptorSetLayoutID upload_descriptor_set_layout(std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags = {});
     DescriptorSetID upload_descriptor_set(DescriptorSetLayoutID layout_id);
-
     void upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetLayoutID> layout_ids);
-
     void upload_index_data(void* data, uint64_t size_bytes);
     void upload_vertex_data(void* data, uint64_t size_bytes);
 
+    BufferID request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes);
+
+    //
+    // Getters
+    //
     uint32_t get_frame_count() const {
         return frame_count;
     }
     uint32_t get_frame_index() const {
         return get_frame_count() % MAX_FRAMES_IN_FLIGHT;
     }
-
-    void resize_swapchain(Window& window);
-
-    void render(Window& window, std::vector<DrawCommand> draws);
-
     VkQueue get_graphics_queue() {
         return graphics_queue;
     }
@@ -64,7 +61,6 @@ struct Renderer {
     VmaAllocator get_allocator() const {
         return allocator;
     }
-
     const ShaderData& get_shader_data(ShaderID shader_id) const {
         return shaders.at(shader_id);
     }
@@ -74,19 +70,38 @@ struct Renderer {
     VkDescriptorSet get_descriptor_set_at(DescriptorSetID set_id) const {
         return descriptor_sets.at(set_id);
     }
-
-    VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
-    void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
-    
-    BufferID request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes);
     Buffer& get_buffer(BufferID id);
 
-    void process_sdl_event(const SDL_Event* e);
-    void setup_imgui_draw(const ImguiData& data);
+    //
+    // Renderer info
+    //
+    bool contains_texture(TextureID id) const;
 
+    //
+    // Event processing
+    //
+    void process_sdl_event(const SDL_Event* e);
+
+    //
+    //  Rendering
+    //
+    void resize_swapchain(Window& window);
+    void render(Window& window, std::vector<DrawCommand> draws);
+
+    //
+    // Command Submission
+    //
+    VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
+    void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
+
+    //
+    // imgui
+    //
+    void setup_imgui_draw(const ImguiData& data);
     void set_imgui_fn(std::function<void(const ImguiData& data)> fn) {
         imgui_fn = fn;
     }
+
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
     VkImageCreateInfo get_render_image_ci(uint32_t width, uint32_t height);
