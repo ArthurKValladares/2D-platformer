@@ -64,7 +64,8 @@ struct App {
         renderer.set_imgui_fn([](const ImguiData& data) {
             ImGui::Begin("Imgui Test");
 
-            ImGui::Text("Frame dt %f", data.frame_dt);        
+            const uint32_t fps = 1.0 / data.frame_dt;
+            ImGui::Text("Frame dt %.3f ms (%u FPS)", data.frame_dt * 1000, fps);        
         });
     }
 
