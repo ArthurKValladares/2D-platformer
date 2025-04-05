@@ -14,7 +14,8 @@
 #include "triangle_data_frag.h"
 
 //
-// TODO: A bunch of stuff in thus sub-dir can maybe be auto-generated.
+// TODO: A bunch of stuff in thus sub-dir can maybe be auto-generated,
+// in a build-step with the reflection tool
 //
 
 struct ShaderPair {

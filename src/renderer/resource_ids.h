@@ -27,8 +27,6 @@ struct hash<NAME ## ID>\
     }\
 };
 
-// TODO: A lot of these IDs are still inneficient, can be better later
-// TODO: Also way too much duplicated code, make macros for it or something
 CREATE_ID(Texture)
 CREATE_ID(Buffer)
 CREATE_ID(DescriptorSetLayout)
