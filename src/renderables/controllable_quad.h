@@ -9,11 +9,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ControllableQuad final : RenderableInterface {
-    ControllableQuad(Renderer* renderer, Rect2D rect, double start_time, std::vector<TextureSource> textures, BufferID global_data_buffer)
+    ControllableQuad(Renderer* renderer, Rect2D rect, glm::vec2 offset, double start_time, std::vector<TextureSource> textures, BufferID global_data_buffer)
         : rect(rect)
         , pos(rect.center())
         , shader_pair(
-            TriangleTransformVert(renderer, glm::mat4(1.0), global_data_buffer),
+            TriangleTransformVert(renderer, glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, offset.y, 0.0)), global_data_buffer),
             TriangleFrag(textures[0])
         )
         , sprite(3.0, start_time, std::move(textures))
@@ -24,34 +24,6 @@ struct ControllableQuad final : RenderableInterface {
     }
 
     void update(const ViewUpdateData& data) {
-        constexpr float displacement_per_second = 0.5;
-
-        glm::vec2 movement_vec{0.0, 0.0};
-        if (data.keyboard_state.is_down(SDLK_A)) {
-            movement_vec.x -= 1.0;
-        }
-        if (data.keyboard_state.is_down(SDLK_W)){
-            movement_vec.y += 1.0;
-        }
-        if (data.keyboard_state.is_down(SDLK_S)){
-            movement_vec.y -= 1.0;
-        }
-        if (data.keyboard_state.is_down(SDLK_D)){
-            movement_vec.x += 1.0;
-        }
-        if (glm::length(movement_vec) > 0.0) {
-            movement_vec = glm::normalize(movement_vec);
-
-            const float displacement = displacement_per_second * data.frame_dt;
-            const glm::vec2 displacement_vec = movement_vec * displacement;
-            pos.x += displacement_vec.x;
-            pos.y += displacement_vec.y;
-
-            TriangleTransformVert* triangle_transform_vert = dynamic_cast<TriangleTransformVert*>(shader_pair.vertex.get());
-            triangle_transform_vert->render_matrix = 
-                glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, 0.0));
-        }
-
         TriangleFrag* triangle_frag = dynamic_cast<TriangleFrag*>(shader_pair.fragment.get());
         triangle_frag->texture_binding = sprite.texture_at(data.total_elapsed_seconds);
     }

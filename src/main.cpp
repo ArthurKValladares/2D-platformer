@@ -61,7 +61,9 @@ struct Level1 {
         , data_quad(Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}))
     {}
 
-    Renderable build(Renderer& renderer, BufferID global_data_buffer) {
+    Renderable build(Renderer& renderer, BufferID global_data_buffer, double total_elapsed_seconds) {
+        const double x_offset = sin(total_elapsed_seconds) * 0.1;
+
         Renderable renderable;
         renderable.push_child(Quad(
             &renderer,
@@ -72,6 +74,7 @@ struct Level1 {
         renderable.push_child(MovingQuad(
             &renderer,
             moving_quad,
+            glm::vec2(x_offset, 0.0),
             TextureSource::Test2,
             global_data_buffer
         ));
@@ -98,7 +101,7 @@ struct Level2 {
         : colored_quad(Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}))
     {}
 
-    Renderable build(Renderer& renderer, BufferID global_data_buffer) {
+    Renderable build(Renderer& renderer, BufferID global_data_buffer, double total_elapsed_seconds) {
         Renderable renderable;
         renderable.push_child(ColoredQuad(
             &renderer,
@@ -112,13 +115,14 @@ struct Level2 {
 
 struct App {
     App() 
-    : app_start(std::chrono::steady_clock::now())
-    , keyboard_state(KeyboardState())
-    , camera(OrthographicCamera(glm::vec2(0.0), 2.0, 2.0))
-    , window(Window())
-    , renderer(window)
-    , global_set_data(GlobalDescriptorSetData(renderer, camera))
-    , player_rect(Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}))
+        : app_start(std::chrono::steady_clock::now())
+        , keyboard_state(KeyboardState())
+        , camera(OrthographicCamera(glm::vec2(0.0), 2.0, 2.0))
+        , window(Window())
+        , renderer(window)
+        , global_set_data(GlobalDescriptorSetData(renderer, camera))
+        , player_rect(Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}))
+        , player_pos(glm::vec2(0.0, 0.0))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -131,17 +135,41 @@ struct App {
         });
     }
 
-    Renderable build_root_renderable() {
+    Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
         if (level_idx == 0) {
-            renderable = level_1.build(renderer, global_set_data.buffer_id);
+            renderable = level_1.build(renderer, global_set_data.buffer_id, total_elapsed_seconds);
         } else if (level_idx == 1) {
-            renderable = level_2.build(renderer, global_set_data.buffer_id);
+            renderable = level_2.build(renderer, global_set_data.buffer_id, total_elapsed_seconds);
+        }
+
+        // Update player movement
+        constexpr float displacement_per_second = 0.5;
+        glm::vec2 movement_vec{0.0, 0.0};
+        if (keyboard_state.is_down(SDLK_A)) {
+            movement_vec.x -= 1.0;
+        }
+        if (keyboard_state.is_down(SDLK_W)){
+            movement_vec.y += 1.0;
+        }
+        if (keyboard_state.is_down(SDLK_S)){
+            movement_vec.y -= 1.0;
+        }
+        if (keyboard_state.is_down(SDLK_D)){
+            movement_vec.x += 1.0;
+        }
+        if (glm::length(movement_vec) > 0.0) {
+            movement_vec = glm::normalize(movement_vec);
+
+            const float displacement = displacement_per_second * frame_dt;
+            const glm::vec2 displacement_vec = movement_vec * displacement;
+            player_pos += displacement_vec;
         }
 
         renderable.push_child(ControllableQuad(
             &renderer,
             player_rect,
+            player_pos,
             0.0,
             {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
             global_set_data.buffer_id
@@ -150,7 +178,7 @@ struct App {
         return renderable;
     }
 
-    void render( double total_elapse_seconds, double frame_dt) {
+    void render(double total_elapse_seconds, double frame_dt) {
         camera.update(CameraUpdateData{
             .frame_dt = frame_dt,
             .keyboard_state = keyboard_state,
@@ -159,7 +187,7 @@ struct App {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        Renderable curr_renderable = build_root_renderable();
+        Renderable curr_renderable = build_root_renderable(keyboard_state, total_elapse_seconds, frame_dt);
         curr_renderable.update(ViewUpdateData{
             .renderer = &renderer,
             .total_elapsed_seconds = total_elapse_seconds,
@@ -220,6 +248,8 @@ struct App {
     std::chrono::steady_clock::time_point last_frame;
 
     // Level stuff, bad and temp
+    // pos needs to just be a part of the rect itself
+    glm::vec2 player_pos;
     Rect2D player_rect;
     Level1 level_1;
     Level2 level_2;
