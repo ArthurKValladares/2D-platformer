@@ -15,6 +15,7 @@
 #include "image.h"
 #include "keyboard_state.h"
 #include "camera.h"
+#include "animatable.h"
 
 #include "renderables/includes.h"
 
@@ -123,6 +124,7 @@ struct App {
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
         , player_rect(Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}))
         , player_pos(glm::vec2(0.0, 0.0))
+        , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -166,12 +168,11 @@ struct App {
             player_pos += displacement_vec;
         }
 
-        renderable.push_child(ControllableQuad(
+        renderable.push_child(MovingQuad(
             &renderer,
             player_rect,
             player_pos,
-            0.0,
-            {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
+            player_sprite.texture_at(total_elapsed_seconds),
             global_set_data.buffer_id
         ));
 
@@ -251,6 +252,8 @@ struct App {
     // pos needs to just be a part of the rect itself
     glm::vec2 player_pos;
     Rect2D player_rect;
+    SpriteAnimation player_sprite;
+
     Level1 level_1;
     Level2 level_2;
 

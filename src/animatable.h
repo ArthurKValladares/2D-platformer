@@ -3,7 +3,7 @@
 #include <vector>
 #include <cmath>
 
-#include "../assets.h"
+#include "assets.h"
 
 inline double lerp(double a, double b, double f)
 {
