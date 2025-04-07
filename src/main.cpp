@@ -48,6 +48,68 @@ struct GlobalDescriptorSetData {
     BufferID buffer_id;
 };
 
+struct Level1 {
+    Rect2D regular_quad;
+    Rect2D moving_quad;
+    Rect2D colored_quad;
+    Rect2D data_quad;
+
+    Level1()
+        : regular_quad(Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}))
+        , moving_quad(Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}))
+        , colored_quad(Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}))
+        , data_quad(Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}))
+    {}
+
+    Renderable build(Renderer& renderer, BufferID global_data_buffer) {
+        Renderable renderable;
+        renderable.push_child(Quad(
+            &renderer,
+            regular_quad,
+            TextureSource::Test1,
+            global_data_buffer
+        ));
+        renderable.push_child(MovingQuad(
+            &renderer,
+            moving_quad,
+            TextureSource::Test2,
+            global_data_buffer
+        ));
+        renderable.push_child(ColoredQuad(
+            &renderer,
+            colored_quad,
+            TextureSource::Test3,
+            global_data_buffer
+        ));
+        renderable.push_child(DataQuad(
+            &renderer,
+            data_quad,
+            TextureSource::Test4,
+            global_data_buffer
+        ));
+        return renderable;
+    }
+};
+
+struct Level2 {
+    Rect2D colored_quad;
+
+    Level2()
+        : colored_quad(Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}))
+    {}
+
+    Renderable build(Renderer& renderer, BufferID global_data_buffer) {
+        Renderable renderable;
+        renderable.push_child(ColoredQuad(
+            &renderer,
+            colored_quad,
+            TextureSource::Akv,
+            global_data_buffer
+        ));
+        return renderable;
+    }
+};
+
 struct App {
     App() 
     : app_start(std::chrono::steady_clock::now())
@@ -56,7 +118,7 @@ struct App {
     , window(Window())
     , renderer(window)
     , global_set_data(GlobalDescriptorSetData(renderer, camera))
-    , root_renderable(SelectableRenderable())
+    , player_rect(Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -69,63 +131,23 @@ struct App {
         });
     }
 
-    Renderable setup_renderable0() {
+    Renderable build_root_renderable() {
         Renderable renderable;
-        renderable.push_child(Quad(
-            &renderer,
-            Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-            TextureSource::Test1,
-            global_set_data.buffer_id
-        ));
-        renderable.push_child(MovingQuad(
-            &renderer,
-            Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
-            TextureSource::Test2,
-            global_set_data.buffer_id
-        ));
-        renderable.push_child(ColoredQuad(
-            &renderer,
-            Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-            TextureSource::Test3,
-            global_set_data.buffer_id
-        ));
-        renderable.push_child(DataQuad(
-            &renderer,
-            Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
-            TextureSource::Test4,
-            global_set_data.buffer_id
-        ));
+        if (level_idx == 0) {
+            renderable = level_1.build(renderer, global_set_data.buffer_id);
+        } else if (level_idx == 1) {
+            renderable = level_2.build(renderer, global_set_data.buffer_id);
+        }
+
         renderable.push_child(ControllableQuad(
             &renderer,
-            Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
+            player_rect,
             0.0,
             {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
             global_set_data.buffer_id
         ));
-        return renderable;
-    }
 
-    Renderable setup_renderable1() {
-        Renderable renderable;
-        renderable.push_child(ColoredQuad(
-            &renderer,
-            Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}),
-            TextureSource::Akv,
-            global_set_data.buffer_id
-        ));
-        renderable.push_child(ControllableQuad(
-            &renderer,
-            Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}),
-            0.0,
-            {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4},
-            global_set_data.buffer_id
-        ));
         return renderable;
-    }
-
-    void setup_renderable_tree() {
-        root_renderable.push_renderable(setup_renderable0());
-        root_renderable.push_renderable(setup_renderable1());
     }
 
     void render( double total_elapse_seconds, double frame_dt) {
@@ -137,7 +159,7 @@ struct App {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        Renderable& curr_renderable = root_renderable.get_curr_renderable();
+        Renderable curr_renderable = build_root_renderable();
         curr_renderable.update(ViewUpdateData{
             .renderer = &renderer,
             .total_elapsed_seconds = total_elapse_seconds,
@@ -182,7 +204,7 @@ struct App {
                 quit = true;
             }
             if (keyboard_state.was_just_released(SDLK_P)) {
-                root_renderable.set_idx((root_renderable.get_idx() + 1) % root_renderable.size());
+                level_idx = (level_idx + 1) % num_levels;
             }
     
             render(elapsed_seconds.count(), frame_dt.count());
@@ -195,17 +217,20 @@ struct App {
     Window window;
     Renderer renderer;
     GlobalDescriptorSetData global_set_data;
-    SelectableRenderable root_renderable;
     std::chrono::steady_clock::time_point last_frame;
 
-    uint32_t num_renderable = 2;
-    uint32_t renderable_idx = 0;
+    // Level stuff, bad and temp
+    Rect2D player_rect;
+    Level1 level_1;
+    Level2 level_2;
+
+    uint32_t num_levels = 2;
+    uint32_t level_idx = 0;
 };
 
 int main(int argc, char *argv[]) {
     App app = App();
     
-    app.setup_renderable_tree();
     app.render_loop();
 
     return 0;
