@@ -8,23 +8,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct ColoredQuad final : RenderableInterface {
-    ColoredQuad(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
+    ColoredQuad(Renderer* renderer, Rect2D rect, TextureSource texture, glm::vec3 color, BufferID global_data_buffer)
         : rect(rect)
-        , shader_pair(TriangleVert(renderer, global_data_buffer), TriangleColorFrag(texture))
+        , shader_pair(TriangleVert(renderer, global_data_buffer), TriangleColorFrag(texture, color))
     {}
 
     bool is_empty() const {
         return rect.is_zero_sized();
     }
 
-    void update(const ViewUpdateData& data) {
-        TriangleColorFrag* triangle_color_frag = dynamic_cast<TriangleColorFrag*>(shader_pair.fragment.get());
-
-        const double r = abs(sin(data.total_elapsed_seconds));
-        const double g = abs(cos(data.total_elapsed_seconds * 0.5));
-        const double b = abs(tan(data.total_elapsed_seconds * 0.25));
-        triangle_color_frag->color = glm::vec3(r, g, b);
-    }
+    void update(const ViewUpdateData& data) {}
     
     const ShaderPair& shaders() const {
         return shader_pair;

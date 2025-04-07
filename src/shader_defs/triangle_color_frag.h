@@ -16,6 +16,7 @@ struct TriangleColorFrag final : FragmentShader {
     TriangleColorFrag() {}
     TriangleColorFrag(TextureSource texture, glm::vec3 color = glm::vec3(0.0))
         :  texture_binding(texture)
+        , color(color)
     {}
 
     ShaderSource source() const {

@@ -52,7 +52,10 @@ struct GlobalDescriptorSetData {
 struct Level1 {
     Rect2D regular_quad;
     Rect2D moving_quad;
+
     Rect2D colored_quad;
+    glm::vec3 quad_color;
+
     Rect2D data_quad;
 
     Level1()
@@ -64,6 +67,10 @@ struct Level1 {
 
     Renderable build(Renderer& renderer, BufferID global_data_buffer, double total_elapsed_seconds) {
         const double x_offset = sin(total_elapsed_seconds) * 0.1;
+
+        quad_color.r = abs(sin(total_elapsed_seconds));
+        quad_color.g = abs(cos(total_elapsed_seconds * 0.5));
+        quad_color.b = abs(tan(total_elapsed_seconds * 0.25));
 
         Renderable renderable;
         renderable.push_child(Quad(
@@ -83,6 +90,7 @@ struct Level1 {
             &renderer,
             colored_quad,
             TextureSource::Test3,
+            quad_color,
             global_data_buffer
         ));
         renderable.push_child(DataQuad(
@@ -97,17 +105,23 @@ struct Level1 {
 
 struct Level2 {
     Rect2D colored_quad;
+    glm::vec3 quad_color;
 
     Level2()
         : colored_quad(Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}))
     {}
 
     Renderable build(Renderer& renderer, BufferID global_data_buffer, double total_elapsed_seconds) {
+        quad_color.r = abs(sin(total_elapsed_seconds));
+        quad_color.g = abs(cos(total_elapsed_seconds * 0.5));
+        quad_color.b = abs(tan(total_elapsed_seconds * 0.25));
+
         Renderable renderable;
         renderable.push_child(ColoredQuad(
             &renderer,
             colored_quad,
             TextureSource::Akv,
+            quad_color,
             global_data_buffer
         ));
         return renderable;
