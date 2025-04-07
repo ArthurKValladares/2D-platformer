@@ -5,8 +5,8 @@
 
 #include "renderable.h"
 
-struct QuadDraw final : RenderableInterface {
-    QuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
+struct Quad final : RenderableInterface {
+    Quad(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer)
         : rect(rect)
         , shader_pair(TriangleVert(renderer, global_data_buffer), TriangleFrag(texture))
     {}

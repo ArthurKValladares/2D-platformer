@@ -71,31 +71,31 @@ struct App {
 
     Renderable setup_renderable0() {
         Renderable renderable;
-        renderable.push_child(QuadDraw(
+        renderable.push_child(Quad(
             &renderer,
             Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test1,
             global_set_data.buffer_id
         ));
-        renderable.push_child(MovingQuadDraw(
+        renderable.push_child(MovingQuad(
             &renderer,
             Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test2,
             global_set_data.buffer_id
         ));
-        renderable.push_child(ColorQuadDraw(
+        renderable.push_child(ColoredQuad(
             &renderer,
             Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test3,
             global_set_data.buffer_id
         ));
-        renderable.push_child(DataQuadDraw(
+        renderable.push_child(DataQuad(
             &renderer,
             Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}),
             TextureSource::Test4,
             global_set_data.buffer_id
         ));
-        renderable.push_child(ControllableQuadDraw(
+        renderable.push_child(ControllableQuad(
             &renderer,
             Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.5, 0.5}),
             0.0,
@@ -107,13 +107,13 @@ struct App {
 
     Renderable setup_renderable1() {
         Renderable renderable;
-        renderable.push_child(ColorQuadDraw(
+        renderable.push_child(ColoredQuad(
             &renderer,
             Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}),
             TextureSource::Akv,
             global_set_data.buffer_id
         ));
-        renderable.push_child(ControllableQuadDraw(
+        renderable.push_child(ControllableQuad(
             &renderer,
             Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}),
             0.0,

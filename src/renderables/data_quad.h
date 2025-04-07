@@ -5,8 +5,8 @@
 
 #include "renderable.h"
 
-struct DataQuadDraw final : RenderableInterface {
-    DataQuadDraw(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer, glm::mat4 render_matrix = glm::mat4(1.0), glm::vec4 color = glm::vec4(1.0))
+struct DataQuad final : RenderableInterface {
+    DataQuad(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer, glm::mat4 render_matrix = glm::mat4(1.0), glm::vec4 color = glm::vec4(1.0))
         : rect(rect)
         , shader_pair(TriangleDataVert(renderer, global_data_buffer, render_matrix, color), TriangleDataFrag(texture))
     {}

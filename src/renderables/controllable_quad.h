@@ -8,8 +8,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-struct ControllableQuadDraw final : RenderableInterface {
-    ControllableQuadDraw(Renderer* renderer, Rect2D rect, double start_time, std::vector<TextureSource> textures, BufferID global_data_buffer)
+struct ControllableQuad final : RenderableInterface {
+    ControllableQuad(Renderer* renderer, Rect2D rect, double start_time, std::vector<TextureSource> textures, BufferID global_data_buffer)
         : rect(rect)
         , pos(rect.center())
         , shader_pair(
