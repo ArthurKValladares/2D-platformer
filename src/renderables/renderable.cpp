@@ -3,24 +3,26 @@
 
 #include "../renderer/renderer.h"
 
-// TODO: This function is very messy, clean it up and make the logic clear
 void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
     if (renderable && !renderable->is_empty()) {
         const ShaderPair&  shaders   = renderable->shaders();
 
+        // Vertex shader data
         const ShaderSource vert_ty   = shaders.vertex->source();
         const ShaderID     vert_id   = shader_id(vert_ty);
         renderer->upload_shader(vert_id, shader_path(vert_ty));
         const ShaderData&  vert_data = renderer->get_shader_data(vert_id);
 
+        // Fragment shader data
         const ShaderSource frag_ty   = shaders.fragment->source();
         const ShaderID     frag_id   = shader_id(frag_ty);
         renderer->upload_shader(frag_id, shader_path(frag_ty));
         const ShaderData&  frag_data = renderer->get_shader_data(frag_id);
 
-        const uint32_t first_index = data.indices.size();
-        const uint32_t index_count = renderable->index_data(data.vertices.size() / shaders.vertex_num_floats(), data.indices);
-        renderable->vertex_data(data.vertices);
+        // Vertex/Index buffer data
+        const uint32_t first_index   = data.indices.size();
+        const uint32_t index_count   = renderable->index_data(data.vertices.size() / shaders.vertex_num_floats(), data.indices);
+        const uint32_t _vertex_count = renderable->vertex_data(data.vertices);
 
         DrawCommand dc = DrawCommand{
             .vertex_id = vert_id,
@@ -29,8 +31,10 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const 
             .first_index = first_index
         };
 
+        // Push Constant
         shaders.append_push_constant_data(dc.pcs);
 
+        // Push Descriptor Set
         const int32_t push_set_idx = shaders.push_descriptor_set_idx();
         if (push_set_idx >= 0) {
             dc.push_set_idx = push_set_idx;
@@ -43,6 +47,7 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const 
             }
         }
 
+        // Descriptor Sets
         dc.set_ids.push_back(DescriptorSetID(GLOBAL_DESCRIPTOR_SET_IDX));
         std::vector<DescriptorSetLayoutID> layout_ids = {
             DescriptorSetLayoutID(GLOBAL_DESCRIPTOR_SET_IDX)
@@ -56,8 +61,8 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const 
             layout_ids.push_back(layout_id);
         }
 
+        // Upload draw
         renderer->upload_pipeline(vert_id, frag_id, layout_ids);
-
         data.draws.push_back(dc);
     }
 
