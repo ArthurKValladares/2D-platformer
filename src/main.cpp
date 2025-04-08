@@ -58,15 +58,15 @@ struct Level1 {
     glm::vec3 quad_color;
 
     Rect2D data_quad;
-    glm::vec2 data_pos;
+    glm::vec2 data_pos_offset;
     glm::vec3 data_color;
 
     Level1()
-        : regular_quad(Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}))
-        , moving_quad(Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}))
-        , colored_quad(Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}))
-        , data_quad(Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}))
-        , data_pos(glm::vec2(0.0f, 0.0f))
+        : regular_quad(Rect2D(glm::vec2(-0.5f, 0.5f), glm::vec2(1.0, 1.0)))
+        , moving_quad(Rect2D(glm::vec2(0.5f, 0.5f), glm::vec2(1.0, 1.0)))
+        , colored_quad(Rect2D(glm::vec2(-0.5f, -0.5f), glm::vec2(1.0, 1.0)))
+        , data_quad(Rect2D(glm::vec2(0.5f, -0.5f), glm::vec2(1.0, 1.0)))
+        , data_pos_offset(glm::vec2(0.0f, 0.0f))
     {}
 
     Renderable build(Renderer& renderer, BufferID global_data_buffer, double total_elapsed_seconds) {
@@ -80,7 +80,7 @@ struct Level1 {
         data_color.r = abs(tan(total_elapsed_seconds));
         data_color.g = abs(sin(total_elapsed_seconds * 0.5));
         data_color.b = abs(cos(total_elapsed_seconds * 0.25));
-        data_pos.y = y_offset;
+        data_pos_offset.y = y_offset;
 
         Renderable renderable;
         renderable.push_child(Quad(
@@ -108,7 +108,7 @@ struct Level1 {
             data_quad,
             TextureSource::Test4,
             global_data_buffer,
-            data_pos,
+            data_pos_offset,
             data_color
         ));
         return renderable;
@@ -120,7 +120,7 @@ struct Level2 {
     glm::vec3 quad_color;
 
     Level2()
-        : colored_quad(Rect2D(Point2Df32{ 0.0f, 0.0f }, Size2Df32{2.0, 2.0}))
+        : colored_quad(Rect2D(glm::vec2(0.0f, 0.0f), glm::vec2(2.0, 2.0)))
     {}
 
     Renderable build(Renderer& renderer, BufferID global_data_buffer, double total_elapsed_seconds) {
@@ -148,8 +148,7 @@ struct App {
         , window(Window())
         , renderer(window)
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
-        , player_rect(Rect2D(Point2Df32{ 0.0f,  0.0f }, Size2Df32{0.25, 0.25}))
-        , player_pos(glm::vec2(0.0, 0.0))
+        , player_rect(Rect2D(glm::vec2(0.0f, 0.0f), glm::vec2(0.25, 0.25)))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
     {
         global_set_data.write_shader_data_to_buffer(renderer);
@@ -191,13 +190,13 @@ struct App {
 
             const float displacement = displacement_per_second * frame_dt;
             const glm::vec2 displacement_vec = movement_vec * displacement;
-            player_pos += displacement_vec;
+            player_rect.pos += displacement_vec;
         }
 
         renderable.push_child(MovingQuad(
             &renderer,
             player_rect,
-            player_pos,
+            glm::vec2(0.0, 0.0),
             player_sprite.texture_at(total_elapsed_seconds),
             global_set_data.buffer_id
         ));
@@ -282,8 +281,6 @@ struct App {
     std::chrono::steady_clock::time_point last_frame;
 
     // Level stuff, bad and temp
-    // pos needs to just be a part of the rect itself
-    glm::vec2 player_pos;
     Rect2D player_rect;
     SpriteAnimation player_sprite;
 
