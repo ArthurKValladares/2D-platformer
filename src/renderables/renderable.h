@@ -7,8 +7,8 @@
 
 #include "../renderer/draw.h"
 #include "../rect.h"
-
-#include "shared.h"
+#include "../renderer/renderer.h"
+#include "../shader_defs/shader_pairs.h"
 
 struct ViewDrawData {
     void upload_vertex_index_data(Renderer* renderer);
@@ -20,7 +20,6 @@ struct ViewDrawData {
 
 struct RenderableInterface {
     virtual bool is_empty() const = 0;
-    virtual void update(const ViewUpdateData& data) = 0;
     virtual const ShaderPair& shaders() const = 0;
     virtual ShaderPair& shaders() = 0;
     virtual uint64_t vertex_data(std::vector<float>& vertex_buffer) = 0;
@@ -41,8 +40,6 @@ struct Renderable {
     void push_child(Renderable renderable)  {
         children.emplace_back(std::move(renderable));
     }
-
-    void update(const ViewUpdateData& data);
 
     void append_draw_data(Renderer* renderer, ViewDrawData& data) const;
     ViewDrawData get_draw_data(Renderer* renderer);

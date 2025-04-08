@@ -19,8 +19,6 @@ struct MovingQuad final : RenderableInterface {
     bool is_empty() const {
         return rect.is_zero_sized();
     }
-
-    void update(const ViewUpdateData& data) {}
     
     const ShaderPair& shaders() const {
         return shader_pair;

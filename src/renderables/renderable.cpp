@@ -78,16 +78,6 @@ ViewDrawData Renderable::get_draw_data(Renderer* renderer) {
     return data;
 }
 
-void Renderable::update(const ViewUpdateData& data) {
-    if (renderable) {
-        renderable->update(data);
-    }
-
-    for (Renderable& child : children) {
-        child.update(data);
-    }
-}
-
 void ViewDrawData::upload_vertex_index_data(Renderer* renderer) {
     if (!draws.empty()) {
         renderer->upload_index_data(&indices[0], indices.size() * sizeof(uint32_t));

@@ -21,10 +21,10 @@ struct TriangleDataVert final : VertexShader {
         glm::vec4 color;
     };
     
-    TriangleDataVert(Renderer* renderer, BufferID global_data_buffer, glm::mat4 render_matrix, glm::vec4 color)
+    TriangleDataVert(Renderer* renderer, BufferID global_data_buffer, glm::mat4 render_matrix, glm::vec3 color)
         : uniform_data(UniformData{
             .render_matrix = render_matrix,
-            .color = color,
+            .color = glm::vec4(color.r, color.g, color.b, 1.0),
         })
         , global_data_buffer(global_data_buffer)
     {
@@ -34,6 +34,9 @@ struct TriangleDataVert final : VertexShader {
             VMA_MEMORY_USAGE_CPU_TO_GPU,
             sizeof(UniformData)
         );
+
+        Buffer& buffer = renderer->get_buffer(uniform_buffer);
+        buffer.write_to(&uniform_data, sizeof(UniformData));
     }
 
     ShaderSource source() const {
@@ -56,11 +59,6 @@ struct TriangleDataVert final : VertexShader {
         });
     }
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
-
-    void update_buffer(Renderer* renderer) {
-        Buffer& buffer = renderer->get_buffer(uniform_buffer);
-        buffer.write_to(&uniform_data, sizeof(UniformData));
-    }
 
     UniformData uniform_data;
     BufferID uniform_buffer;

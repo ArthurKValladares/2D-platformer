@@ -57,20 +57,29 @@ struct Level1 {
     glm::vec3 quad_color;
 
     Rect2D data_quad;
+    glm::vec2 data_pos;
+    glm::vec3 data_color;
 
     Level1()
         : regular_quad(Rect2D(Point2Df32{ -0.5f,  0.5f }, Size2Df32{1.0, 1.0}))
         , moving_quad(Rect2D(Point2Df32{  0.5f,  0.5f }, Size2Df32{1.0, 1.0}))
         , colored_quad(Rect2D(Point2Df32{ -0.5f, -0.5f }, Size2Df32{1.0, 1.0}))
         , data_quad(Rect2D(Point2Df32{  0.5f, -0.5f }, Size2Df32{1.0, 1.0}))
+        , data_pos(glm::vec2(0.0f, 0.0f))
     {}
 
     Renderable build(Renderer& renderer, BufferID global_data_buffer, double total_elapsed_seconds) {
         const double x_offset = sin(total_elapsed_seconds) * 0.1;
+        const double y_offset = cos(total_elapsed_seconds) * 0.1;
 
         quad_color.r = abs(sin(total_elapsed_seconds));
         quad_color.g = abs(cos(total_elapsed_seconds * 0.5));
         quad_color.b = abs(tan(total_elapsed_seconds * 0.25));
+
+        data_color.r = abs(tan(total_elapsed_seconds));
+        data_color.g = abs(sin(total_elapsed_seconds * 0.5));
+        data_color.b = abs(cos(total_elapsed_seconds * 0.25));
+        data_pos.y = y_offset;
 
         Renderable renderable;
         renderable.push_child(Quad(
@@ -97,7 +106,9 @@ struct Level1 {
             &renderer,
             data_quad,
             TextureSource::Test4,
-            global_data_buffer
+            global_data_buffer,
+            data_pos,
+            data_color
         ));
         return renderable;
     }
@@ -203,12 +214,6 @@ struct App {
         global_set_data.write_shader_data_to_buffer(renderer);
 
         Renderable curr_renderable = build_root_renderable(keyboard_state, total_elapse_seconds, frame_dt);
-        curr_renderable.update(ViewUpdateData{
-            .renderer = &renderer,
-            .total_elapsed_seconds = total_elapse_seconds,
-            .frame_dt = frame_dt,
-            .keyboard_state = keyboard_state,
-        });
         ViewDrawData data = curr_renderable.get_draw_data(&renderer);
         data.upload_vertex_index_data(&renderer);
         
