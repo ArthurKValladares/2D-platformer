@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <chrono>
 #include <math.h> 
+#include <algorithm>
 
 #include "renderer/renderer.h"
 
@@ -143,7 +144,7 @@ struct App {
     App() 
         : app_start(std::chrono::steady_clock::now())
         , keyboard_state(KeyboardState())
-        , camera(OrthographicCamera(glm::vec2(0.0), 2.0, 2.0))
+        , camera(OrthographicCamera(glm::vec2(0.0), camera_scale, camera_scale))
         , window(Window())
         , renderer(window)
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
@@ -254,13 +255,26 @@ struct App {
             if (keyboard_state.was_just_released(SDLK_P)) {
                 level_idx = (level_idx + 1) % num_levels;
             }
-    
+
+            constexpr float camera_zoom_vel = 0.5;
+            if (keyboard_state.is_down(SDLK_E)) {
+                camera_scale += camera_zoom_vel * frame_dt.count();
+            }
+            if (keyboard_state.is_down(SDLK_Q)) {
+                camera_scale -= camera_zoom_vel * frame_dt.count();
+                camera_scale = std::max(0.1f, camera_scale);
+            }
+            const float camera_size = exp(camera_scale) * 0.125;
+            camera.size_x = camera_size;
+            camera.size_y = camera_size;
+
             render(elapsed_seconds.count(), frame_dt.count());
         }
     }
 
     std::chrono::steady_clock::time_point app_start;
     KeyboardState keyboard_state;
+    float camera_scale = 2.77;
     OrthographicCamera camera;
     Window window;
     Renderer renderer;
