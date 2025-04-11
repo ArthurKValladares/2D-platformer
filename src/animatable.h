@@ -10,11 +10,48 @@ inline double lerp(double a, double b, double f)
     return a * (1.0 - f) + (b * f);
 }
 
-// TODO: For now this just keeps repeating infinitely,
-// Later I need animations that can end.
 struct AnimatableFloat {
     AnimatableFloat() {}
     AnimatableFloat(
+        double start_val, double end_val,
+        double duration,
+        double start_time
+    )
+        : start_val(start_val)
+        , end_val(end_val)
+        , duration(duration)
+        , start_time(start_time)
+    {}
+
+    bool is_done_at(double curr_time) const {
+        const double elapsed = curr_time - start_time;
+        const double progress = elapsed / duration;
+        return progress >= 1.0;
+    }
+
+    double value_at(double curr_time) const {
+        if (duration == 0.0) {
+            assert(false);
+            return start_val;
+        }
+        const double elapsed = curr_time - start_time;
+        const double progress = elapsed / duration;
+        if (progress >= 1.0) {
+            return end_val;
+        }
+        return lerp(start_val, end_val, progress);
+    }
+
+    double start_val, end_val;
+    double duration;
+    // NOTE: This is start_time in elapsed seconds since the start of the app.
+    // Probably need something better later
+    double start_time;
+};
+
+struct RepeatableAnimatableFloat {
+    RepeatableAnimatableFloat() {}
+    RepeatableAnimatableFloat(
         double start_val, double end_val,
         double duration,
         double start_time
@@ -47,7 +84,7 @@ struct SpriteAnimation {
     SpriteAnimation()
     {}
     SpriteAnimation(double duration, double start_time, std::vector<TextureSource> textures)
-        : animatable(AnimatableFloat(0.0, 1.0, duration, start_time))
+        : animatable(RepeatableAnimatableFloat(0.0, 1.0, duration, start_time))
         , textures(std::move(textures))
     {}
 
@@ -57,6 +94,6 @@ struct SpriteAnimation {
         return textures[texture_idx];
     }
 
-    AnimatableFloat animatable;
+    RepeatableAnimatableFloat animatable;
     std::vector<TextureSource> textures;
 };

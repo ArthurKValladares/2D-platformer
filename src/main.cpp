@@ -17,6 +17,7 @@
 #include "keyboard_state.h"
 #include "camera.h"
 #include "animatable.h"
+#include "particles.h"
 
 #include "renderables/includes.h"
 
