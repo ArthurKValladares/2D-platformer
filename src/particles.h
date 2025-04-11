@@ -102,9 +102,10 @@ struct ParticleEmitter {
             const float curr_particle_vel_var = random_num_in_range(-particle_vel_var, particle_vel_var);
             const float vel = particle_vel + curr_particle_vel_var;
 
+            const float size_scale = random_num_in_range(0.0, 1.0);
             const glm::vec2 curr_particle_size_var = glm::vec2(
-                random_num_in_range(-particle_size_var.x, particle_size_var.x),
-                random_num_in_range(-particle_size_var.y, particle_size_var.y)
+                lerp(-particle_size_var.x, particle_size_var.x, size_scale),
+                lerp(-particle_size_var.y, particle_size_var.y, size_scale)
             );
             const glm::vec2 size = particle_size + curr_particle_size_var;
 

@@ -40,6 +40,7 @@ enum class TextureSource : uint32_t {
         cog.outl("%s," % texture)
     ]]]*/
     Akv,
+    Particle,
     Test1,
     Test2,
     Test3,
@@ -62,6 +63,9 @@ inline const char* texture_path(TextureSource texture) {
         ]]]*/
         case TextureSource::Akv: {
             return "assets/textures/akv.png";
+        }
+        case TextureSource::Particle: {
+            return "assets/textures/particle.png";
         }
         case TextureSource::Test1: {
             return "assets/textures/test_1.png";

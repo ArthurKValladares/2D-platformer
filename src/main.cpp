@@ -159,7 +159,7 @@ struct App {
             2.0,
             1.0,
             glm::vec2(0.3, 0.3),
-            TextureSource::Akv,
+            TextureSource::Particle,
             0.0,
             Degrees(15.0),
             0.5,
