@@ -27,6 +27,7 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const 
         DrawCommand dc = DrawCommand{
             .vertex_id = vert_id,
             .fragment_id = frag_id,
+            .alpha_blending = uses_alpha_blending,
             .index_count = index_count,
             .first_index = first_index
         };
@@ -62,7 +63,7 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const 
         }
 
         // Upload draw
-        renderer->upload_pipeline(vert_id, frag_id, layout_ids);
+        renderer->upload_pipeline(vert_id, frag_id, layout_ids, uses_alpha_blending);
         data.draws.push_back(dc);
     }
 

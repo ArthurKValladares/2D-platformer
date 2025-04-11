@@ -9,7 +9,8 @@ Pipeline::Pipeline(
     const Renderer* renderer,
     PipelineID layout_id,
     VkSampleCountFlagBits sample_count,
-    uint32_t color_attachment_count, const VkFormat* p_color_attachment_formats
+    uint32_t color_attachment_count, const VkFormat* p_color_attachment_formats,
+    bool alpha_blending
 ) {
     const ShaderData& vert_shader_data = renderer->get_shader_data(layout_id.vertex);
     const ShaderData& frag_shader_data = renderer->get_shader_data(layout_id.fragment);
@@ -46,8 +47,17 @@ Pipeline::Pipeline(
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO
     };
 	VkPipelineColorBlendAttachmentState blend_attachment = {
-        .colorWriteMask = 0xF
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
     };
+    if (alpha_blending) {
+        blend_attachment.blendEnable = VK_TRUE;
+        blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        blend_attachment.colorBlendOp = VK_BLEND_OP_ADD;
+        blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    }
 	VkPipelineColorBlendStateCreateInfo color_blend_state = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .attachmentCount = 1,

@@ -114,7 +114,8 @@ struct ParticleEmitter {
         }
 
         for (const Particle& particle : particles) {
-            root_renderable.push_child(particle.get_quad(curr_time, renderer, global_data_buffer, texture));
+            // NOTE: All particles use alpha-blending by default
+            root_renderable.push_child(Renderable(particle.get_quad(curr_time, renderer, global_data_buffer, texture), true));
         }
     }
 

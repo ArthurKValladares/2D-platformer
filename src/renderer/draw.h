@@ -25,6 +25,7 @@ struct PushConstantData {
 struct DrawCommand {
     ShaderID vertex_id;
     ShaderID fragment_id;
+    bool alpha_blending;
     uint32_t index_count;
     uint32_t first_index;
     // regular sets

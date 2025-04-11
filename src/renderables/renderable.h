@@ -33,8 +33,9 @@ struct Renderable {
 
     template<class T>
     requires std::is_base_of_v<RenderableInterface, T>
-    Renderable(T renderable)
+    Renderable(T renderable, bool alpha_blending = false)
         : renderable(new T(std::move(renderable)))
+        , uses_alpha_blending(alpha_blending)
     {}
 
     void push_child(Renderable renderable)  {
@@ -49,6 +50,8 @@ struct Renderable {
     // ECS-like thing, would also help with some other stuff I think.
     // This whole Renderable idea is not great atm, re-think it
     std::shared_ptr<RenderableInterface> renderable;
+    // TODO: I'm putting the alpha-blending info here for now, not sure this is the right way to do it
+    bool uses_alpha_blending;
 
     std::vector<Renderable> children;
 };

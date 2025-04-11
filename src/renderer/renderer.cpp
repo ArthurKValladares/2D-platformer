@@ -388,8 +388,8 @@ DescriptorSetID Renderer::upload_descriptor_set(DescriptorSetLayoutID layout_id)
     return id;
 }
 
-void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetLayoutID> layout_ids) {
-    const PipelineID pipeline_id(vertex_shader_id, fragment_shader_id);
+void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shader_id, std::span<const DescriptorSetLayoutID> layout_ids, bool alpha_blending) {
+    const PipelineID pipeline_id(vertex_shader_id, fragment_shader_id, alpha_blending);
     if (!pipelines.contains(pipeline_id)) {
         const ShaderData& vert_shader_data = shaders[vertex_shader_id];
         const ShaderData& frag_shader_data = shaders[fragment_shader_id];
@@ -415,7 +415,9 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
             this,
             pipeline_id,
             sample_count,
-            image_format);
+            image_format,
+            alpha_blending
+        );
     }
 }
 
@@ -578,7 +580,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
 
     for (const DrawCommand& draw : draws) {
-        const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id); 
+        const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id, draw.alpha_blending); 
         const Pipeline& pipeline = pipelines[pipeline_id];
         const VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
 

@@ -35,17 +35,19 @@ CREATE_ID(Shader)
 
 struct PipelineID {
     PipelineID() {}
-    explicit PipelineID(ShaderID vertex, ShaderID fragment)
+    explicit PipelineID(ShaderID vertex, ShaderID fragment, bool alpha_blending)
         : vertex(vertex)
         , fragment(fragment)
+        , uses_alpha_blending(alpha_blending)
     {}
 
     bool operator==(const PipelineID &other) const {
-        return vertex == other.vertex && fragment == other.fragment;
+        return vertex == other.vertex && fragment == other.fragment && uses_alpha_blending == other.uses_alpha_blending;
     }
 
     ShaderID vertex;
     ShaderID fragment;
+    bool uses_alpha_blending;
 };
 
 template<typename T>
@@ -75,6 +77,7 @@ namespace std
         {
             size_t h= make_hash(p.vertex);
             hash_combine(h, make_hash(p.fragment));
+            hash_combine(h, make_hash(p.uses_alpha_blending));
             return h;
         }
     };
