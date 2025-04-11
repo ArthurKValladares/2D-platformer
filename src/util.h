@@ -35,3 +35,30 @@ std::vector<T> read_file_to_buffer(const std::string& path) {
     
     return buffer;
 }
+
+struct Radians;
+struct Degrees {
+    float val;
+
+    Degrees operator+(const Degrees& rhs) const {
+        return Degrees(val + rhs.val);
+    }
+    Degrees operator-(const Degrees& rhs) const {
+        return Degrees(val - rhs.val);
+    }
+
+    Radians to_radians() const;
+};
+
+struct Radians {
+    float val;
+
+    Radians operator+(const Radians& rhs) const {
+        return Radians(val + rhs.val);
+    }
+    Radians operator-(const Radians& rhs) const {
+        return Radians(val - rhs.val);
+    }
+
+    Degrees to_degrees() const;
+};

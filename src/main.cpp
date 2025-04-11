@@ -151,6 +151,7 @@ struct App {
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
         , player_rect(Rect2D(glm::vec2(0.0f, 0.0f), glm::vec2(0.25, 0.25)))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
+        , emitter(ParticleEmitter(0.0, glm::vec2(0.0), 0.125, Degrees(90.0), 2.0, 1.0, glm::vec2(0.3, 0.3), TextureSource::Akv))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -194,6 +195,9 @@ struct App {
             player_rect.pos += displacement_vec;
         }
 
+        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
+
+        /*
         renderable.push_child(MovingQuad(
             &renderer,
             player_rect,
@@ -201,6 +205,7 @@ struct App {
             player_sprite.texture_at(total_elapsed_seconds),
             global_set_data.buffer_id
         ));
+        */
 
         return renderable;
     }
@@ -284,6 +289,8 @@ struct App {
     // Level stuff, bad and temp
     Rect2D player_rect;
     SpriteAnimation player_sprite;
+
+    ParticleEmitter emitter;
 
     Level1 level_1;
     Level2 level_2;
