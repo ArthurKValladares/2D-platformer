@@ -9,6 +9,7 @@
 
 #include "animatable.h"
 #include "assets.h"
+#include "util.h"
 
 #include <iostream>
 
@@ -27,7 +28,7 @@ struct Particle {
         const double anim_at = anim.value_at(curr_time);
         
         const glm::vec2 curr_pos = pos + dir * glm::vec2(vel * elapsed_time);
-        const glm::vec2 curr_size = glm::vec2(lerp(size.x, 0.0, anim_at), lerp(size.y, 0.0, anim_at));
+        const glm::vec2 curr_size = glm::vec2(lerp(size.x, 0.f, (float) anim_at), lerp(size.y, 0.f, (float) anim_at));
 
         return Quad(
             renderer,
@@ -86,21 +87,25 @@ struct ParticleEmitter {
             particles.end()
         );
 
-        // TODO: All vars are 0 for now, will hook up correctly later
         const float curr_emmision_delay_var = 0.0;
         if (curr_time - last_updated > emission_delay + curr_emmision_delay_var) {
-            const float curr_particle_lifetime_var = 0.0;
+            const float curr_particle_lifetime_var = random_num_in_range(-particle_lifetime_var, particle_lifetime_var);
             float particle_duration = particle_lifetime + curr_particle_lifetime_var;
 
-            const Degrees curr_emission_angle_var = Degrees(0.0);
+            const Degrees curr_emission_angle_var = Degrees(
+                random_num_in_range(-emission_angle_var.val, emission_angle_var.val)
+            );
             const Degrees particle_angle = emission_angle + curr_emission_angle_var;
             const Radians particle_angle_r = particle_angle.to_radians();
             const glm::vec2 particle_dir = glm::vec2(cos(particle_angle_r.val), sin(particle_angle_r.val));
 
-            const float curr_particle_vel_var = 0.0;
+            const float curr_particle_vel_var = random_num_in_range(-particle_vel_var, particle_vel_var);
             const float vel = particle_vel + curr_particle_vel_var;
 
-            const glm::vec2 curr_particle_size_var = glm::vec2(0.0);
+            const glm::vec2 curr_particle_size_var = glm::vec2(
+                random_num_in_range(-particle_size_var.x, particle_size_var.x),
+                random_num_in_range(-particle_size_var.y, particle_size_var.y)
+            );
             const glm::vec2 size = particle_size + curr_particle_size_var;
 
             particles.push_back(Particle(curr_time, particle_duration, pos, particle_dir, vel, size));

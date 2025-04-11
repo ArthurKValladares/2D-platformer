@@ -151,7 +151,21 @@ struct App {
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
         , player_rect(Rect2D(glm::vec2(0.0f, 0.0f), glm::vec2(0.25, 0.25)))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
-        , emitter(ParticleEmitter(0.0, glm::vec2(0.0), 0.125, Degrees(90.0), 2.0, 1.0, glm::vec2(0.3, 0.3), TextureSource::Akv))
+        , emitter(ParticleEmitter(
+            0.0,
+            glm::vec2(0.0),
+            0.05,
+            Degrees(90.0),
+            2.0,
+            1.0,
+            glm::vec2(0.3, 0.3),
+            TextureSource::Akv,
+            0.0,
+            Degrees(15.0),
+            0.5,
+            0.25,
+            glm::vec2(.125)
+        ))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);

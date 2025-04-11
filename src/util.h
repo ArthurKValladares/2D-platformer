@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <random>
 
 #include <vulkan/vulkan.h>
 
@@ -62,3 +63,17 @@ struct Radians {
 
     Degrees to_degrees() const;
 };
+
+template<std::floating_point T>
+T lerp(T a, T b, T f)
+{
+    return a * (1.0 - f) + (b * f);
+}
+
+template<std::floating_point T>
+T random_num_in_range(T min, T max) {
+    constexpr uint64_t rng_seed = 1234;
+    static std::mt19937 rng(rng_seed);
+    const T t = std::generate_canonical<T, 128>(rng);
+    return lerp(min, max, t);
+}
