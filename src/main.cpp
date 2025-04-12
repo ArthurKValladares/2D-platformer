@@ -159,12 +159,16 @@ struct App {
             2.0,
             1.0,
             glm::vec2(0.3, 0.3),
+            glm::vec3(1.0, 0.0, 0.0),
+            glm::vec3(0.0, 0.0, 1.0),
             TextureSource::Particle,
             0.0,
             Degrees(15.0),
             0.5,
             0.25,
-            glm::vec2(.125)
+            glm::vec2(.125),
+            glm::vec3(0.05),
+            glm::vec3(0.05)
         ))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
@@ -180,11 +184,13 @@ struct App {
 
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
+        /*
         if (level_idx == 0) {
             renderable = level_1.build(renderer, global_set_data.buffer_id, total_elapsed_seconds);
         } else if (level_idx == 1) {
             renderable = level_2.build(renderer, global_set_data.buffer_id, total_elapsed_seconds);
         }
+        */
 
         // Update player movement
         constexpr float displacement_per_second = 0.5;
@@ -220,7 +226,7 @@ struct App {
             global_set_data.buffer_id
         ));
         */
-
+       
         return renderable;
     }
 

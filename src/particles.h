@@ -15,25 +15,36 @@
 
 // TODO: for now all particles scale down in size to 0 until they die, that needs to be variable later
 struct Particle {
-    Particle(double start_time, double duration, glm::vec2 pos, glm::vec2 dir, float vel, glm::vec2 size) 
+    Particle(double start_time, double duration, glm::vec2 pos, glm::vec2 dir, float vel, glm::vec2 size, glm::vec3 start_color, glm::vec3 end_color) 
         : pos(pos)
         , dir(dir)
         , vel(vel)
         , size(size)
+        , start_color(start_color)
+        , end_color(end_color)
         , anim(AnimatableFloat(0.0, 1.0, duration, start_time))
     {}
 
-    Quad get_quad(double curr_time, Renderer* renderer, BufferID global_data_buffer, TextureSource texture) const {
+    ColoredQuad get_quad(double curr_time, Renderer* renderer, BufferID global_data_buffer, TextureSource texture) const {
         const double elapsed_time = curr_time - anim.start_time;
-        const double anim_at = anim.value_at(curr_time);
+        const float anim_at = (float) anim.value_at(curr_time);
         
         const glm::vec2 curr_pos = pos + dir * glm::vec2(vel * elapsed_time);
-        const glm::vec2 curr_size = glm::vec2(lerp(size.x, 0.f, (float) anim_at), lerp(size.y, 0.f, (float) anim_at));
+        const glm::vec2 curr_size = glm::vec2(
+            lerp(size.x, 0.f, anim_at),
+            lerp(size.y, 0.f, anim_at)
+        );
+        const glm::vec3 curr_color = glm::vec3(
+            lerp(start_color.r, end_color.r, anim_at),
+            lerp(start_color.g, end_color.g, anim_at),
+            lerp(start_color.b, end_color.b, anim_at)
+        );
 
-        return Quad(
+        return ColoredQuad(
             renderer,
             Rect2D(curr_pos, curr_size),
             texture,
+            curr_color,
             global_data_buffer
         );
     }
@@ -42,6 +53,8 @@ struct Particle {
     glm::vec2 dir;
     float vel;
     glm::vec2 size;
+    glm::vec3 start_color;
+    glm::vec3 end_color;
     AnimatableFloat anim;
 };
 
@@ -55,12 +68,16 @@ struct ParticleEmitter {
         float particle_lifetime,
         float particle_vel,
         glm::vec2 particle_size,
+        glm::vec3 start_color,
+        glm::vec3 end_color,
         TextureSource texture,
         float emission_delay_var = 0.f,
         Degrees emission_angle_var = Degrees(0.f),
         float particle_lifetime_var = 0.f,
         float particle_vel_var = 0.f,
-        glm::vec2 particle_size_var = glm::vec2(0.0)
+        glm::vec2 particle_size_var = glm::vec2(0.0),
+        glm::vec3 start_color_var = glm::vec3(0.0),
+        glm::vec3 end_color_var = glm::vec3(0.0)
     )
         : start_time(start_time)
         , last_updated(start_time)
@@ -75,6 +92,10 @@ struct ParticleEmitter {
         , particle_vel_var(particle_vel_var)
         , particle_size(particle_size)
         , particle_size_var(particle_size_var)
+        , start_color(start_color)
+        , start_color_var(start_color_var)
+        , end_color(end_color)
+        , end_color_var(end_color_var)
         , texture(texture)
     {}
 
@@ -109,7 +130,23 @@ struct ParticleEmitter {
             );
             const glm::vec2 size = particle_size + curr_particle_size_var;
 
-            particles.push_back(Particle(curr_time, particle_duration, pos, particle_dir, vel, size));
+            const float start_color_scale = random_num_in_range(0.0, 1.0);
+            const glm::vec3 curr_start_color_var = glm::vec3(
+                lerp(-start_color_var.r, start_color_var.r, start_color_scale),
+                lerp(-start_color_var.g, start_color_var.g, start_color_scale),
+                lerp(-start_color_var.b, start_color_var.b, start_color_scale)
+            );
+            const glm::vec3 s_color = start_color + start_color_var;
+
+            const float end_color_scale = random_num_in_range(0.0, 1.0);
+            const glm::vec3 curr_end_color_var = glm::vec3(
+                lerp(-end_color_var.r, end_color_var.r, end_color_scale),
+                lerp(-end_color_var.g, end_color_var.g, end_color_scale),
+                lerp(-end_color_var.b, end_color_var.b, end_color_scale)
+            );
+            const glm::vec3 e_color = end_color + end_color_var;
+
+            particles.push_back(Particle(curr_time, particle_duration, pos, particle_dir, vel, size, s_color, e_color));
             last_updated = curr_time;
         }
 
@@ -137,6 +174,12 @@ struct ParticleEmitter {
     
     glm::vec2 particle_size;
     glm::vec2 particle_size_var;
+
+    glm::vec3 start_color;
+    glm::vec3 start_color_var;
+
+    glm::vec3 end_color;
+    glm::vec3 end_color_var;
 
     TextureSource texture;
     std::vector<Particle> particles;
