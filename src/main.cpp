@@ -154,7 +154,7 @@ struct App {
         , emitter(ParticleEmitter(
             0.0,
             glm::vec2(0.0),
-            0.05,
+            0.00,
             Degrees(90.0),
             2.0,
             1.0,
@@ -217,7 +217,6 @@ struct App {
 
         emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
 
-        /*
         renderable.push_child(MovingQuad(
             &renderer,
             player_rect,
@@ -225,7 +224,6 @@ struct App {
             player_sprite.texture_at(total_elapsed_seconds),
             global_set_data.buffer_id
         ));
-        */
        
         return renderable;
     }
