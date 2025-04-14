@@ -66,6 +66,8 @@ Renderer::Renderer(Window& window) {
     fences.resize(MAX_FRAMES_IN_FLIGHT);
     present_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
     render_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    i_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+    v_buffers.resize(MAX_FRAMES_IN_FLIGHT);
 
     // Instance
     const char* required_instance_extensions[] = {
@@ -311,8 +313,12 @@ Renderer::~Renderer() {
     for (auto i = 0; i < swapchain_image_views.size(); i++) {
         vkDestroyImageView(device, swapchain_image_views[i], nullptr);
     }
-    v_buffer.destroy(allocator);
-    i_buffer.destroy(allocator);
+    for (Buffer& v_buffer : v_buffers) {
+        v_buffer.destroy(allocator);
+    }
+    for (Buffer& i_buffer : i_buffers) {
+        i_buffer.destroy(allocator);
+    }
     for (auto& [id, buffer] : buffers) {
         buffer.destroy(allocator);
     }
@@ -422,31 +428,34 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
 }
 
 void Renderer::upload_index_data(void* data, uint64_t size_bytes) {
+    Buffer& i_buffer = i_buffers[get_frame_index()];
+
     if (i_buffer.raw == VK_NULL_HANDLE) {
         i_buffer = Buffer(
             allocator,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
             VMA_MEMORY_USAGE_AUTO,
-            data,
             size_bytes
         );
-    } else {
-        if (i_buffer.size_bytes < size_bytes) {
-            purgatory.buffers[get_frame_index()].push_back(i_buffer);
-            i_buffer = Buffer(
-                allocator,
-                VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-                VMA_MEMORY_USAGE_AUTO,
-                size_bytes
-            );
-        }
-        i_buffer.write_to(data, size_bytes);
+    } else if (i_buffer.size_bytes < size_bytes) {
+        purgatory.buffers[get_frame_index()].push_back(i_buffer);
+
+        i_buffer = Buffer(
+            allocator,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+            VMA_MEMORY_USAGE_AUTO,
+            size_bytes
+        );
     }
+
+    i_buffer.write_to(data, size_bytes);
 }
 
 void Renderer::upload_vertex_data(void* data, uint64_t size_bytes) {
+    Buffer& v_buffer = v_buffers[get_frame_index()];
+
     if (v_buffer.raw == VK_NULL_HANDLE) {
         v_buffer = Buffer(
             allocator,
@@ -456,19 +465,19 @@ void Renderer::upload_vertex_data(void* data, uint64_t size_bytes) {
             data,
             size_bytes
         );
-    } else {
-        if (v_buffer.size_bytes < size_bytes) {
-            purgatory.buffers[get_frame_index()].push_back(v_buffer);
-            v_buffer = Buffer(
-                allocator,
-                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-                VMA_MEMORY_USAGE_AUTO,
-                size_bytes
-            );
-        }
-        v_buffer.write_to(data, size_bytes);
+    } else if (v_buffer.size_bytes < size_bytes) {
+        purgatory.buffers[get_frame_index()].push_back(v_buffer);
+
+        v_buffer = Buffer(
+            allocator,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+            VMA_MEMORY_USAGE_AUTO,
+            size_bytes
+        );
     }
+
+    v_buffer.write_to(data, size_bytes);
 }
 
 void Renderer::resize_swapchain(Window& window) {
@@ -576,8 +585,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
 
     // TODO: This data should probably be in the `DrawCommand`
     VkDeviceSize v_offset = 0;
-    vkCmdBindVertexBuffers(cb, 0, 1, &v_buffer.raw, &v_offset);
-    vkCmdBindIndexBuffer(cb, i_buffer.raw, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(cb, 0, 1, &v_buffers[frame_idx].raw, &v_offset);
+    vkCmdBindIndexBuffer(cb, i_buffers[frame_idx].raw, 0, VK_INDEX_TYPE_UINT32);
 
     for (const DrawCommand& draw : draws) {
         const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id, draw.alpha_blending); 

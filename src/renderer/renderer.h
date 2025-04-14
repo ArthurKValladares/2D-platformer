@@ -142,8 +142,8 @@ private:
     VmaAllocation render_image_allocation;
     VkImageView render_image_view;
 
-    Buffer v_buffer;
-    Buffer i_buffer;
+    std::vector<Buffer> v_buffers;
+    std::vector<Buffer> i_buffers;
 
     // TODO: Dedicated transfer pool
     VkCommandPool command_pool = VK_NULL_HANDLE;
