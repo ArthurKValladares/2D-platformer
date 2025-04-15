@@ -215,7 +215,15 @@ struct App {
             player_rect.pos += displacement_vec;
         }
 
-        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
+        //emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
+        for (size_t i = 0; i < renderer.get_frame_count() % 3; ++i) {
+            renderable.push_child(Quad(
+                &renderer,
+                Rect2D(glm::vec2(-0.5f, 0.5f), glm::vec2(1.0, 1.0)),
+                TextureSource::Particle,
+                global_set_data.buffer_id
+            ));
+        }
 
         renderable.push_child(MovingQuad(
             &renderer,

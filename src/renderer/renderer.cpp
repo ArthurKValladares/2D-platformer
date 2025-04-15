@@ -22,6 +22,19 @@ constexpr bool USE_VALIDATION_LAYERS = false;
 constexpr bool USE_VALIDATION_LAYERS = true;
 #endif
 
+namespace {
+    VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData)
+    {
+        std::cerr << "validation Layer Error: " << pCallbackData->pMessage << std::endl;
+
+        return VK_FALSE;
+    }
+};
+
 VkSwapchainCreateInfoKHR Renderer::get_swapchain_ci(uint32_t width, uint32_t height) {
     return VkSwapchainCreateInfoKHR {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -77,7 +90,7 @@ Renderer::Renderer(Window& window) {
     vkb::Result<vkb::Instance> vkb_instance_result = builder.set_app_name("2D-Platformer")
         .request_validation_layers(USE_VALIDATION_LAYERS)
         .enable_extensions(ArrayCount(required_instance_extensions), required_instance_extensions)
-        .use_default_debug_messenger()
+        .set_debug_callback(debug_callback)
         .require_api_version(1, 3, 0)
         .build();
     if (!vkb_instance_result.has_value()) {
@@ -642,12 +655,14 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     //
     // Imgui move later
     //
+    /*
     color_attachment_info = initializers::rendering_attachment_info(render_image_view, VK_IMAGE_LAYOUT_GENERAL, swapchain_image_views[image_index]);
 	rendering_info = initializers::rendering_info(window_extent, &color_attachment_info);
 
     vkCmdBeginRendering(cb, &rendering_info);
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
     vkCmdEndRendering(cb);
+    */
     //
     //
     //
