@@ -4,7 +4,7 @@
 
 #define VK_FLAGS_NONE 0
 #define DEFAULT_FENCE_TIMEOUT 100000000000
-#define MAX_FRAMES_IN_FLIGHT 5
+#define MAX_FRAMES_IN_FLIGHT 2
 
 namespace tools {
 void set_image_layout(
