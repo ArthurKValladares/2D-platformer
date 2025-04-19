@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cassert>
-#include <glm/vec4.hpp>
+#include <glm/vec3.hpp>
 
 /*[[[cog
 import cog
@@ -56,7 +56,7 @@ static TileType char_to_tile_type(char c) {
     }
 }
 
-static glm::vec4 tile_type_to_color(TileType ty) {
+static glm::vec3 tile_type_to_color(TileType ty) {
     switch (ty) {
         /*[[[cog
         for case in cases:
@@ -64,12 +64,12 @@ static glm::vec4 tile_type_to_color(TileType ty) {
             r = case[2]
             g = case[3]
             b = case[4]
-            cog.outl("case TileType::%s: { return glm::vec4(%d / 255., %d / 255., %d / 255., 1.0); }" % (tile_type, r, g, b))
+            cog.outl("case TileType::%s: { return glm::vec3(%d / 255., %d / 255., %d / 255.); }" % (tile_type, r, g, b))
         ]]]*/
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
-            return glm::vec4(1.0, 0.0, 1.0, 1.0);
+            return glm::vec3(1.0, 0.0, 1.0);
         }
     }
 }

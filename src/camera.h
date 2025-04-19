@@ -13,6 +13,7 @@ struct CameraUpdateData {
 };
 
 struct OrthographicCamera {
+    OrthographicCamera() {}
     OrthographicCamera(glm::vec2 pos, float size_x, float size_y)
         : size_x(size_x)
         , size_y(size_y)
