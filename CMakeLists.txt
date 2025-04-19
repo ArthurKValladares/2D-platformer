@@ -30,6 +30,8 @@ add_executable(${PROJECT_NAME}
   src/shader_defs/shader_pairs.cpp
   # renderables
   src/renderables/renderable.cpp
+  # map editor
+  src/map_editor/map.cpp
   # main
   src/rect.cpp
   src/window.cpp

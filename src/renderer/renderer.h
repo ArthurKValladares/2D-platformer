@@ -86,7 +86,8 @@ struct Renderer {
     //  Rendering
     //
     void resize_swapchain(Window& window);
-    void render(Window& window, std::vector<DrawCommand> draws);
+    void wait_for_and_reset_curr_fence();
+    void render(Window& window, std::vector<DrawCommand> draws, bool wait_for_fence = true);
 
     //
     // Command Submission

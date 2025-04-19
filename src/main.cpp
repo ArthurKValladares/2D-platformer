@@ -21,6 +21,8 @@
 
 #include "renderables/includes.h"
 
+#include "map_editor/map.h"
+
 // TODO: engine architecture
 // descriptor set number 0 will be used for engine-global resources
 // descriptor set number 1 will be used for per-object resources (using push descriptors)
@@ -170,6 +172,7 @@ struct App {
             glm::vec3(0.05),
             glm::vec3(0.05)
         ))
+        , map(MapLayout("assets/maps/test_map.map"))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -184,13 +187,11 @@ struct App {
 
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
-        /*
         if (level_idx == 0) {
             renderable = level_1.build(renderer, global_set_data.buffer_id, total_elapsed_seconds);
         } else if (level_idx == 1) {
             renderable = level_2.build(renderer, global_set_data.buffer_id, total_elapsed_seconds);
         }
-        */
 
         // Update player movement
         constexpr float displacement_per_second = 0.5;
@@ -215,15 +216,7 @@ struct App {
             player_rect.pos += displacement_vec;
         }
 
-        //emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
-        for (size_t i = 0; i < renderer.get_frame_count() % 3; ++i) {
-            renderable.push_child(Quad(
-                &renderer,
-                Rect2D(glm::vec2(-0.5f, 0.5f), glm::vec2(1.0, 1.0)),
-                TextureSource::Particle,
-                global_set_data.buffer_id
-            ));
-        }
+        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
 
         renderable.push_child(MovingQuad(
             &renderer,
@@ -245,15 +238,16 @@ struct App {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        Renderable curr_renderable = build_root_renderable(keyboard_state, total_elapse_seconds, frame_dt);
-        ViewDrawData data = curr_renderable.get_draw_data(&renderer);
-        data.upload_vertex_index_data(&renderer);
-        
         renderer.setup_imgui_draw(ImguiData{
             .frame_dt = frame_dt
         });
 
-        renderer.render(window, data.draws);
+        Renderable curr_renderable = build_root_renderable(keyboard_state, total_elapse_seconds, frame_dt);
+        ViewDrawData data = curr_renderable.get_draw_data(&renderer);
+        renderer.wait_for_and_reset_curr_fence();
+        data.upload_vertex_index_data(&renderer);
+
+        renderer.render(window, data.draws, false);
     }
 
     void render_loop() {
@@ -320,6 +314,8 @@ struct App {
 
     Level1 level_1;
     Level2 level_2;
+
+    MapLayout map;
 
     uint32_t num_levels = 2;
     uint32_t level_idx = 0;

@@ -540,11 +540,19 @@ void Renderer::resize_swapchain(Window& window) {
     vkDestroySwapchainKHR(device, swapchain_ci.oldSwapchain, nullptr);
 }
 
-void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
+void Renderer::wait_for_and_reset_curr_fence() {
     const uint32_t frame_idx = get_frame_index();
 
     vkWaitForFences(device, 1, &fences[frame_idx], true, UINT64_MAX);
     vkResetFences(device, 1, &fences[frame_idx]);
+}
+
+void Renderer::render(Window& window, std::vector<DrawCommand> draws, bool wait_for_fence) {
+    const uint32_t frame_idx = get_frame_index();
+
+    if (wait_for_fence) {
+        wait_for_and_reset_curr_fence();
+    }
 
     vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, present_semaphores[frame_idx], VK_NULL_HANDLE, &image_index);
 
@@ -655,14 +663,12 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws) {
     //
     // Imgui move later
     //
-    /*
     color_attachment_info = initializers::rendering_attachment_info(render_image_view, VK_IMAGE_LAYOUT_GENERAL, swapchain_image_views[image_index]);
 	rendering_info = initializers::rendering_info(window_extent, &color_attachment_info);
 
     vkCmdBeginRendering(cb, &rendering_info);
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
     vkCmdEndRendering(cb);
-    */
     //
     //
     //
