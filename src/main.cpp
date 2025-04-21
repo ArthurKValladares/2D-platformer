@@ -140,7 +140,36 @@ struct App {
 
             const float displacement = displacement_per_second * frame_dt;
             const glm::vec2 displacement_vec = movement_vec * displacement;
-            player_rect.pos += displacement_vec;
+
+            Rect2D new_player_rect = player_rect;
+            new_player_rect.pos = player_rect.pos + displacement_vec;
+
+            // Test collision to see if movement is allowed
+            // TODO: A hierarcy for this
+            const uint64_t curr_col = new_player_rect.pos.x / TILE_SIZE;
+            const uint64_t curr_row = new_player_rect.pos.y / TILE_SIZE;
+
+            const uint64_t player_span_x = ceil(new_player_rect.half_size.x / TILE_SIZE);
+            const uint64_t player_span_y = ceil(new_player_rect.half_size.y / TILE_SIZE);
+
+            bool has_collided = false;
+            const uint64_t max_row = map.tiles.size();
+            const uint64_t max_col = map.tiles[0].size();
+            for (int64_t row = std::max((int64_t) 0, (int64_t) curr_row - (int64_t) player_span_y); row <= std::min(max_row, curr_row + player_span_y); ++row) {
+                for (int64_t col = std::max((int64_t) 0, (int64_t) curr_col - (int64_t) player_span_x); col <= std::min(max_col, curr_col + player_span_x); ++col) {
+                    if (map.tiles[row][col] == TileType::Wall) {
+                        const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+                        if (rect.intersects(new_player_rect)) {
+                            has_collided = true;
+                        }
+                    }
+                }
+            }
+
+            // TODO: Also instead of not setting the position at all, need to see how much I can move before collision
+            if (!has_collided) {
+                player_rect= new_player_rect;
+            }
         }
 
         // Update camera
