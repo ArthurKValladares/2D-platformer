@@ -27,6 +27,14 @@
 // descriptor set number 0 will be used for engine-global resources
 // descriptor set number 1 will be used for per-object resources (using push descriptors)
 
+#define TILE_SIZE 1.0
+
+namespace {
+    float get_camera_size(const MapLayout& map) {
+        return map.tiles[0].size() * TILE_SIZE;
+    }
+};
+
 struct GlobalDescriptorSetData {
     GlobalDescriptorSetData(Renderer& renderer, const OrthographicCamera& camera) 
         : layout_id(renderer.upload_descriptor_set_layout(get_global_set_bindings()))
@@ -82,17 +90,30 @@ struct App {
             glm::vec3(0.05)
         ))
         , map(MapLayout("assets/maps/test_map.map"))
-        , camera_scale(5.0/*map.tiles[0].size() / 2.0*/)
-        , camera(OrthographicCamera(glm::vec2(camera_scale / 2.0, 0.0), camera_scale, camera_scale))
+        , camera_scale(1.0)
+        , camera(OrthographicCamera(
+            // NOTE: we need to offset the start by hald a tile since its center is at (0,0), not its mins
+            glm::vec2(get_camera_size(map) / 2.0, map.tiles.size() / 2.0) - glm::vec2(TILE_SIZE / 2.0, TILE_SIZE / 2.0),
+            get_camera_size(map),
+            get_camera_size(map)
+        ))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
 
-        renderer.set_imgui_fn([](const ImguiData& data) {
+        renderer.set_imgui_fn([&camera = this->camera](const ImguiData& data) {
             ImGui::Begin("Imgui Test");
 
             const uint32_t fps = 1.0 / data.frame_dt;
             ImGui::Text("Frame dt %.3f ms (%u FPS)", data.frame_dt * 1000, fps);        
+
+            if (ImGui::TreeNode("Camera")) {
+                ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
+                ImGui::Text("Size X: %.3f", camera.size_x);
+                ImGui::Text("Size X: %.3f", camera.size_y);
+
+                ImGui::TreePop();
+            }
         });
     }
 
@@ -100,7 +121,7 @@ struct App {
         Renderable renderable;
         for (uint64_t r = 0; r < map.tiles.size(); ++r) {
             for (uint64_t c = 0; c < map.tiles[r].size(); ++c) {
-                const Rect2D rect = Rect2D(glm::vec2(c, r), glm::vec2(1.0, 1.0));
+                const Rect2D rect = Rect2D(glm::vec2(c * TILE_SIZE, r * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
                 glm::vec3 color = tile_type_to_color(map.tiles[r][c]);
 
                 renderable.push_child(ColoredQuad(
@@ -198,6 +219,7 @@ struct App {
                 quit = true;
             }
 
+            /*
             constexpr float camera_zoom_vel = 0.5;
             if (keyboard_state.is_down(SDLK_E)) {
                 camera_scale += camera_zoom_vel * frame_dt.count();
@@ -209,6 +231,7 @@ struct App {
             const float camera_size = exp(camera_scale) * 0.125;
             camera.size_x = camera_size;
             camera.size_y = camera_size;
+            */
 
             render(elapsed_seconds.count(), frame_dt.count());
         }
