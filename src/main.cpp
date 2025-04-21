@@ -28,6 +28,8 @@
 // descriptor set number 1 will be used for per-object resources (using push descriptors)
 
 #define TILE_SIZE 1.0
+#define PLAYER_SCALE 0.9
+#define PLAYER_SIZE TILE_SIZE * PLAYER_SCALE
 
 namespace {
     float get_camera_size(const MapLayout& map) {
@@ -68,27 +70,8 @@ struct App {
         , window(Window())
         , renderer(window)
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
-        , emitter(ParticleEmitter(
-            0.0,
-            glm::vec2(0.0),
-            0.00,
-            Degrees(90.0),
-            2.0,
-            1.0,
-            glm::vec2(0.3, 0.3),
-            glm::vec3(1.0, 0.0, 0.0),
-            glm::vec3(0.0, 0.0, 1.0),
-            TextureSource::Particle,
-            0.0,
-            Degrees(15.0),
-            0.5,
-            0.25,
-            glm::vec2(.125),
-            glm::vec3(0.05),
-            glm::vec3(0.05)
-        ))
         , map(MapLayout("assets/maps/test_map.map"))
-        , player_rect(Rect2D(glm::vec2(map.start.col * TILE_SIZE, map.start.row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE)))
+        , player_rect(Rect2D(glm::vec2(map.start.col * TILE_SIZE, map.start.row * TILE_SIZE), glm::vec2(PLAYER_SIZE, PLAYER_SIZE)))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
         , camera(OrthographicCamera(
             player_rect.center(),
@@ -107,6 +90,7 @@ struct App {
         for (uint64_t row = 0; row < max_row; ++row) {
             for (uint64_t col = 0; col < max_col; ++col) {
                 const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+
                 glm::vec3 color;
                 if (rect.intersects(player_rect)) {
                     color = glm::vec3(1.0, 0.0, 1.0);
@@ -123,8 +107,6 @@ struct App {
                 ));
             }
         }
-
-        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
 
         renderable.push_child(MovingQuad(
             &renderer,
@@ -244,8 +226,6 @@ struct App {
     GlobalDescriptorSetData global_set_data;
     std::chrono::steady_clock::time_point last_frame;
 
-    ParticleEmitter emitter;
-
     MapLayout map;
 
     Rect2D player_rect;
@@ -261,3 +241,25 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
+/*
+ParticleEmitter(
+    0.0,
+    glm::vec2(0.0),
+    0.00,
+    Degrees(90.0),
+    2.0,
+    1.0,
+    glm::vec2(0.3, 0.3),
+    glm::vec3(1.0, 0.0, 0.0),
+    glm::vec3(0.0, 0.0, 1.0),
+    TextureSource::Particle,
+    0.0,
+    Degrees(15.0),
+    0.5,
+    0.25,
+    glm::vec2(.125),
+    glm::vec3(0.05),
+    glm::vec3(0.05)
+)
+*/

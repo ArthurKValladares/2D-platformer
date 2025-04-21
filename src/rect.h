@@ -25,8 +25,11 @@ struct Rect2D {
     bool is_zero_sized() const;
     bool intersects(const Rect2D& other) const;
 
-    Rect2D scaled_by(float scale) const;
-    
+    Rect2D scaled_by(float scale) const {
+        return scaled_by(scale, scale);
+    }
+    Rect2D scaled_by(float x_scale, float y_scale) const;
+
     uint64_t vertex_data(std::vector<float>& vertex_buffer) const;
     uint64_t index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const;
 

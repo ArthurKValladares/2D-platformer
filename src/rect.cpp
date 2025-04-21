@@ -37,14 +37,11 @@ uint64_t Rect2D::index_data(uint32_t vertex_offset, std::vector<uint32_t>& index
 }
 
 bool Rect2D::intersects(const Rect2D& o) const {
-    if (abs(pos.x - o.pos.x) > (half_size.x + o.half_size.x)) return false;
-    if (abs(pos.y - o.pos.y) > (half_size.y + o.half_size.y)) return false;
+    if (abs(pos.x - o.pos.x) >= (half_size.x + o.half_size.x)) return false;
+    if (abs(pos.y - o.pos.y) >= (half_size.y + o.half_size.y)) return false;
     return true;
 }
 
-Rect2D Rect2D::scaled_by(float scale) const {
-    return Rect2D {
-        pos,
-        half_size * glm::vec2(scale)
-    };
+Rect2D Rect2D::scaled_by(float x_scale, float y_scale) const {
+    return Rect2D(pos,half_size * glm::vec2(2.0 * x_scale, 2.0 * y_scale));
 }
