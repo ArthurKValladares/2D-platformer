@@ -70,13 +70,14 @@ struct App {
         , window(Window())
         , renderer(window)
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
-        , map(MapLayout("assets/maps/test_map.map"))
-        , player_rect(Rect2D(glm::vec2(map.start.col * TILE_SIZE, map.start.row * TILE_SIZE), glm::vec2(PLAYER_SIZE, PLAYER_SIZE)))
+        , map_idx(0)
+        , maps({MapLayout("assets/maps/test_map.map"), MapLayout("assets/maps/test_map_2.map")})
+        , player_rect(Rect2D(glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE), glm::vec2(PLAYER_SIZE, PLAYER_SIZE)))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
         , camera(OrthographicCamera(
             player_rect.center(),
-            get_camera_size(map),
-            get_camera_size(map)
+            get_camera_size(maps[map_idx]),
+            get_camera_size(maps[map_idx])
         ))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
@@ -87,8 +88,8 @@ struct App {
         const Rect2D camera_rect = camera.get_rect();
 
         Renderable renderable;
-        const uint64_t max_row = map.tiles.size();
-        const uint64_t max_col = map.tiles[0].size();
+        const uint64_t max_row = maps[map_idx].tiles.size();
+        const uint64_t max_col = maps[map_idx].tiles[0].size();
         for (uint64_t row = 0; row < max_row; ++row) {
             for (uint64_t col = 0; col < max_col; ++col) {
                 const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
@@ -98,7 +99,7 @@ struct App {
                     if (rect.intersects(player_rect)) {
                         color = glm::vec3(1.0, 0.0, 1.0);
                     } else {
-                        color = tile_type_to_color(map.tiles[row][col]);
+                        color = tile_type_to_color(maps[map_idx].tiles[row][col]);
                     }
 
                     renderable.push_child(ColoredQuad(
@@ -139,6 +140,7 @@ struct App {
         if (keyboard_state.is_down(SDLK_D)){
             movement_vec.x += 1.0;
         }
+
         if (glm::length(movement_vec) > 0.0) {
             movement_vec = glm::normalize(movement_vec);
 
@@ -157,11 +159,11 @@ struct App {
             const uint64_t player_span_y = ceil(new_player_rect.half_size.y / TILE_SIZE);
 
             bool has_collided = false;
-            const uint64_t max_row = map.tiles.size();
-            const uint64_t max_col = map.tiles[0].size();
+            const uint64_t max_row = maps[map_idx].tiles.size();
+            const uint64_t max_col = maps[map_idx].tiles[0].size();
             for (int64_t row = std::max((int64_t) 0, (int64_t) curr_row - (int64_t) player_span_y); row <= std::min(max_row, curr_row + player_span_y); ++row) {
                 for (int64_t col = std::max((int64_t) 0, (int64_t) curr_col - (int64_t) player_span_x); col <= std::min(max_col, curr_col + player_span_x); ++col) {
-                    if (map.tiles[row][col] == TileType::Wall) {
+                    if (maps[map_idx].tiles[row][col] == TileType::Wall) {
                         const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
                         if (rect.intersects(new_player_rect)) {
                             has_collided = true;
@@ -174,6 +176,15 @@ struct App {
             if (!has_collided) {
                 player_rect= new_player_rect;
             }
+        }
+
+        // Check to see if game was won
+        const uint64_t curr_col = round(player_rect.pos.x / TILE_SIZE);
+        const uint64_t curr_row = round(player_rect.pos.y / TILE_SIZE);
+        if (maps[map_idx].tiles[curr_row][curr_col] == TileType::End) {
+            map_idx = (map_idx + 1) % maps.size();
+
+            player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
         }
 
         // Update camera
@@ -255,7 +266,8 @@ struct App {
     GlobalDescriptorSetData global_set_data;
     std::chrono::steady_clock::time_point last_frame;
 
-    MapLayout map;
+    uint64_t map_idx;
+    std::vector<MapLayout> maps;
 
     Rect2D player_rect;
     SpriteAnimation player_sprite;
