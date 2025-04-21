@@ -41,3 +41,10 @@ bool Rect2D::intersects(const Rect2D& o) const {
     if (abs(pos.y - o.pos.y) > (half_size.y + o.half_size.y)) return false;
     return true;
 }
+
+Rect2D Rect2D::scaled_by(float scale) const {
+    return Rect2D {
+        pos,
+        half_size * glm::vec2(scale)
+    };
+}
