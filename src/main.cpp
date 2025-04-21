@@ -110,6 +110,7 @@ struct App {
                 ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
                 ImGui::Text("Size X: %.3f", camera.size_x);
                 ImGui::Text("Size X: %.3f", camera.size_y);
+                ImGui::Text("Scale: %.3f", camera.scale);
 
                 ImGui::TreePop();
             }
