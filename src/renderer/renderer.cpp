@@ -551,12 +551,8 @@ void Renderer::wait_for_and_reset_curr_fence() {
     vkResetFences(device, 1, &fences[frame_idx]);
 }
 
-void Renderer::render(Window& window, std::vector<DrawCommand> draws, bool wait_for_fence) {
+void Renderer::render(Window& window, std::vector<DrawCommand> draws, double frame_dt) {
     const uint32_t frame_idx = get_frame_index();
-
-    if (wait_for_fence) {
-        wait_for_and_reset_curr_fence();
-    }
 
     vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, present_semaphores[frame_idx], VK_NULL_HANDLE, &image_index);
 
@@ -613,6 +609,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, bool wait_
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffers[frame_idx].raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffers[frame_idx].raw, 0, VK_INDEX_TYPE_UINT32);
 
+    uint32_t tris_drawn = 0;
     for (const DrawCommand& draw : draws) {
         const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id, draw.alpha_blending); 
         const Pipeline& pipeline = pipelines[pipeline_id];
@@ -660,16 +657,40 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, bool wait_
         }
 
         vkCmdDrawIndexed(cb, draw.index_count, 1, draw.first_index, 0, 0);
+        tris_drawn += draw.index_count / 3;
     }
 
     vkCmdEndRendering(cb);
 
     //
-    // Imgui move later
+    // Imgui
     //
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+    ImGui::Begin("Debug Data");
+    {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::TreeNode("Engine Data")) {
+            const uint32_t fps = 1.0 / frame_dt;
+            ImGui::Text("Frame dt %.3f ms (%u FPS)", frame_dt * 1000, fps);
+            ImGui::Text("Triangles drawn: %u", tris_drawn);
+
+            ImGui::TreePop();
+        }
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::TreeNode("App Data") && imgui_fn) {
+            imgui_fn();
+
+            ImGui::TreePop();
+        }
+    }
+    ImGui::End();
+    ImGui::Render();
+
     color_attachment_info = initializers::rendering_attachment_info(render_image_view, VK_IMAGE_LAYOUT_GENERAL, swapchain_image_views[image_index]);
 	rendering_info = initializers::rendering_info(window_extent, &color_attachment_info);
-
     vkCmdBeginRendering(cb, &rendering_info);
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
     vkCmdEndRendering(cb);
@@ -778,31 +799,4 @@ Buffer& Renderer::get_buffer(BufferID id) {
 
 void Renderer::process_sdl_event(const SDL_Event* e) {
     ImGui_ImplSDL3_ProcessEvent(e);
-}
-
-void Renderer::setup_imgui_draw(const ImguiData& data) {
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-
-    ImGui::NewFrame();
-
-    ImGui::Begin("Debug Data");
-    
-    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-    if (ImGui::TreeNode("Engine Data")) {
-        const uint32_t fps = 1.0 / data.frame_dt;
-        ImGui::Text("Frame dt %.3f ms (%u FPS)", data.frame_dt * 1000, fps);
-
-        ImGui::TreePop();
-    }
-
-    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-    if (ImGui::TreeNode("App Data") && imgui_fn) {
-        imgui_fn(data);
-
-        ImGui::TreePop();
-    }
-
-    ImGui::End();
-    ImGui::Render();
 }

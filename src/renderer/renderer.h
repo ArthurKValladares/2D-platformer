@@ -15,10 +15,6 @@
 #include "purgatory.h"
 #include "tools.h"
 
-struct ImguiData {
-    double frame_dt;
-};
-
 struct Window;
 struct Renderer {
     Renderer(Window& window);
@@ -87,7 +83,7 @@ struct Renderer {
     //
     void resize_swapchain(Window& window);
     void wait_for_and_reset_curr_fence();
-    void render(Window& window, std::vector<DrawCommand> draws, bool wait_for_fence = true);
+    void render(Window& window, std::vector<DrawCommand> draws, double frame_dt);
 
     //
     // Command Submission
@@ -98,8 +94,7 @@ struct Renderer {
     //
     // imgui
     //
-    void setup_imgui_draw(const ImguiData& data);
-    void set_imgui_fn(std::function<void(const ImguiData& data)> fn) {
+    void set_imgui_fn(std::function<void()> fn) {
         imgui_fn = fn;
     }
 
@@ -156,7 +151,7 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     VkDescriptorPool imgui_descriptor_pool = VK_NULL_HANDLE;
-    std::function<void(const ImguiData& data)> imgui_fn;
+    std::function<void()> imgui_fn;
 
     std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;

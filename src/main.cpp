@@ -121,7 +121,7 @@ struct App {
 
     void update(const KeyboardState& keyboard_state, double total_elapse_seconds, double frame_dt) {
         // Update player movement
-        constexpr float displacement_per_second = 2.0;
+        constexpr float displacement_per_second = 5.0;
         glm::vec2 movement_vec{0.0, 0.0};
         if (keyboard_state.is_down(SDLK_A)) {
             movement_vec.x -= 1.0;
@@ -185,7 +185,7 @@ struct App {
         camera.center = player_rect.center();
 
         // Setup imgui
-        renderer.set_imgui_fn([&camera = this->camera](const ImguiData& data) {
+        renderer.set_imgui_fn([&camera = this->camera]() {
             if (ImGui::TreeNode("Camera")) {
                 ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
                 ImGui::Text("Size X: %.3f", camera.size_x);
@@ -201,16 +201,12 @@ struct App {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        renderer.setup_imgui_draw(ImguiData{
-            .frame_dt = frame_dt
-        });
-
         Renderable curr_renderable = build_root_renderable(keyboard_state, total_elapse_seconds, frame_dt);
         ViewDrawData data = curr_renderable.get_draw_data(&renderer);
         renderer.wait_for_and_reset_curr_fence();
         data.upload_vertex_index_data(&renderer);
 
-        renderer.render(window, data.draws, false);
+        renderer.render(window, data.draws, frame_dt);
     }
 
     void render_loop() {
