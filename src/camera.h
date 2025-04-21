@@ -6,6 +6,7 @@
 #include <glm/mat4x4.hpp>
 
 #include "keyboard_state.h"
+#include "rect.h"
 
 struct OrthographicCamera {
     OrthographicCamera() {}
@@ -15,6 +16,13 @@ struct OrthographicCamera {
         , scale(scale)
         , center(pos)
     {}
+
+    glm::vec2 get_size() const {
+        return glm::vec2(scale * size_x, scale * size_y);
+    }
+    Rect2D get_rect() const {
+        return Rect2D(center, get_size());
+    }
 
     glm::mat4 get_proj_matrix() const;
 
