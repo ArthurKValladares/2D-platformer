@@ -90,7 +90,6 @@ struct App {
             glm::vec3(0.05)
         ))
         , map(MapLayout("assets/maps/test_map.map"))
-        , camera_scale(1.0)
         , camera(OrthographicCamera(
             // NOTE: we need to offset the start by hald a tile since its center is at (0,0), not its mins
             glm::vec2(get_camera_size(map) / 2.0, map.tiles.size() / 2.0) - glm::vec2(TILE_SIZE / 2.0, TILE_SIZE / 2.0),
@@ -219,19 +218,14 @@ struct App {
                 quit = true;
             }
 
-            /*
             constexpr float camera_zoom_vel = 0.5;
             if (keyboard_state.is_down(SDLK_E)) {
-                camera_scale += camera_zoom_vel * frame_dt.count();
+                camera.scale += camera_zoom_vel * frame_dt.count();
             }
             if (keyboard_state.is_down(SDLK_Q)) {
-                camera_scale -= camera_zoom_vel * frame_dt.count();
-                camera_scale = std::max(0.1f, camera_scale);
+                camera.scale -= camera_zoom_vel * frame_dt.count();
+                camera.scale = std::max(0.1f, camera.scale);
             }
-            const float camera_size = exp(camera_scale) * 0.125;
-            camera.size_x = camera_size;
-            camera.size_y = camera_size;
-            */
 
             render(elapsed_seconds.count(), frame_dt.count());
         }
@@ -252,7 +246,6 @@ struct App {
 
     MapLayout map;
 
-    float camera_scale;
     OrthographicCamera camera;
 };
 

@@ -14,9 +14,10 @@ struct CameraUpdateData {
 
 struct OrthographicCamera {
     OrthographicCamera() {}
-    OrthographicCamera(glm::vec2 pos, float size_x, float size_y)
+    OrthographicCamera(glm::vec2 pos, float size_x, float size_y, float scale = 1.0)
         : size_x(size_x)
         , size_y(size_y)
+        , scale(scale)
         , center(pos)
     {}
 
@@ -26,5 +27,6 @@ struct OrthographicCamera {
 
     float size_x;
     float size_y;
+    float scale;
     glm::vec2 center;
 };
