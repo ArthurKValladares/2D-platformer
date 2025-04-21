@@ -289,6 +289,10 @@ Renderer::Renderer(Window& window) {
 	// Initialize Imgui library
 	ImGui::CreateContext();
 
+    const float scale = SDL_GetWindowDisplayScale(window.raw);
+    ImGui::GetStyle().ScaleAllSizes(scale);
+    ImGui::GetIO().FontGlobalScale = scale;
+
 	ImGui_ImplSDL3_InitForVulkan(window.raw);
 
 	ImGui_ImplVulkan_InitInfo vulkan_init_info = {};
@@ -781,8 +785,22 @@ void Renderer::setup_imgui_draw(const ImguiData& data) {
     ImGui_ImplSDL3_NewFrame();
 
     ImGui::NewFrame();
-    if (imgui_fn) {
+
+    ImGui::Begin("Debug Data");
+    
+    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::TreeNode("Engine Data")) {
+        const uint32_t fps = 1.0 / data.frame_dt;
+        ImGui::Text("Frame dt %.3f ms (%u FPS)", data.frame_dt * 1000, fps);
+
+        ImGui::TreePop();
+    }
+
+    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::TreeNode("App Data") && imgui_fn) {
         imgui_fn(data);
+
+        ImGui::TreePop();
     }
 
     ImGui::End();

@@ -170,12 +170,6 @@ struct App {
 
         // Setup imgui
         renderer.set_imgui_fn([&camera = this->camera](const ImguiData& data) {
-            ImGui::Begin("Imgui Test");
-
-            // TODO: This should be engine-side
-            const uint32_t fps = 1.0 / data.frame_dt;
-            ImGui::Text("Frame dt %.3f ms (%u FPS)", data.frame_dt * 1000, fps);        
-
             if (ImGui::TreeNode("Camera")) {
                 ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
                 ImGui::Text("Size X: %.3f", camera.size_x);

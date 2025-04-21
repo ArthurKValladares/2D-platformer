@@ -4,8 +4,8 @@
 
 #include <SDL3/SDL_vulkan.h>
 
-constexpr int SCREEN_WIDTH = 1200;
-constexpr int SCREEN_HEIGHT = 800;
+constexpr int SCREEN_WIDTH = 1600;
+constexpr int SCREEN_HEIGHT = 1200;
 
 Window::Window() {
     chk_sdl(SDL_Init(SDL_INIT_VIDEO));
