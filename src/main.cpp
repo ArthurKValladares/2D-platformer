@@ -84,7 +84,7 @@ struct App {
     }
 
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
-        const Rect2D window_rect = camera.get_rect();
+        const Rect2D camera_rect = camera.get_rect();
 
         Renderable renderable;
         const uint64_t max_row = map.tiles.size();
@@ -93,7 +93,7 @@ struct App {
             for (uint64_t col = 0; col < max_col; ++col) {
                 const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
 
-                if (rect.intersects(window_rect)) {
+                if (rect.intersects(camera_rect)) {
                     glm::vec3 color;
                     if (rect.intersects(player_rect)) {
                         color = glm::vec3(1.0, 0.0, 1.0);
