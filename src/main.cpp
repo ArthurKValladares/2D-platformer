@@ -98,22 +98,6 @@ struct App {
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
-
-        renderer.set_imgui_fn([&camera = this->camera](const ImguiData& data) {
-            ImGui::Begin("Imgui Test");
-
-            const uint32_t fps = 1.0 / data.frame_dt;
-            ImGui::Text("Frame dt %.3f ms (%u FPS)", data.frame_dt * 1000, fps);        
-
-            if (ImGui::TreeNode("Camera")) {
-                ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
-                ImGui::Text("Size X: %.3f", camera.size_x);
-                ImGui::Text("Size X: %.3f", camera.size_y);
-                ImGui::Text("Scale: %.3f", camera.scale);
-
-                ImGui::TreePop();
-            }
-        });
     }
 
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
@@ -135,8 +119,22 @@ struct App {
             }
         }
 
+        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
+
+        renderable.push_child(MovingQuad(
+            &renderer,
+            player_rect,
+            glm::vec2(0.0, 0.0),
+            player_sprite.texture_at(total_elapsed_seconds),
+            global_set_data.buffer_id
+        ));
+       
+        return renderable;
+    }
+
+    void update(const KeyboardState& keyboard_state, double total_elapse_seconds, double frame_dt) {
         // Update player movement
-        constexpr float displacement_per_second = 0.5;
+        constexpr float displacement_per_second = 2.0;
         glm::vec2 movement_vec{0.0, 0.0};
         if (keyboard_state.is_down(SDLK_A)) {
             movement_vec.x -= 1.0;
@@ -158,21 +156,35 @@ struct App {
             player_rect.pos += displacement_vec;
         }
 
-        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
+        // Update camera
+        constexpr float camera_zoom_vel = 0.5;
+        if (keyboard_state.is_down(SDLK_E)) {
+            camera.scale += camera_zoom_vel * frame_dt;
+        }
+        if (keyboard_state.is_down(SDLK_Q)) {
+            camera.scale -= camera_zoom_vel * frame_dt;
+            camera.scale = std::max(0.1f, camera.scale);
+        }
 
-        renderable.push_child(MovingQuad(
-            &renderer,
-            player_rect,
-            glm::vec2(0.0, 0.0),
-            player_sprite.texture_at(total_elapsed_seconds),
-            global_set_data.buffer_id
-        ));
-       
-        return renderable;
-    }
-
-    void update(double total_elapse_seconds, double frame_dt) {
         camera.center = player_rect.center();
+
+        // Setup imgui
+        renderer.set_imgui_fn([&camera = this->camera](const ImguiData& data) {
+            ImGui::Begin("Imgui Test");
+
+            // TODO: This should be engine-side
+            const uint32_t fps = 1.0 / data.frame_dt;
+            ImGui::Text("Frame dt %.3f ms (%u FPS)", data.frame_dt * 1000, fps);        
+
+            if (ImGui::TreeNode("Camera")) {
+                ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
+                ImGui::Text("Size X: %.3f", camera.size_x);
+                ImGui::Text("Size X: %.3f", camera.size_y);
+                ImGui::Text("Scale: %.3f", camera.scale);
+
+                ImGui::TreePop();
+            }
+        });
     }
 
     void render(double total_elapse_seconds, double frame_dt) {
@@ -219,18 +231,9 @@ struct App {
                 quit = true;
             }
 
-            constexpr float camera_zoom_vel = 0.5;
-            if (keyboard_state.is_down(SDLK_E)) {
-                camera.scale += camera_zoom_vel * frame_dt.count();
-            }
-            if (keyboard_state.is_down(SDLK_Q)) {
-                camera.scale -= camera_zoom_vel * frame_dt.count();
-                camera.scale = std::max(0.1f, camera.scale);
-            }
-
             const double elapsed_secounds_count = elapsed_seconds.count();
             const double frame_dt_count = frame_dt.count();
-            update(elapsed_secounds_count, frame_dt_count);
+            update(keyboard_state, elapsed_secounds_count, frame_dt_count);
             render(elapsed_secounds_count, frame_dt_count);
         }
     }
