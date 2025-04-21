@@ -23,30 +23,3 @@ glm::mat4 OrthographicCamera::get_proj_matrix() const
     );
     return proj;
 }
-
-void OrthographicCamera::update(const CameraUpdateData& data) {
-    constexpr float displacement_per_second = 1.5;
-
-    glm::vec2 movement_vec{0.0, 0.0};
-    if (data.keyboard_state.is_down(SDLK_LEFT)) {
-        movement_vec.x -= 1.0;
-    }
-    if (data.keyboard_state.is_down(SDLK_UP)){
-        movement_vec.y += 1.0;
-    }
-    if (data.keyboard_state.is_down(SDLK_DOWN)){
-        movement_vec.y -= 1.0;
-    }
-    if (data.keyboard_state.is_down(SDLK_RIGHT)){
-        movement_vec.x += 1.0;
-    }
-
-    if (glm::length(movement_vec) > 0.0) {
-        movement_vec = glm::normalize(movement_vec);
-
-        const float displacement = displacement_per_second * data.frame_dt;
-        const glm::vec2 displacement_vec = movement_vec * displacement;
-        center.x += displacement_vec.x;
-        center.y += displacement_vec.y;
-    }
-}

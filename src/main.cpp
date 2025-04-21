@@ -68,8 +68,6 @@ struct App {
         , window(Window())
         , renderer(window)
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
-        , player_rect(Rect2D(glm::vec2(0.0f, 0.0f), glm::vec2(1.0, 1.0)))
-        , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
         , emitter(ParticleEmitter(
             0.0,
             glm::vec2(0.0),
@@ -90,9 +88,10 @@ struct App {
             glm::vec3(0.05)
         ))
         , map(MapLayout("assets/maps/test_map.map"))
+        , player_rect(Rect2D(glm::vec2(map.start.col * TILE_SIZE, map.start.row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE)))
+        , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
         , camera(OrthographicCamera(
-            // NOTE: we need to offset the start by hald a tile since its center is at (0,0), not its mins
-            glm::vec2(get_camera_size(map) / 2.0, map.tiles.size() / 2.0) - glm::vec2(TILE_SIZE / 2.0, TILE_SIZE / 2.0),
+            player_rect.center(),
             get_camera_size(map),
             get_camera_size(map)
         ))
@@ -119,10 +118,12 @@ struct App {
 
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
-        for (uint64_t r = 0; r < map.tiles.size(); ++r) {
-            for (uint64_t c = 0; c < map.tiles[r].size(); ++c) {
-                const Rect2D rect = Rect2D(glm::vec2(c * TILE_SIZE, r * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
-                glm::vec3 color = tile_type_to_color(map.tiles[r][c]);
+        const uint64_t max_row = map.tiles.size();
+        const uint64_t max_col = map.tiles[0].size();
+        for (uint64_t row = 0; row < max_row; ++row) {
+            for (uint64_t col = 0; col < max_col; ++col) {
+                const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+                glm::vec3 color = tile_type_to_color(map.tiles[row][col]);
 
                 renderable.push_child(ColoredQuad(
                     &renderer,
@@ -170,12 +171,11 @@ struct App {
         return renderable;
     }
 
-    void render(double total_elapse_seconds, double frame_dt) {
-        camera.update(CameraUpdateData{
-            .frame_dt = frame_dt,
-            .keyboard_state = keyboard_state,
-        });
+    void update(double total_elapse_seconds, double frame_dt) {
+        camera.center = player_rect.center();
+    }
 
+    void render(double total_elapse_seconds, double frame_dt) {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
@@ -228,7 +228,10 @@ struct App {
                 camera.scale = std::max(0.1f, camera.scale);
             }
 
-            render(elapsed_seconds.count(), frame_dt.count());
+            const double elapsed_secounds_count = elapsed_seconds.count();
+            const double frame_dt_count = frame_dt.count();
+            update(elapsed_secounds_count, frame_dt_count);
+            render(elapsed_secounds_count, frame_dt_count);
         }
     }
 
@@ -239,13 +242,12 @@ struct App {
     GlobalDescriptorSetData global_set_data;
     std::chrono::steady_clock::time_point last_frame;
 
-    // Level stuff, bad and temp
-    Rect2D player_rect;
-    SpriteAnimation player_sprite;
-
     ParticleEmitter emitter;
 
     MapLayout map;
+
+    Rect2D player_rect;
+    SpriteAnimation player_sprite;
 
     OrthographicCamera camera;
 };

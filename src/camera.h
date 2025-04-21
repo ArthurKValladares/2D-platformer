@@ -7,11 +7,6 @@
 
 #include "keyboard_state.h"
 
-struct CameraUpdateData {
-    double frame_dt;
-    const KeyboardState& keyboard_state;
-};
-
 struct OrthographicCamera {
     OrthographicCamera() {}
     OrthographicCamera(glm::vec2 pos, float size_x, float size_y, float scale = 1.0)
@@ -22,8 +17,6 @@ struct OrthographicCamera {
     {}
 
     glm::mat4 get_proj_matrix() const;
-
-    void update(const CameraUpdateData& data);
 
     float size_x;
     float size_y;

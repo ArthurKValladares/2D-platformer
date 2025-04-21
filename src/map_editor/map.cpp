@@ -53,6 +53,12 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
         ++row;
     }
 
+    assert((row > 0 && num_cols > 0) && "Map must have at least one tile");
     assert((start.row != -1 && start.col != -1) && "Map must have a start.");
     assert((end.row != -1 && end.col != -1) && "Map must have a end.");
+
+    //  Reverse the map so that it matches the human-readable format, maybe not necessary later
+    std::reverse(tiles.begin(), tiles.end());   
+    start.row = row - 1 - start.row;
+    end.row = row - 1 - end.row;
 }
