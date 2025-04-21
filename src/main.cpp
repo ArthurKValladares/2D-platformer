@@ -107,7 +107,12 @@ struct App {
         for (uint64_t row = 0; row < max_row; ++row) {
             for (uint64_t col = 0; col < max_col; ++col) {
                 const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
-                glm::vec3 color = tile_type_to_color(map.tiles[row][col]);
+                glm::vec3 color;
+                if (rect.intersects(player_rect)) {
+                    color = glm::vec3(1.0, 0.0, 1.0);
+                } else {
+                    color = tile_type_to_color(map.tiles[row][col]);
+                }
 
                 renderable.push_child(ColoredQuad(
                     &renderer,

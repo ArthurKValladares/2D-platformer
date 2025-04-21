@@ -88,6 +88,7 @@
         "xloctime": "cpp",
         "xmemory": "cpp",
         "xtr1common": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "print": "cpp"
     }
 }

@@ -6,22 +6,19 @@
 #include <glm/gtx/norm.hpp> 
 
 bool Rect2D::is_zero_sized() const {
-    return glm::length2(size) == 0.;
+    return glm::length2(half_size) == 0.;
 }
 
 uint64_t Rect2D::vertex_data(std::vector<float>& vertex_buffer) const {
-    const float half_size_x = size.x / 2.0;
-    const float half_size_y = size.y / 2.0;
-
     const float mid_x = pos.x;
     const float mid_y = pos.y;
 
     const float quad_vertices[] = {
         // Pos                                    // Color
-        mid_x - half_size_x, mid_y - half_size_y, 0.0f, 0.0f, 1.0f, 0.0f,
-        mid_x + half_size_x, mid_y + half_size_y, 0.0f, 1.0f, 0.0f, 0.0f,
-        mid_x - half_size_x, mid_y + half_size_y, 0.0f, 0.0f, 0.0f, 0.0f,
-        mid_x + half_size_x, mid_y - half_size_y, 0.0f, 1.0f, 1.0f, 0.0f,
+        mid_x - half_size.x, mid_y - half_size.y, 0.0f, 0.0f, 1.0f, 0.0f,
+        mid_x + half_size.x, mid_y + half_size.y, 0.0f, 1.0f, 0.0f, 0.0f,
+        mid_x - half_size.x, mid_y + half_size.y, 0.0f, 0.0f, 0.0f, 0.0f,
+        mid_x + half_size.x, mid_y - half_size.y, 0.0f, 1.0f, 1.0f, 0.0f,
    };
 
    std::move(&quad_vertices[0], &quad_vertices[ArrayCount(quad_vertices)], back_inserter(vertex_buffer));
@@ -37,4 +34,10 @@ uint64_t Rect2D::index_data(uint32_t vertex_offset, std::vector<uint32_t>& index
     std::move(&quad_indices[0], &quad_indices[ArrayCount(quad_indices)], back_inserter(index_buffer));
 
     return ArrayCount(quad_indices);
+}
+
+bool Rect2D::intersects(const Rect2D& o) const {
+    if (abs(pos.x - o.pos.x) > (half_size.x + o.half_size.x)) return false;
+    if (abs(pos.y - o.pos.y) > (half_size.y + o.half_size.y)) return false;
+    return true;
 }
