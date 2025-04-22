@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "animatable.h"
 #include "particles.h"
+#include "collision_grid.h"
 
 #include "renderables/includes.h"
 
@@ -72,6 +73,7 @@ struct App {
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
         , map_idx(0)
         , maps({MapLayout("assets/maps/test_map.map"), MapLayout("assets/maps/test_map_2.map")})
+        , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
         , player_rect(Rect2D(glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE), glm::vec2(PLAYER_SIZE, PLAYER_SIZE)))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
         , camera(OrthographicCamera(
@@ -82,6 +84,15 @@ struct App {
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
+
+        const uint64_t max_row = maps[map_idx].tiles.size();
+        const uint64_t max_col = maps[map_idx].tiles[0].size();
+        for (uint64_t row = 0; row < max_row; ++row) {
+            for (uint64_t col = 0; col < max_col; ++col) {
+                const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+                collision_grid.insert_rect(rect);
+            }
+        }
     }
 
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
@@ -95,12 +106,7 @@ struct App {
                 const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
 
                 if (rect.intersects(camera_rect)) {
-                    glm::vec3 color;
-                    if (rect.intersects(player_rect)) {
-                        color = glm::vec3(1.0, 0.0, 1.0);
-                    } else {
-                        color = tile_type_to_color(maps[map_idx].tiles[row][col]);
-                    }
+                    glm::vec3 color = tile_type_to_color(maps[map_idx].tiles[row][col]);
 
                     renderable.push_child(ColoredQuad(
                         &renderer,
@@ -111,6 +117,17 @@ struct App {
                     ));
                 }
             }
+        }
+
+        // TODO: Temp for debugging
+        for (Rect2D rect : collision_grid.get_collisions(player_rect)) {
+            renderable.push_child(ColoredQuad(
+                &renderer,
+                rect.scaled_by(0.5),
+                TextureSource::Test1,
+                glm::vec3(1.0, 0.0, 1.0),
+                global_set_data.buffer_id
+            ));
         }
 
         renderable.push_child(MovingQuad(
@@ -179,6 +196,7 @@ struct App {
         }
 
         // Check to see if game was won
+        // TODO: Will just be a collision check soon
         const uint64_t curr_col = round(player_rect.pos.x / TILE_SIZE);
         const uint64_t curr_row = round(player_rect.pos.y / TILE_SIZE);
         if (maps[map_idx].tiles[curr_row][curr_col] == TileType::End) {
@@ -268,6 +286,8 @@ struct App {
 
     uint64_t map_idx;
     std::vector<MapLayout> maps;
+
+    CollisionGrid collision_grid;
 
     Rect2D player_rect;
     SpriteAnimation player_sprite;

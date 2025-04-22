@@ -38,6 +38,7 @@ add_executable(${PROJECT_NAME}
   src/util.cpp
   src/image.cpp
   src/camera.cpp
+  src/collision_grid.cpp
   src/main.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project

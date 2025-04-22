@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <functional>
 
+#include "../hash.h"
+
 #define CREATE_ID(NAME)\
 struct NAME ## ID {\
     NAME ## ID() {}\
@@ -49,18 +51,6 @@ struct PipelineID {
     ShaderID fragment;
     bool uses_alpha_blending;
 };
-
-template<typename T>
-std::size_t make_hash(const T& v)
-{
-    return std::hash<T>()(v);
-}
-
-// adapted from boost::hash_combine
-inline void hash_combine(std::size_t& h, const std::size_t& v)
-{
-    h ^= v + 0x9e3779b9 + (h << 6) + (h >> 2);
-}
 
 namespace std
 {
