@@ -5,6 +5,8 @@
 
 #include "rect.h"
 #include "hash.h"
+// TODO: bad
+#include "map_editor/tile_types.h"
 
 struct Cell {
     int32_t row;
@@ -29,19 +31,22 @@ namespace std
     };
 }
 
+// TODO: This is bad, i need a better way to handle needing to know **what** I hit
+struct GridItem {
+    Rect2D rect;
+    TileType ty;
+};
+
 struct CollisionGrid {
     CollisionGrid(float cell_size_x, float cell_size_y)
         : cell_size_x(cell_size_x)
         , cell_size_y(cell_size_y)
     {}
 
-    void insert_rect(Rect2D rect);
-    std::vector<Rect2D> get_collisions(Rect2D rect) const;
+    void insert_rect(Rect2D rect, TileType ty);
+    std::vector<GridItem> get_collisions(Rect2D rect) const;
 
-    // TODO: right now just storing the collision rect is not enough,
-    // I need to also know what object it corresponds to.
-    // Or maybe have some sort of callback for when the collision happens
-    std::unordered_map<Cell, std::vector<Rect2D>> cells;
+    std::unordered_map<Cell, std::vector<GridItem>> cells;
     float cell_size_x;
     float cell_size_y;
 };

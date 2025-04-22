@@ -85,12 +85,21 @@ struct App {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
 
+        setup_collision_grid();
+    }
+
+    void setup_collision_grid() {
+        collision_grid.cells.clear();
+
         const uint64_t max_row = maps[map_idx].tiles.size();
         const uint64_t max_col = maps[map_idx].tiles[0].size();
         for (uint64_t row = 0; row < max_row; ++row) {
             for (uint64_t col = 0; col < max_col; ++col) {
+                const TileType ty = maps[map_idx].tiles[row][col];
                 const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
-                collision_grid.insert_rect(rect);
+                if (ty != TileType::Path) {
+                    collision_grid.insert_rect(rect, ty);
+                }
             }
         }
     }
@@ -117,17 +126,6 @@ struct App {
                     ));
                 }
             }
-        }
-
-        // TODO: Temp for debugging
-        for (Rect2D rect : collision_grid.get_collisions(player_rect)) {
-            renderable.push_child(ColoredQuad(
-                &renderer,
-                rect.scaled_by(0.5),
-                TextureSource::Test1,
-                glm::vec3(1.0, 0.0, 1.0),
-                global_set_data.buffer_id
-            ));
         }
 
         renderable.push_child(MovingQuad(
@@ -167,42 +165,26 @@ struct App {
             Rect2D new_player_rect = player_rect;
             new_player_rect.pos = player_rect.pos + displacement_vec;
 
-            // Test collision to see if movement is allowed
-            // TODO: A hierarcy for this
-            const uint64_t curr_col = new_player_rect.pos.x / TILE_SIZE;
-            const uint64_t curr_row = new_player_rect.pos.y / TILE_SIZE;
+            const std::vector<GridItem> collisions = collision_grid.get_collisions(new_player_rect);
 
-            const uint64_t player_span_x = ceil(new_player_rect.half_size.x / TILE_SIZE);
-            const uint64_t player_span_y = ceil(new_player_rect.half_size.y / TILE_SIZE);
-
-            bool has_collided = false;
-            const uint64_t max_row = maps[map_idx].tiles.size();
-            const uint64_t max_col = maps[map_idx].tiles[0].size();
-            for (int64_t row = std::max((int64_t) 0, (int64_t) curr_row - (int64_t) player_span_y); row <= std::min(max_row, curr_row + player_span_y); ++row) {
-                for (int64_t col = std::max((int64_t) 0, (int64_t) curr_col - (int64_t) player_span_x); col <= std::min(max_col, curr_col + player_span_x); ++col) {
-                    if (maps[map_idx].tiles[row][col] == TileType::Wall) {
-                        const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
-                        if (rect.intersects(new_player_rect)) {
-                            has_collided = true;
-                        }
-                    }
+            bool hit_wall = false;
+            bool has_won = false;
+            for (const GridItem& item : collisions) {
+                if (item.ty == TileType::End) {
+                    has_won = true;
+                } else if (item.ty == TileType::Wall) {
+                    hit_wall = true;
                 }
             }
 
-            // TODO: Also instead of not setting the position at all, need to see how much I can move before collision
-            if (!has_collided) {
-                player_rect= new_player_rect;
+            if (has_won) {
+                map_idx = (map_idx + 1) % maps.size();
+                setup_collision_grid();
+
+                player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
+            } else if (!hit_wall) {
+                player_rect = new_player_rect;
             }
-        }
-
-        // Check to see if game was won
-        // TODO: Will just be a collision check soon
-        const uint64_t curr_col = round(player_rect.pos.x / TILE_SIZE);
-        const uint64_t curr_row = round(player_rect.pos.y / TILE_SIZE);
-        if (maps[map_idx].tiles[curr_row][curr_col] == TileType::End) {
-            map_idx = (map_idx + 1) % maps.size();
-
-            player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
         }
 
         // Update camera
