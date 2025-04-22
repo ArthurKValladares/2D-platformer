@@ -22,6 +22,20 @@ struct Rect2D {
         return half_size * glm::vec2(2.0);
     }
 
+    float min_x() const {
+        return pos.x - half_size.x;
+    }
+    float max_x() const {
+        return pos.x + half_size.x;
+    }
+
+    float min_y() const {
+        return pos.y - half_size.y;
+    }
+    float max_y() const {
+        return pos.y + half_size.y;
+    }
+
     bool is_zero_sized() const;
     bool intersects(const Rect2D& other) const;
 
@@ -29,6 +43,8 @@ struct Rect2D {
         return scaled_by(scale, scale);
     }
     Rect2D scaled_by(float x_scale, float y_scale) const;
+
+    Rect2D merge(Rect2D other) const;
 
     uint64_t vertex_data(std::vector<float>& vertex_buffer) const;
     uint64_t index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const;
