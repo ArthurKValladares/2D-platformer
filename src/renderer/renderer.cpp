@@ -609,14 +609,18 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
     vkCmdBindVertexBuffers(cb, 0, 1, &v_buffers[frame_idx].raw, &v_offset);
     vkCmdBindIndexBuffer(cb, i_buffers[frame_idx].raw, 0, VK_INDEX_TYPE_UINT32);
 
+    uint32_t draw_calls = 0;
     uint32_t tris_drawn = 0;
+    uint32_t pipelines_bound = 0;
+    uint32_t descriptor_sets_bound = 0;
     for (const DrawCommand& draw : draws) {
         const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id, draw.alpha_blending); 
         const Pipeline& pipeline = pipelines[pipeline_id];
         const VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
 
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
-        
+        ++pipelines_bound;
+
         // descriptors
         std::vector<VkDescriptorSet> bind_sets = {};
         for (const DescriptorSetID& set_id : draw.set_ids) {
@@ -624,6 +628,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
         }
         if (!bind_sets.empty()) {
             vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, bind_sets.size(), bind_sets.data(), 0, nullptr);
+            ++descriptor_sets_bound;
         }
 
         // Push descriptors
@@ -657,6 +662,7 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
         }
 
         vkCmdDrawIndexed(cb, draw.index_count, 1, draw.first_index, 0, 0);
+        ++draw_calls;
         tris_drawn += draw.index_count / 3;
     }
 
@@ -674,8 +680,11 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
         if (ImGui::TreeNode("Engine Data")) {
             const uint32_t fps = 1.0 / frame_dt;
             ImGui::Text("Frame dt %.3f ms (%u FPS)", frame_dt * 1000, fps);
+            ImGui::Text("Draw calls: %u", draw_calls);
             ImGui::Text("Triangles drawn: %u", tris_drawn);
-
+            ImGui::Text("Pipelines bound: %u", pipelines_bound);
+            ImGui::Text("DescriptorSets bound: %u", descriptor_sets_bound);
+            
             ImGui::TreePop();
         }
 
