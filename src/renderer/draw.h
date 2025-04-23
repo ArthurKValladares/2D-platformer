@@ -1,11 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <array>
 
 #include <vulkan/vulkan.h>
 
 #include "resource_ids.h"
 #include "buffer.h"
+#include "shader.h"
 
 struct PushDescriptorSetData {
     uint32_t binding;
@@ -29,7 +31,7 @@ struct DrawCommand {
     uint32_t index_count;
     uint32_t first_index;
     // regular sets
-    std::vector<DescriptorSetID> set_ids;
+    std::array<DescriptorSetID, MAX_NUM_DESCRIPTOR_SETS> set_ids;
     // push sets
     uint32_t push_set_idx;
     std::vector<PushDescriptorSetData> push_set_data;

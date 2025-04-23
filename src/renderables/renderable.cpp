@@ -48,10 +48,12 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const 
             }
         }
 
+        //  TODO: Test this again with 2 sets and one push set, I don't think its correct
         // Descriptor Sets
-        dc.set_ids.push_back(DescriptorSetID(GLOBAL_DESCRIPTOR_SET_IDX));
+        dc.set_ids = invalid_descriptor_set_ids();
+        dc.set_ids[GLOBAL_DESCRIPTOR_SET_IDX] = data.global_set_id;
         std::vector<DescriptorSetLayoutID> layout_ids = {
-            DescriptorSetLayoutID(GLOBAL_DESCRIPTOR_SET_IDX)
+            data.global_layout_id
         };
         const uint32_t max_set = std::max(vert_data.max_descriptor_set(), frag_data.max_descriptor_set());
         for (uint32_t layout_idx = GLOBAL_DESCRIPTOR_SET_IDX + 1; layout_idx <= max_set; ++layout_idx) {
@@ -72,8 +74,12 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const 
     }
 }
 
-ViewDrawData Renderable::get_draw_data(Renderer* renderer) {
-    ViewDrawData data = {};
+ViewDrawData Renderable::get_draw_data(Renderer* renderer, DescriptorSetLayoutID global_layout_id, DescriptorSetID global_set_id) {
+    ViewDrawData data = {
+        .global_layout_id = global_layout_id,
+        .global_set_id = global_set_id
+    };
+
     append_draw_data(renderer, data);
 
     return data;

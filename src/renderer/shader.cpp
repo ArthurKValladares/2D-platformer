@@ -16,6 +16,15 @@ namespace {
     }
 };
 
+std::array<DescriptorSetID, MAX_NUM_DESCRIPTOR_SETS> invalid_descriptor_set_ids() {
+    return {
+        DescriptorSetID::InvalidID(),
+        DescriptorSetID::InvalidID(),
+        DescriptorSetID::InvalidID(),
+        DescriptorSetID::InvalidID()
+    };
+}
+
 ShaderData::ShaderData(VkDevice device, size_t size, const void* p_code) {
     VkShaderModuleCreateInfo shader_module_ci = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,

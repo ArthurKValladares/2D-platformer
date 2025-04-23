@@ -612,23 +612,29 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
     uint32_t draw_calls = 0;
     uint32_t tris_drawn = 0;
     uint32_t pipelines_bound = 0;
+    VkPipeline prev_pipeline = VK_NULL_HANDLE;
     uint32_t descriptor_sets_bound = 0;
+    std::array<DescriptorSetID, MAX_NUM_DESCRIPTOR_SETS> bound_sets = invalid_descriptor_set_ids();
     for (const DrawCommand& draw : draws) {
         const PipelineID pipeline_id(draw.vertex_id, draw.fragment_id, draw.alpha_blending); 
         const Pipeline& pipeline = pipelines[pipeline_id];
         const VkPipelineLayout& pipeline_layout = pipeline_layouts[pipeline_id];
 
-        vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
-        ++pipelines_bound;
+        if (pipeline.raw != prev_pipeline) {
+            vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.raw);
+            ++pipelines_bound;
+            prev_pipeline = pipeline.raw;
+            bound_sets = invalid_descriptor_set_ids();
+        }
 
         // descriptors
-        std::vector<VkDescriptorSet> bind_sets = {};
-        for (const DescriptorSetID& set_id : draw.set_ids) {
-            bind_sets.push_back(descriptor_sets.at(set_id));
-        }
-        if (!bind_sets.empty()) {
-            vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, bind_sets.size(), bind_sets.data(), 0, nullptr);
-            ++descriptor_sets_bound;
+        for (uint32_t i = 0; i < draw.set_ids.size(); ++i) {
+            const DescriptorSetID set_id = draw.set_ids[i];
+            if ((set_id != DescriptorSetID::InvalidID()) && (bound_sets[i] != set_id)) {
+                vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &descriptor_sets.at(set_id), 0, nullptr);
+                ++descriptor_sets_bound;
+                bound_sets[i] = set_id;
+            }
         }
 
         // Push descriptors

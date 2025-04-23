@@ -217,7 +217,8 @@ struct App {
         global_set_data.write_shader_data_to_buffer(renderer);
 
         Renderable curr_renderable = build_root_renderable(keyboard_state, total_elapse_seconds, frame_dt);
-        ViewDrawData data = curr_renderable.get_draw_data(&renderer);
+        ViewDrawData data = curr_renderable.get_draw_data(&renderer, global_set_data.layout_id, global_set_data.set_id);
+
         renderer.wait_for_and_reset_curr_fence();
         data.upload_vertex_index_data(&renderer);
 

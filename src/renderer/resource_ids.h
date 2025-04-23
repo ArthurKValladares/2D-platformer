@@ -8,15 +8,19 @@
 #define CREATE_ID(NAME)\
 struct NAME ## ID {\
     NAME ## ID() {}\
-    explicit NAME ## ID(uint32_t id)\
+    explicit constexpr NAME ## ID(uint32_t id)\
         : id(id)\
     {}\
+\
+    static NAME ## ID InvalidID() {\
+        return NAME ## ID(-1);\
+    }\
 \
     bool operator==(const NAME ## ID &other) const {\
         return id == other.id;\
     }\
 \
-    uint32_t id;\
+    int32_t id;\
 };
 
 #define CREATE_HASH_FN(NAME)\
