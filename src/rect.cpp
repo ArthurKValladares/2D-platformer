@@ -42,6 +42,18 @@ bool Rect2D::intersects(const Rect2D& o) const {
     return true;
 }
 
+Rect2D Rect2D::intersection(const Rect2D& o) const {
+    const float i_min_x = std::max(min_x(), o.min_x());
+    const float i_max_x = std::min(max_x(), o.max_x());
+    if (i_min_x > i_max_x) return Rect2D(glm::vec2(0.0), glm::vec2(0.0));
+
+    const float i_min_y = std::max(min_y(), o.min_y());
+    const float i_max_y = std::min(max_y(), o.max_y());
+    if (i_min_y > i_max_y) return Rect2D(glm::vec2(0.0), glm::vec2(0.0));
+
+    return Rect2D::from_min_max(i_min_x, i_max_x, i_min_y, i_max_y);
+}
+
 Rect2D Rect2D::scaled_by(float x_scale, float y_scale) const {
     return Rect2D(pos,half_size * glm::vec2(2.0 * x_scale, 2.0 * y_scale));
 }
@@ -53,10 +65,5 @@ Rect2D Rect2D::merge(Rect2D o) const {
     const float merged_min_y = std::min(min_y(), o.min_y());
     const float merged_max_y = std::max(max_y(), o.max_y());
 
-    const float size_x = merged_max_x - merged_min_x;
-    const float size_y = merged_max_y - merged_min_y;
-
-    glm::vec2 center = glm::vec2(merged_min_x + size_x / 2.0, merged_min_y + size_y / 2.0);
-
-    return Rect2D(center, glm::vec2(size_x, size_y));
+    return Rect2D::from_min_max(merged_min_x, merged_max_x, merged_min_y, merged_max_y);
 }

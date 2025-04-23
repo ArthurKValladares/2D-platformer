@@ -15,6 +15,15 @@ struct Rect2D {
         , half_size(size / glm::vec2(2.0))
     {}
 
+    static Rect2D from_min_max(float min_x, float max_x, float min_y, float max_y) {
+        const float size_x = max_x - min_x;
+        const float size_y = max_y - min_y;
+
+        glm::vec2 center = glm::vec2(min_x + size_x / 2.0, min_y + size_y / 2.0);
+
+        return Rect2D(center, glm::vec2(size_x, size_y));
+    }
+
     glm::vec2 center() const {
         return pos;
     }
@@ -38,6 +47,7 @@ struct Rect2D {
 
     bool is_zero_sized() const;
     bool intersects(const Rect2D& other) const;
+    Rect2D intersection(const Rect2D& other) const;
 
     Rect2D scaled_by(float scale) const {
         return scaled_by(scale, scale);
