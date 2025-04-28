@@ -54,13 +54,23 @@
     ImGui::DragFloat3("##"#field"_var", glm::value_ptr(field ## _var));\
 } while(0)
 
-// TODO: for now all particles scale down in size to 0 until they die, that needs to be variable later
+#define FLOAT_ROW_COLOR(name, field) do {\
+    ImGui::TableNextColumn();\
+    ImGui::Text(name);\
+    ImGui::TableNextColumn();\
+    ImGui::ColorEdit3("##"#field, glm::value_ptr(field));\
+    ImGui::TableNextColumn();\
+    ImGui::ColorEdit3("##"#field"_var", glm::value_ptr(field ## _var));\
+} while(0)
+
+
 struct Particle {
-    Particle(double start_time, double duration, glm::vec2 pos, glm::vec2 dir, float vel, glm::vec2 size, glm::vec3 start_color, glm::vec3 end_color) 
+    Particle(double start_time, double duration, glm::vec2 pos, glm::vec2 dir, float vel, glm::vec2 start_size, glm::vec2 end_size, glm::vec3 start_color, glm::vec3 end_color) 
         : pos(pos)
         , dir(dir)
         , vel(vel)
-        , size(size)
+        , start_size(start_size)
+        , end_size(end_size)
         , start_color(start_color)
         , end_color(end_color)
         , anim(AnimatableFloat(0.0, 1.0, duration, start_time))
@@ -72,8 +82,8 @@ struct Particle {
         
         const glm::vec2 curr_pos = pos + dir * glm::vec2(vel * elapsed_time);
         const glm::vec2 curr_size = glm::vec2(
-            lerp(size.x, 0.f, anim_at),
-            lerp(size.y, 0.f, anim_at)
+            lerp(start_size.x, end_size.x, anim_at),
+            lerp(start_size.y, end_size.y, anim_at)
         );
         const glm::vec3 curr_color = glm::vec3(
             lerp(start_color.r, end_color.r, anim_at),
@@ -93,7 +103,8 @@ struct Particle {
     glm::vec2 pos;
     glm::vec2 dir;
     float vel;
-    glm::vec2 size;
+    glm::vec2 start_size;
+    glm::vec2 end_size;
     glm::vec3 start_color;
     glm::vec3 end_color;
     AnimatableFloat anim;
@@ -108,7 +119,8 @@ struct ParticleEmitter {
         Degrees emission_angle,
         float particle_lifetime,
         float particle_vel,
-        glm::vec2 particle_size,
+        glm::vec2 start_size,
+        glm::vec2 end_size,
         glm::vec3 start_color,
         glm::vec3 end_color,
         TextureSource texture,
@@ -116,7 +128,8 @@ struct ParticleEmitter {
         Degrees emission_angle_var = Degrees(0.f),
         float particle_lifetime_var = 0.f,
         float particle_vel_var = 0.f,
-        glm::vec2 particle_size_var = glm::vec2(0.0),
+        glm::vec2 start_size_var = glm::vec2(0.0),
+        glm::vec2 end_size_var = glm::vec2(0.0),
         glm::vec3 start_color_var = glm::vec3(0.0),
         glm::vec3 end_color_var = glm::vec3(0.0)
     )
@@ -131,8 +144,10 @@ struct ParticleEmitter {
         , particle_lifetime_var(particle_lifetime_var)
         , particle_vel(particle_vel)
         , particle_vel_var(particle_vel_var)
-        , particle_size(particle_size)
-        , particle_size_var(particle_size_var)
+        , start_size(start_size)
+        , start_size_var(start_size_var)
+        , end_size(end_size)
+        , end_size_var(end_size_var)
         , start_color(start_color)
         , start_color_var(start_color_var)
         , end_color(end_color)
@@ -165,12 +180,19 @@ struct ParticleEmitter {
             const float curr_particle_vel_var = random_num_in_range(-particle_vel_var, particle_vel_var);
             const float vel = particle_vel + curr_particle_vel_var;
 
-            const float size_scale = random_num_in_range(0.0, 1.0);
-            const glm::vec2 curr_particle_size_var = glm::vec2(
-                lerp(-particle_size_var.x, particle_size_var.x, size_scale),
-                lerp(-particle_size_var.y, particle_size_var.y, size_scale)
+            const float start_size_scale = random_num_in_range(0.0, 1.0);
+            const glm::vec2 curr_start_size_var = glm::vec2(
+                lerp(-start_size_var.x, start_size_var.x, start_size_scale),
+                lerp(-start_size_var.y, start_size_var.y, start_size_scale)
             );
-            const glm::vec2 size = particle_size + curr_particle_size_var;
+            const glm::vec2 c_start_size = start_size + curr_start_size_var;
+
+            const float end_size_scale = random_num_in_range(0.0, 1.0);
+            const glm::vec2 curr_end_size_var = glm::vec2(
+                lerp(-end_size_var.x, end_size_var.x, end_size_scale),
+                lerp(-end_size_var.y, end_size_var.y, end_size_scale)
+            );
+            const glm::vec2 c_end_size = end_size + curr_end_size_var;
 
             const float start_color_scale = random_num_in_range(0.0, 1.0);
             const glm::vec3 curr_start_color_var = glm::vec3(
@@ -188,7 +210,7 @@ struct ParticleEmitter {
             );
             const glm::vec3 e_color = end_color + end_color_var;
 
-            particles.push_back(Particle(curr_time, particle_duration, pos, particle_dir, vel, size, s_color, e_color));
+            particles.push_back(Particle(curr_time, particle_duration, pos, particle_dir, vel, c_start_size, c_end_size, s_color, e_color));
             last_updated = curr_time;
         }
 
@@ -210,9 +232,10 @@ struct ParticleEmitter {
             FLOAT_ROW_ACCESSOR("Emission Angle", emission_angle, val);
             FLOAT_ROW("Particle Lifetime", particle_lifetime);
             FLOAT_ROW("Particle Velocity", particle_vel);
-            FLOAT_ROW_VEC2("Particle Size", particle_size);
-            FLOAT_ROW_VEC3("Start Color", start_color);
-            FLOAT_ROW_VEC3("End Color", end_color);
+            FLOAT_ROW_VEC2("Start Size", start_size);
+            FLOAT_ROW_VEC2("End Size", end_size);
+            FLOAT_ROW_COLOR("Start Color", start_color);
+            FLOAT_ROW_COLOR("End Color", end_color);
 
             ImGui::EndTable();
         }
@@ -233,7 +256,8 @@ struct ParticleEmitter {
     DEFINE_VARIABLE_FIELD(Degrees, emission_angle);
     DEFINE_VARIABLE_FIELD(float, particle_lifetime);
     DEFINE_VARIABLE_FIELD(float, particle_vel);
-    DEFINE_VARIABLE_FIELD(glm::vec2, particle_size);
+    DEFINE_VARIABLE_FIELD(glm::vec2, start_size);
+    DEFINE_VARIABLE_FIELD(glm::vec2, end_size);
     DEFINE_VARIABLE_FIELD(glm::vec3, start_color);
     DEFINE_VARIABLE_FIELD(glm::vec3, end_color);
 
