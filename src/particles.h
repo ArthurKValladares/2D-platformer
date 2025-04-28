@@ -3,6 +3,9 @@
 #include <vector>
 
 #include <glm/vec2.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "imgui.h"
 
 #include "renderer/renderer.h"
 #include "renderables/includes.h"
@@ -12,6 +15,44 @@
 #include "util.h"
 
 #include <iostream>
+
+#define DEFINE_VARIABLE_FIELD(type, name) type name, name ## _var
+
+#define FLOAT_ROW(name, field) do {\
+    ImGui::TableNextColumn();\
+    ImGui::Text(name);\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat("##"#field, &field);\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat("##"#field"_var", &field ## _var);\
+} while(0)
+
+#define FLOAT_ROW_ACCESSOR(name, field, acessor) do {\
+    ImGui::TableNextColumn();\
+    ImGui::Text(name);\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat("##"#field".val", &field.val);\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat("##"#field"_var.val", &field ## _var.val);\
+} while(0)
+
+#define FLOAT_ROW_VEC2(name, field) do {\
+    ImGui::TableNextColumn();\
+    ImGui::Text(name);\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat2("##"#field, glm::value_ptr(field));\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat2("##"#field"_var", glm::value_ptr(field ## _var));\
+} while(0)
+
+#define FLOAT_ROW_VEC3(name, field) do {\
+    ImGui::TableNextColumn();\
+    ImGui::Text(name);\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat3("##"#field, glm::value_ptr(field));\
+    ImGui::TableNextColumn();\
+    ImGui::DragFloat3("##"#field"_var", glm::value_ptr(field ## _var));\
+} while(0)
 
 // TODO: for now all particles scale down in size to 0 until they die, that needs to be variable later
 struct Particle {
@@ -83,7 +124,7 @@ struct ParticleEmitter {
         , last_updated(start_time)
         , pos(pos)
         , emission_delay(emission_delay)
-        , emmision_delay_var(emmision_delay_var)
+        , emission_delay_var(emission_delay_var)
         , emission_angle(emission_angle)
         , emission_angle_var(emission_angle_var)
         , particle_lifetime(particle_lifetime)
@@ -156,31 +197,42 @@ struct ParticleEmitter {
         }
     }
 
+    void imgui_node() {
+        if (ImGui::BeginTable("Values", 3)) {
+
+            ImGui::TableSetupColumn("Field");
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableSetupColumn("Variability");
+            ImGui::TableHeadersRow();
+
+            FLOAT_ROW("Emission Delay", emission_delay);
+            FLOAT_ROW_ACCESSOR("Emission Angle", emission_angle, val);
+            FLOAT_ROW("Particle Lifetime", particle_lifetime);
+            FLOAT_ROW("Particle Velocity", particle_vel);
+            FLOAT_ROW_VEC2("Particle Size", particle_size);
+            FLOAT_ROW_VEC3("Start Color", start_color);
+            FLOAT_ROW_VEC3("End Color", end_color);
+
+            ImGui::EndTable();
+        }
+
+        // TODO: need a drop-down to select texture with auto-generated data
+    }
+
     double start_time;
     double last_updated;
+
     glm::vec2 pos;
 
-    float emission_delay;
-    float emmision_delay_var;
-
-    Degrees emission_angle;
-    Degrees emission_angle_var;
-
-    float particle_lifetime;
-    float particle_lifetime_var;
-
-    float particle_vel;
-    float particle_vel_var;
-    
-    glm::vec2 particle_size;
-    glm::vec2 particle_size_var;
-
-    glm::vec3 start_color;
-    glm::vec3 start_color_var;
-
-    glm::vec3 end_color;
-    glm::vec3 end_color_var;
+    DEFINE_VARIABLE_FIELD(float, emission_delay);
+    DEFINE_VARIABLE_FIELD(Degrees, emission_angle);
+    DEFINE_VARIABLE_FIELD(float, particle_lifetime);
+    DEFINE_VARIABLE_FIELD(float, particle_vel);
+    DEFINE_VARIABLE_FIELD(glm::vec2, particle_size);
+    DEFINE_VARIABLE_FIELD(glm::vec3, start_color);
+    DEFINE_VARIABLE_FIELD(glm::vec3, end_color);
 
     TextureSource texture;
+
     std::vector<Particle> particles;
 };

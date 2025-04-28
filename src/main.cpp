@@ -81,6 +81,25 @@ struct App {
             get_camera_size(maps[map_idx]),
             get_camera_size(maps[map_idx])
         ))
+        , emitter(ParticleEmitter(
+            0.0,
+            glm::vec2(0.0),
+            0.00,
+            Degrees(90.0),
+            2.0,
+            1.0,
+            glm::vec2(0.3, 0.3),
+            glm::vec3(1.0, 0.0, 0.0),
+            glm::vec3(0.0, 0.0, 1.0),
+            TextureSource::Particle,
+            0.0,
+            Degrees(15.0),
+            0.5,
+            0.25,
+            glm::vec2(.125),
+            glm::vec3(0.05),
+            glm::vec3(0.05)
+        ))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -200,7 +219,7 @@ struct App {
         camera.center = player_rect.center();
 
         // Setup imgui
-        renderer.set_imgui_fn([&camera = this->camera]() {
+        renderer.set_imgui_fn([&camera = this->camera, &emitter = this->emitter]() {
             if (ImGui::TreeNode("Camera")) {
                 ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
                 ImGui::Text("Size X: %.3f", camera.size_x);
@@ -209,6 +228,8 @@ struct App {
 
                 ImGui::TreePop();
             }
+
+            emitter.imgui_node();
         });
     }
 
@@ -276,6 +297,8 @@ struct App {
     SpriteAnimation player_sprite;
 
     OrthographicCamera camera;
+
+    ParticleEmitter emitter;
 };
 
 int main(int argc, char *argv[]) {
