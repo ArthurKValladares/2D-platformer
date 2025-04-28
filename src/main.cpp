@@ -84,22 +84,19 @@ struct App {
         , emitter(ParticleEmitter(
             0.0,
             glm::vec2(0.0),
-            0.00,
-            Degrees(90.0),
-            2.0,
-            1.0,
-            glm::vec2(0.3, 0.3),
-            glm::vec2(0.0, 0.0),
-            glm::vec3(1.0, 0.0, 0.0),
-            glm::vec3(0.0, 0.0, 1.0),
-            TextureSource::Particle,
-            0.0,
-            Degrees(15.0),
-            0.5,
-            0.25,
-            glm::vec2(.125),
-            glm::vec3(0.05),
-            glm::vec3(0.05)
+            VariableField<float>(0.0),
+            VariableField<Degrees>(Degrees(90.0), Degrees(15.0)),
+            VariableField<float>(2.0, 0.5),
+            VariableField<float>(1.0, 0.25),
+            InterpolatableField<VariableField<glm::vec2>>(
+                VariableField<glm::vec2>(glm::vec2(0.3, 0.3), glm::vec2(.125)),
+                glm::vec2(0.0, 0.0)
+            ),
+            InterpolatableField<VariableField<glm::vec3>>(
+                VariableField<glm::vec3>(glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.05, 0.0, 0.0)),
+                VariableField<glm::vec3>(glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, 0.05))
+            ),
+            TextureSource::Particle
         ))
     {
         global_set_data.write_shader_data_to_buffer(renderer);
