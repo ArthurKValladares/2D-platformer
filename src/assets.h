@@ -94,6 +94,80 @@ inline const char* texture_path(TextureSource texture) {
         }
     }    
 }
+inline const char* texture_name(TextureSource texture) {
+    switch (texture)
+    {
+        /*[[[cog
+        for texture in formatted_textures:
+            cog.out("""
+            case TextureSource::%s: {
+                return \"%s\";
+            }
+            """
+            % (texture, texture),
+            dedent=True, trimblanklines=True)
+        ]]]*/
+        case TextureSource::Akv: {
+            return "Akv";
+        }
+        case TextureSource::Particle: {
+            return "Particle";
+        }
+        case TextureSource::Test1: {
+            return "Test1";
+        }
+        case TextureSource::Test2: {
+            return "Test2";
+        }
+        case TextureSource::Test3: {
+            return "Test3";
+        }
+        case TextureSource::Test4: {
+            return "Test4";
+        }
+        //[[[end]]]
+        case TextureSource::None: {
+            assert(false);
+            return "";
+        }
+        case TextureSource::Count: {
+            assert(false);
+            return "";
+        }
+        default:{
+            assert(false);
+            return "";
+        }
+    }   
+}
+inline const char** texture_names() {
+    /*[[[cog
+    cog.outl("static const char* names[] = {");
+    cog.outl("\t\"None\",")
+    for texture in formatted_textures:
+        cog.out("""
+        \"%s\",
+        """
+        % texture,
+        trimblanklines=True)
+    cog.outl("};")
+    cog.outl("return names;")
+    ]]]*/
+    static const char* names[] = {
+    	"None",
+        "Akv",
+        "Particle",
+        "Test1",
+        "Test2",
+        "Test3",
+        "Test4",
+    };
+    return names;
+    //[[[end]]]
+}
+inline uint32_t texture_count() {
+    return static_cast<uint32_t>(TextureSource::Count);
+}
 inline TextureID texture_id(TextureSource texture) {
     return TextureID(static_cast<uint32_t>(texture));
 }
@@ -157,6 +231,79 @@ inline const char* shader_path(ShaderSource shader) {
             return "";
         }
     }
+}
+inline const char* shader_name(ShaderSource shader) {
+    switch (shader)
+    {
+        /*[[[cog
+        for shader in formatted_shaders:
+            cog.out("""
+            case ShaderSource::%s: {
+                return \"%s\";
+            }"""
+            % (shader, shader),
+            dedent=True, trimblanklines=True)
+        ]]]*/
+        case ShaderSource::TriangleFrag: {
+            return "TriangleFrag";
+        }
+        case ShaderSource::TriangleVert: {
+            return "TriangleVert";
+        }
+        case ShaderSource::TriangleColorFrag: {
+            return "TriangleColorFrag";
+        }
+        case ShaderSource::TriangleDataFrag: {
+            return "TriangleDataFrag";
+        }
+        case ShaderSource::TriangleDataVert: {
+            return "TriangleDataVert";
+        }
+        case ShaderSource::TriangleTransformVert: {
+            return "TriangleTransformVert";
+        }
+        //[[[end]]]
+        case ShaderSource::None: {
+            assert(false);
+            return "";
+        }
+        case ShaderSource::Count: {
+            assert(false);
+            return "";
+        }
+        default:{
+            assert(false);
+            return "";
+        }
+    }
+}
+inline const char** shader_names() {
+    /*[[[cog
+    cog.outl("static const char* names[] = {");
+    cog.outl("\t\"None\",")
+    for shader in formatted_shaders:
+        cog.out("""
+        \"%s\",
+        """
+        % shader,
+        trimblanklines=True)
+    cog.outl("};")
+    cog.outl("return names;")
+    ]]]*/
+    static const char* names[] = {
+    	"None",
+        "TriangleFrag",
+        "TriangleVert",
+        "TriangleColorFrag",
+        "TriangleDataFrag",
+        "TriangleDataVert",
+        "TriangleTransformVert",
+    };
+    return names;
+    //[[[end]]]
+}
+inline uint32_t shader_count() {
+    return static_cast<uint32_t>(ShaderSource::Count);
 }
 inline ShaderID shader_id(ShaderSource shader) {
     return ShaderID(static_cast<uint32_t>(shader));

@@ -138,6 +138,7 @@ struct ParticleEmitter {
         , end_color(end_color)
         , end_color_var(end_color_var)
         , texture(texture)
+        , selected_texture(static_cast<int>(texture))
     {}
 
     void update_and_create_renderables(Renderable& root_renderable, double curr_time, Renderer* renderer, BufferID global_data_buffer) {
@@ -216,7 +217,11 @@ struct ParticleEmitter {
             ImGui::EndTable();
         }
 
-        // TODO: need a drop-down to select texture with auto-generated data
+        const char**  textures = texture_names();
+        bool check =  ImGui::Combo("Texture", &selected_texture, textures, texture_count());
+        if (check) {
+            texture = static_cast<TextureSource>(selected_texture);
+        }
     }
 
     double start_time;
@@ -233,6 +238,6 @@ struct ParticleEmitter {
     DEFINE_VARIABLE_FIELD(glm::vec3, end_color);
 
     TextureSource texture;
-
+    int selected_texture;
     std::vector<Particle> particles;
 };
