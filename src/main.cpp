@@ -147,6 +147,8 @@ struct App {
             }
         }
 
+        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
+
         renderable.push_child(MovingQuad(
             &renderer,
             player_rect,
