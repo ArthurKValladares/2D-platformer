@@ -89,6 +89,9 @@
         "xmemory": "cpp",
         "xtr1common": "cpp",
         "regex": "cpp",
-        "print": "cpp"
+        "print": "cpp",
+        "any": "cpp",
+        "valarray": "cpp",
+        "variant": "cpp"
     }
 }

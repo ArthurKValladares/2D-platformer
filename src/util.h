@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <random>
 #include <array>
+#include <functional>
 
 #include <vulkan/vulkan.h>
 
@@ -81,14 +82,39 @@ T random_num_in_range(T min, T max) {
     return lerp(min, max, t);
 }
 
-inline std::vector<std::string> get_files_with_extension(const std::string& path, const std::string& extension) {
+inline std::vector<std::string> get_filtered_file_strings(const std::string& path, std::function<bool(const std::filesystem::path&)> filter_fn, std::function<std::string(const std::filesystem::path&)> stringify_fn) {
     std::vector<std::string> files;
     for (const auto& entry : std::filesystem::directory_iterator(path)) {
-        if (std::filesystem::is_regular_file(entry) && entry.path().extension() == extension) {
-            files.push_back(entry.path().string());
+        const std::filesystem::path entry_path = entry.path();
+        if (std::filesystem::is_regular_file(entry) && filter_fn(entry_path)) {
+            files.push_back(stringify_fn(entry_path));
         }
     }
     return files;
+}
+
+inline std::vector<std::string> get_file_paths_with_extension(const std::string& path, const std::string& extension) {
+    return get_filtered_file_strings(
+        path,
+        [&](const std::filesystem::path& path) {
+            return path.extension() == extension;
+        },
+        [](const std::filesystem::path& path) {
+            return path.string();
+        }
+    );
+}
+
+inline std::vector<std::string> get_file_stems_with_extension(const std::string& path, const std::string& extension) {
+    return get_filtered_file_strings(
+        path,
+        [&](const std::filesystem::path& path) {
+            return path.extension() == extension;
+        },
+        [](const std::filesystem::path& path) {
+            return path.stem().string();
+        }
+    );
 }
 
 namespace ImGui {

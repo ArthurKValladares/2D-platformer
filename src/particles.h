@@ -78,7 +78,7 @@ inline void imgui_variable_degrees(const char* name, VariableField<Degrees>& var
     ImGui::PopID();
 }
 
-inline glm::vec2 get_variable_size_val(const VariableField<glm::vec2>& var_size) {
+inline glm::vec2 get_variable_vec2_val(const VariableField<glm::vec2>& var_size) {
     const float size_scale = random_num_in_range(0.0, 1.0);
     const glm::vec2 size_var = glm::vec2(
         lerp(-var_size.variability.x, var_size.variability.x, size_scale),
@@ -88,7 +88,16 @@ inline glm::vec2 get_variable_size_val(const VariableField<glm::vec2>& var_size)
     return var_size.base_val + size_var;
 }
 
-inline void imgui_variable_size(const char* name, VariableField<glm::vec2>& var, int& id) {
+inline glm::vec2 get_variable_vec2_val_independent(const VariableField<glm::vec2>& var_size) {
+    const glm::vec2 size_var = glm::vec2(
+        lerp(-var_size.variability.x, var_size.variability.x, random_num_in_range(0.0f, 1.0f)),
+        lerp(-var_size.variability.y, var_size.variability.y, random_num_in_range(0.0f, 1.0f))
+    );
+
+    return var_size.base_val + size_var;
+}
+
+inline void imgui_variable_vec2(const char* name, VariableField<glm::vec2>& var, int& id) {
     ImGui::TableNextColumn();
     ImGui::Text(name);
     ImGui::TableNextColumn();
@@ -101,7 +110,7 @@ inline void imgui_variable_size(const char* name, VariableField<glm::vec2>& var,
     ImGui::PopID();
 }
 
-inline glm::vec3 get_variable_color_val(const VariableField<glm::vec3>& var_color) {
+inline glm::vec3 get_variable_vec3_val(const VariableField<glm::vec3>& var_color) {
     const float color_scale = random_num_in_range(0.0, 1.0);
     const glm::vec3 color_var = glm::vec3(
         lerp(-var_color.variability.x, var_color.variability.x, color_scale),
@@ -178,7 +187,8 @@ struct ParticleEmitter {
 
     ParticleEmitter(
         double start_time,
-        glm::vec2 pos,
+        glm::vec2 center,
+        VariableField<glm::vec2> start_offset,
         VariableField<float> emission_delay,
         VariableField<Degrees> emission_angle,
         VariableField<float> particle_lifetime,
@@ -188,8 +198,9 @@ struct ParticleEmitter {
         TextureSource texture
     )
         : start_time(start_time)
+        , start_offset(start_offset)
         , last_updated(start_time)
-        , pos(pos)
+        , center(center)
         , emission_delay(emission_delay)
         , emission_angle(emission_angle)
         , particle_lifetime(particle_lifetime)
@@ -212,16 +223,17 @@ struct ParticleEmitter {
         if (texture != TextureSource::None) {
             const float c_emission_delay = get_variable_float_val(emission_delay);
             if (curr_time - last_updated > c_emission_delay) {
+                const glm::vec2 c_start_offset      = get_variable_vec2_val_independent(start_offset);
                 const float     c_particle_duration = get_variable_float_val(particle_lifetime);
-                const Radians   c_particle_angle = get_variable_degrees_val(emission_angle).to_radians();
-                const glm::vec2 c_particle_dir = glm::vec2(cos(c_particle_angle.val), sin(c_particle_angle.val));
-                const float     c_velocity = get_variable_float_val(particle_vel);
-                const glm::vec2 c_start_size = get_variable_size_val(size.start);
-                const glm::vec2 c_end_size = get_variable_size_val(size.end);
-                const glm::vec3 c_start_color = get_variable_color_val(color.start);
-                const glm::vec3 c_end_color = get_variable_color_val(color.end);
+                const Radians   c_particle_angle    = get_variable_degrees_val(emission_angle).to_radians();
+                const glm::vec2 c_particle_dir      = glm::vec2(cos(c_particle_angle.val), sin(c_particle_angle.val));
+                const float     c_velocity          = get_variable_float_val(particle_vel);
+                const glm::vec2 c_start_size        = get_variable_vec2_val(size.start);
+                const glm::vec2 c_end_size          = get_variable_vec2_val(size.end);
+                const glm::vec3 c_start_color       = get_variable_vec3_val(color.start);
+                const glm::vec3 c_end_color         = get_variable_vec3_val(color.end);
 
-                particles.push_back(Particle(curr_time, c_particle_duration, pos, c_particle_dir, c_velocity, c_start_size, c_end_size, c_start_color, c_end_color));
+                particles.push_back(Particle(curr_time, c_particle_duration, center + c_start_offset, c_particle_dir, c_velocity, c_start_size, c_end_size, c_start_color, c_end_color));
                 last_updated = curr_time;
             }
         }
@@ -241,12 +253,13 @@ struct ParticleEmitter {
             ImGui::TableHeadersRow();
 
             int id = 0;
+            imgui_variable_vec2("Starting offset", start_offset, id);
             imgui_variable_float("Emission Delay", emission_delay, id);
             imgui_variable_degrees("Emission Angle", emission_angle, id);
             imgui_variable_float("Particle Lifetime", particle_lifetime, id);
             imgui_variable_float("Particle Velocity", particle_vel, id);
-            imgui_variable_size("Start Size", size.start, id);
-            imgui_variable_size("End Size", size.end, id);
+            imgui_variable_vec2("Start Size", size.start, id);
+            imgui_variable_vec2("End Size", size.end, id);
             imgui_variable_color("Start Color", color.start, id);
             imgui_variable_color("End Color", color.end, id);
 
@@ -263,8 +276,9 @@ struct ParticleEmitter {
     double start_time;
     double last_updated;
 
-    glm::vec2 pos;
+    glm::vec2 center;
 
+    VariableField<glm::vec2> start_offset;
     VariableField<float> emission_delay;
     VariableField<Degrees> emission_angle;
     VariableField<float> particle_lifetime;

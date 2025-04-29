@@ -144,7 +144,7 @@ struct App {
         return renderable;
     }
 
-    void update(const KeyboardState& keyboard_state, double total_elapse_seconds, double frame_dt) {
+    void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
         // Update player movement
         constexpr float displacement_per_second = 5.0;
         glm::vec2 movement_vec{0.0, 0.0};
@@ -224,7 +224,7 @@ struct App {
             }
 
             if (ImGui::BeginTabItem("Particle Editor")) {
-                particle_editor.imgui_node();
+                particle_editor.imgui_node(total_elapsed_seconds);
                 ImGui::EndTabItem();
 
                 particle_tab_open = true;

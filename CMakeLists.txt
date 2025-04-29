@@ -50,6 +50,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   third-party/stb
   third-party/SPIRV-Reflect-vulkan-sdk
   third-party/glm
+  third-party/json/include
   ${IMGUI_DIR}
   ${IMGUI_DIR}/backends
 )
@@ -68,8 +69,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 add_subdirectory(third-party/SDL EXCLUDE_FROM_ALL)
 
-### Glm
+### glm
 add_subdirectory(third-party/glm)
+
+### json
+add_subdirectory(third-party/json)
 
 ### Link libs
 target_link_libraries(${PROJECT_NAME}
@@ -78,7 +82,8 @@ target_link_libraries(${PROJECT_NAME}
     GPUOpen::VulkanMemoryAllocator
     vk-bootstrap::vk-bootstrap
     SDL3::SDL3
-    glm::glm)
+    glm::glm
+    nlohmann_json::nlohmann_json)
 
 # Compile shaders
 find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
