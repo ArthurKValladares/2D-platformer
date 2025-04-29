@@ -106,36 +106,40 @@ struct App {
     }
 
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
-        const Rect2D camera_rect = camera.get_rect();
-
         Renderable renderable;
-        const uint64_t max_row = maps[map_idx].tiles.size();
-        const uint64_t max_col = maps[map_idx].tiles[0].size();
-        for (uint64_t row = 0; row < max_row; ++row) {
-            for (uint64_t col = 0; col < max_col; ++col) {
-                const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
 
-                if (rect.intersects(camera_rect)) {
-                    glm::vec3 color = tile_type_to_color(maps[map_idx].tiles[row][col]);
+        if (app_tab_open) {
+            const Rect2D camera_rect = camera.get_rect();
+            const uint64_t max_row = maps[map_idx].tiles.size();
+            const uint64_t max_col = maps[map_idx].tiles[0].size();
+            for (uint64_t row = 0; row < max_row; ++row) {
+                for (uint64_t col = 0; col < max_col; ++col) {
+                    const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
 
-                    renderable.push_child(ColoredQuad(
-                        &renderer,
-                        rect,
-                        TextureSource::Test1,
-                        color,
-                        global_set_data.buffer_id
-                    ));
+                    if (rect.intersects(camera_rect)) {
+                        glm::vec3 color = tile_type_to_color(maps[map_idx].tiles[row][col]);
+
+                        renderable.push_child(ColoredQuad(
+                            &renderer,
+                            rect,
+                            TextureSource::Test1,
+                            color,
+                            global_set_data.buffer_id
+                        ));
+                    }
                 }
             }
-        }
 
-        renderable.push_child(MovingQuad(
-            &renderer,
-            player_rect,
-            glm::vec2(0.0, 0.0),
-            player_sprite.texture_at(total_elapsed_seconds),
-            global_set_data.buffer_id
-        ));
+            renderable.push_child(MovingQuad(
+                &renderer,
+                player_rect,
+                glm::vec2(0.0, 0.0),
+                player_sprite.texture_at(total_elapsed_seconds),
+                global_set_data.buffer_id
+            ));
+        } else if (particle_tab_open) {
+            particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds, global_set_data.buffer_id);
+        }
        
         return renderable;
     }
@@ -201,17 +205,33 @@ struct App {
         camera.center = player_rect.center();
 
         // Setup imgui
-        renderer.set_imgui_fn([&camera = this->camera, &particle_editor = this->particle_editor]() {
-            if (ImGui::TreeNode("Camera")) {
-                ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
-                ImGui::Text("Size X: %.3f", camera.size_x);
-                ImGui::Text("Size X: %.3f", camera.size_y);
-                ImGui::Text("Scale: %.3f", camera.scale);
+        renderer.set_imgui_fn([&]() {
+            ImGui::BeginTabBar("##tabs");
 
-                ImGui::TreePop();
+            if (ImGui::BeginTabItem("App")) {
+                if (ImGui::TreeNode("Camera")) {
+                    ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
+                    ImGui::Text("Size X: %.3f", camera.size_x);
+                    ImGui::Text("Size X: %.3f", camera.size_y);
+                    ImGui::Text("Scale: %.3f", camera.scale);
+    
+                    ImGui::TreePop();
+                }
+                ImGui::EndTabItem();
+
+                app_tab_open = true;
+                particle_tab_open = false;
             }
 
-            particle_editor.imgui_node();
+            if (ImGui::BeginTabItem("Particle Editor")) {
+                particle_editor.imgui_node();
+                ImGui::EndTabItem();
+
+                particle_tab_open = true;
+                app_tab_open = false;
+            }
+
+            ImGui::EndTabBar();
         });
     }
 
@@ -280,6 +300,9 @@ struct App {
 
     OrthographicCamera camera;
 
+    // TODO: Handle tab stuff better later
+    bool app_tab_open;
+    bool particle_tab_open;
     ParticleEditor particle_editor;
 };
 

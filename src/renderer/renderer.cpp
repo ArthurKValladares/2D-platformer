@@ -694,12 +694,8 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
             ImGui::TreePop();
         }
 
-        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::TreeNode("App Data") && imgui_fn) {
-            imgui_fn();
-
-            ImGui::TreePop();
-        }
+        ImGui::Separator();
+        imgui_fn();
     }
     ImGui::End();
     ImGui::Render();
