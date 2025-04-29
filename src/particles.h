@@ -16,22 +16,14 @@
 
 #include <iostream>
 
-#define FLOAT_ROW(name, field) do {\
-    ImGui::TableNextColumn();\
-    ImGui::Text(name);\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat("##"#field, &field);\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat("##"#field"_var", &field ## _var);\
-} while(0)
 
-#define FLOAT_ROW_ACCESSOR(name, field, acessor) do {\
+#define FLOAT_ROW_ACCESSOR(name, field, accessor) do {\
     ImGui::TableNextColumn();\
     ImGui::Text(name);\
     ImGui::TableNextColumn();\
-    ImGui::DragFloat("##"#field".val", &field.val);\
+    ImGui::DragFloat("##"#field".acc", &field ## .base_val ## . ## accessor);\
     ImGui::TableNextColumn();\
-    ImGui::DragFloat("##"#field"_var.val", &field ## _var.val);\
+    ImGui::DragFloat("##"#field".variability.acc", &field ## _var.val);\
 } while(0)
 
 #define FLOAT_ROW_VEC2(name, field) do {\
@@ -60,20 +52,6 @@
     ImGui::TableNextColumn();\
     ImGui::ColorEdit3("##"#field"_var", glm::value_ptr(field ## _var));\
 } while(0)
-
-struct VariableFloat {
-    VariableFloat()
-        : value(0.0)
-        , variability(0.0)
-    {}
-    VariableFloat(float value, float variability = 0.0)
-        : value(value)
-        , variability(variability)
-    {}
-
-    float value;
-    float variability;
-};
 
 template<class T>
 struct InterpolatableField {
@@ -104,9 +82,35 @@ inline float get_variable_float_val(const VariableField<float>& var_float) {
     return var_float.base_val + curr_variability;
 }
 
+inline void imgui_variable_float(const char* name, VariableField<float>& var_float, int& id) {
+    ImGui::TableNextColumn();
+    ImGui::Text(name);
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::DragFloat("##", &var_float.base_val);
+    ImGui::PopID();
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::DragFloat("##", &var_float.variability);
+    ImGui::PopID();
+}
+
 inline Degrees get_variable_degrees_val(const VariableField<Degrees>& var_degrees) {
     const float curr_variability = random_num_in_range(-var_degrees.variability.val, var_degrees.variability.val);
     return Degrees(var_degrees.base_val.val + curr_variability);
+}
+
+inline void imgui_variable_degrees(const char* name, VariableField<Degrees>& var, int& id) {
+    ImGui::TableNextColumn();
+    ImGui::Text(name);
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::DragFloat("##", &var.base_val.val);
+    ImGui::PopID();
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::DragFloat("##", &var.variability.val);
+    ImGui::PopID();
 }
 
 inline glm::vec2 get_variable_size_val(const VariableField<glm::vec2>& var_size) {
@@ -119,6 +123,19 @@ inline glm::vec2 get_variable_size_val(const VariableField<glm::vec2>& var_size)
     return var_size.base_val + size_var;
 }
 
+inline void imgui_variable_size(const char* name, VariableField<glm::vec2>& var, int& id) {
+    ImGui::TableNextColumn();
+    ImGui::Text(name);
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::DragFloat2("##", glm::value_ptr(var.base_val));
+    ImGui::PopID();
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::DragFloat2("##", glm::value_ptr(var.variability));
+    ImGui::PopID();
+}
+
 inline glm::vec3 get_variable_color_val(const VariableField<glm::vec3>& var_color) {
     const float color_scale = random_num_in_range(0.0, 1.0);
     const glm::vec3 color_var = glm::vec3(
@@ -128,6 +145,19 @@ inline glm::vec3 get_variable_color_val(const VariableField<glm::vec3>& var_colo
     );
 
     return var_color.base_val + color_var;
+}
+
+inline void imgui_variable_color(const char* name, VariableField<glm::vec3>& var, int& id) {
+    ImGui::TableNextColumn();
+    ImGui::Text(name);
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::ColorEdit3("##", glm::value_ptr(var.base_val));
+    ImGui::PopID();
+    ImGui::TableNextColumn();
+    ImGui::PushID(id++);
+    ImGui::ColorEdit3("##", glm::value_ptr(var.variability));
+    ImGui::PopID();
 }
 
 struct Particle {
@@ -240,16 +270,15 @@ struct ParticleEmitter {
             ImGui::TableSetupColumn("Variability");
             ImGui::TableHeadersRow();
 
-            /*
-            FLOAT_ROW("Emission Delay", emission_delay);
-            FLOAT_ROW_ACCESSOR("Emission Angle", emission_angle, val);
-            FLOAT_ROW("Particle Lifetime", particle_lifetime);
-            FLOAT_ROW("Particle Velocity", particle_vel);
-            FLOAT_ROW_VEC2("Start Size", size.start);
-            FLOAT_ROW_VEC2("End Size", size.end);
-            FLOAT_ROW_COLOR("Start Color", color.start);
-            FLOAT_ROW_COLOR("End Color", color.end);
-            */
+            int id = 0;
+            imgui_variable_float("Emission Delay", emission_delay, id);
+            imgui_variable_degrees("Emission Angle", emission_angle, id);
+            imgui_variable_float("Particle Lifetime", particle_lifetime, id);
+            imgui_variable_float("Particle Velocity", particle_vel, id);
+            imgui_variable_size("Start Size", size.start, id);
+            imgui_variable_size("End Size", size.end, id);
+            imgui_variable_color("Start Color", color.start, id);
+            imgui_variable_color("End Color", color.end, id);
 
             ImGui::EndTable();
         }

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <filesystem>
 #include <random>
+#include <array>
 
 #include <vulkan/vulkan.h>
 
