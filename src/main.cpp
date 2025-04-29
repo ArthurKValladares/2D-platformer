@@ -17,7 +17,7 @@
 #include "keyboard_state.h"
 #include "camera.h"
 #include "animatable.h"
-#include "particles.h"
+#include "particle_editor.h"
 #include "collision_grid.h"
 
 #include "renderables/includes.h"
@@ -81,23 +81,7 @@ struct App {
             get_camera_size(maps[map_idx]),
             get_camera_size(maps[map_idx])
         ))
-        , emitter(ParticleEmitter(
-            0.0,
-            glm::vec2(0.0),
-            VariableField<float>(0.0),
-            VariableField<Degrees>(Degrees(90.0), Degrees(15.0)),
-            VariableField<float>(2.0, 0.5),
-            VariableField<float>(1.0, 0.25),
-            InterpolatableField<VariableField<glm::vec2>>(
-                VariableField<glm::vec2>(glm::vec2(0.3, 0.3), glm::vec2(.125)),
-                glm::vec2(0.0, 0.0)
-            ),
-            InterpolatableField<VariableField<glm::vec3>>(
-                VariableField<glm::vec3>(glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.05, 0.0, 0.0)),
-                VariableField<glm::vec3>(glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, 0.05))
-            ),
-            TextureSource::Particle
-        ))
+        
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -144,8 +128,6 @@ struct App {
                 }
             }
         }
-
-        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, &renderer, global_set_data.buffer_id);
 
         renderable.push_child(MovingQuad(
             &renderer,
@@ -219,7 +201,7 @@ struct App {
         camera.center = player_rect.center();
 
         // Setup imgui
-        renderer.set_imgui_fn([&camera = this->camera, &emitter = this->emitter]() {
+        renderer.set_imgui_fn([&camera = this->camera, &particle_editor = this->particle_editor]() {
             if (ImGui::TreeNode("Camera")) {
                 ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
                 ImGui::Text("Size X: %.3f", camera.size_x);
@@ -229,7 +211,7 @@ struct App {
                 ImGui::TreePop();
             }
 
-            emitter.imgui_node();
+            particle_editor.imgui_node();
         });
     }
 
@@ -298,7 +280,7 @@ struct App {
 
     OrthographicCamera camera;
 
-    ParticleEmitter emitter;
+    ParticleEditor particle_editor;
 };
 
 int main(int argc, char *argv[]) {
@@ -308,25 +290,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
-/*
-ParticleEmitter(
-    0.0,
-    glm::vec2(0.0),
-    0.00,
-    Degrees(90.0),
-    2.0,
-    1.0,
-    glm::vec2(0.3, 0.3),
-    glm::vec3(1.0, 0.0, 0.0),
-    glm::vec3(0.0, 0.0, 1.0),
-    TextureSource::Particle,
-    0.0,
-    Degrees(15.0),
-    0.5,
-    0.25,
-    glm::vec2(.125),
-    glm::vec3(0.05),
-    glm::vec3(0.05)
-)
-*/

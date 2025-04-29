@@ -16,43 +16,6 @@
 
 #include <iostream>
 
-
-#define FLOAT_ROW_ACCESSOR(name, field, accessor) do {\
-    ImGui::TableNextColumn();\
-    ImGui::Text(name);\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat("##"#field".acc", &field ## .base_val ## . ## accessor);\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat("##"#field".variability.acc", &field ## _var.val);\
-} while(0)
-
-#define FLOAT_ROW_VEC2(name, field) do {\
-    ImGui::TableNextColumn();\
-    ImGui::Text(name);\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat2("##"#field, glm::value_ptr(field));\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat2("##"#field"_var", glm::value_ptr(field ## _var));\
-} while(0)
-
-#define FLOAT_ROW_VEC3(name, field) do {\
-    ImGui::TableNextColumn();\
-    ImGui::Text(name);\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat3("##"#field, glm::value_ptr(field));\
-    ImGui::TableNextColumn();\
-    ImGui::DragFloat3("##"#field"_var", glm::value_ptr(field ## _var));\
-} while(0)
-
-#define FLOAT_ROW_COLOR(name, field) do {\
-    ImGui::TableNextColumn();\
-    ImGui::Text(name);\
-    ImGui::TableNextColumn();\
-    ImGui::ColorEdit3("##"#field, glm::value_ptr(field));\
-    ImGui::TableNextColumn();\
-    ImGui::ColorEdit3("##"#field"_var", glm::value_ptr(field ## _var));\
-} while(0)
-
 template<class T>
 struct InterpolatableField {
     InterpolatableField()
@@ -68,6 +31,8 @@ struct InterpolatableField {
 
 template<class T>
 struct VariableField {
+    VariableField()
+    {}
     VariableField(T base_val, T variability = {})
         : base_val(base_val)
         , variability(variability)
@@ -208,6 +173,9 @@ struct Particle {
 
 // TODO: for now these live forever, will need a Emmiter that can die soon
 struct ParticleEmitter {
+    ParticleEmitter()
+    {}
+
     ParticleEmitter(
         double start_time,
         glm::vec2 pos,
@@ -241,19 +209,21 @@ struct ParticleEmitter {
             particles.end()
         );
 
-        const float c_emission_delay = get_variable_float_val(emission_delay);
-        if (curr_time - last_updated > c_emission_delay) {
-            const float     c_particle_duration = get_variable_float_val(particle_lifetime);
-            const Radians   c_particle_angle = get_variable_degrees_val(emission_angle).to_radians();
-            const glm::vec2 c_particle_dir = glm::vec2(cos(c_particle_angle.val), sin(c_particle_angle.val));
-            const float     c_velocity = get_variable_float_val(particle_vel);
-            const glm::vec2 c_start_size = get_variable_size_val(size.start);
-            const glm::vec2 c_end_size = get_variable_size_val(size.end);
-            const glm::vec3 c_start_color = get_variable_color_val(color.start);
-            const glm::vec3 c_end_color = get_variable_color_val(color.end);
+        if (texture != TextureSource::None) {
+            const float c_emission_delay = get_variable_float_val(emission_delay);
+            if (curr_time - last_updated > c_emission_delay) {
+                const float     c_particle_duration = get_variable_float_val(particle_lifetime);
+                const Radians   c_particle_angle = get_variable_degrees_val(emission_angle).to_radians();
+                const glm::vec2 c_particle_dir = glm::vec2(cos(c_particle_angle.val), sin(c_particle_angle.val));
+                const float     c_velocity = get_variable_float_val(particle_vel);
+                const glm::vec2 c_start_size = get_variable_size_val(size.start);
+                const glm::vec2 c_end_size = get_variable_size_val(size.end);
+                const glm::vec3 c_start_color = get_variable_color_val(color.start);
+                const glm::vec3 c_end_color = get_variable_color_val(color.end);
 
-            particles.push_back(Particle(curr_time, c_particle_duration, pos, c_particle_dir, c_velocity, c_start_size, c_end_size, c_start_color, c_end_color));
-            last_updated = curr_time;
+                particles.push_back(Particle(curr_time, c_particle_duration, pos, c_particle_dir, c_velocity, c_start_size, c_end_size, c_start_color, c_end_color));
+                last_updated = curr_time;
+            }
         }
 
         for (const Particle& particle : particles) {
@@ -283,8 +253,8 @@ struct ParticleEmitter {
             ImGui::EndTable();
         }
 
-        const char**  textures = texture_names();
-        bool check =  ImGui::Combo("Texture", &selected_texture, textures, texture_count());
+        const char** textures = texture_names();
+        const bool check =  ImGui::Combo("Texture", &selected_texture, textures, texture_count());
         if (check) {
             texture = static_cast<TextureSource>(selected_texture);
         }
