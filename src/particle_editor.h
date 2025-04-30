@@ -26,6 +26,8 @@ struct ParticleEditor {
             ),
             TextureSource::Particle
         ))
+        , has_unsaved_changes(false)
+        , show_confirm_load_popup(false)
     {
         memset(file_path, 0, MAX_FILE_PATH_SIZE);
         
@@ -39,10 +41,39 @@ struct ParticleEditor {
     void imgui_node(double total_elapsed_seconds) {
         ImGui::Text("Settings File");
 
+        if (show_confirm_load_popup) {
+            ImGui::OpenPopup("Confirm Popup");
+
+            if (ImGui::BeginPopup("Confirm Popup")) {
+                ImGui::Text("You have unsaved changes. Confirm loading new particle?");
+
+                if (ImGui::Button("Yes")) {
+                    ImGui::CloseCurrentPopup();
+
+                    show_confirm_load_popup = false;
+                    load(total_elapsed_seconds);
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("No")) {
+
+                    show_confirm_load_popup = false;
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
+        }
+
         ImGui::ComboStringVec("File Path##1", &selected_file, particle_files, particle_files.size());
         ImGui::SameLine();
         if (ImGui::Button("Load")) {
-            load(total_elapsed_seconds);
+            if (has_unsaved_changes) {
+                show_confirm_load_popup = true;
+            } else {
+                load(total_elapsed_seconds);
+            }
         }
 
         ImGui::InputText("File Path##2", file_path, MAX_FILE_PATH_SIZE);
@@ -50,8 +81,9 @@ struct ParticleEditor {
         if (ImGui::Button("Save")) {
             save();
         }
-
-        emitter.imgui_node();
+        
+        const bool has_changed = emitter.imgui_node();
+        has_unsaved_changes |= has_changed;
     }
 
 private:
@@ -119,12 +151,11 @@ private:
             // TODO: Log error to an imgui `log` tab
         }
 
+        has_unsaved_changes = false;
         load_particle_files();
     }
 
     void load(double total_elapsed_seconds) {
-        // TODO: Ask confirmation if I have unsaved changes
-
         std::ifstream in_file(get_curr_file_path());
         if (in_file.is_open()) {
             nlohmann::json root;
@@ -200,6 +231,8 @@ private:
         } else {
             // TODO: Log error to an imgui `log` tab
         }
+
+        has_unsaved_changes = false;
     }
 
     void load_particle_files() {
@@ -220,6 +253,9 @@ private:
 
     static constexpr uint32_t MAX_FILE_PATH_SIZE = 256;
     char file_path[MAX_FILE_PATH_SIZE];
+
+    bool has_unsaved_changes;
+    bool show_confirm_load_popup;
 
     ParticleEmitter emitter;
 

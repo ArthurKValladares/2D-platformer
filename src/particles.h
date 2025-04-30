@@ -47,17 +47,19 @@ inline float get_variable_float_val(const VariableField<float>& var_float) {
     return var_float.base_val + curr_variability;
 }
 
-inline void imgui_variable_float(const char* name, VariableField<float>& var_float, int& id) {
+inline bool imgui_variable_float(const char* name, VariableField<float>& var_float, int& id) {
+    bool has_changed = false;
     ImGui::TableNextColumn();
     ImGui::Text(name);
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::DragFloat("##", &var_float.base_val);
+    has_changed |= ImGui::DragFloat("##", &var_float.base_val);
     ImGui::PopID();
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::DragFloat("##", &var_float.variability);
+    has_changed |= ImGui::DragFloat("##", &var_float.variability);
     ImGui::PopID();
+    return has_changed;
 }
 
 inline Degrees get_variable_degrees_val(const VariableField<Degrees>& var_degrees) {
@@ -65,17 +67,19 @@ inline Degrees get_variable_degrees_val(const VariableField<Degrees>& var_degree
     return Degrees(var_degrees.base_val.val + curr_variability);
 }
 
-inline void imgui_variable_degrees(const char* name, VariableField<Degrees>& var, int& id) {
+inline bool imgui_variable_degrees(const char* name, VariableField<Degrees>& var, int& id) {
+    bool has_changed = false;
     ImGui::TableNextColumn();
     ImGui::Text(name);
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::DragFloat("##", &var.base_val.val);
+    has_changed |= ImGui::DragFloat("##", &var.base_val.val);
     ImGui::PopID();
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::DragFloat("##", &var.variability.val);
+    has_changed |= ImGui::DragFloat("##", &var.variability.val);
     ImGui::PopID();
+    return has_changed;
 }
 
 inline glm::vec2 get_variable_vec2_val(const VariableField<glm::vec2>& var_size) {
@@ -97,17 +101,19 @@ inline glm::vec2 get_variable_vec2_val_independent(const VariableField<glm::vec2
     return var_size.base_val + size_var;
 }
 
-inline void imgui_variable_vec2(const char* name, VariableField<glm::vec2>& var, int& id) {
+inline bool imgui_variable_vec2(const char* name, VariableField<glm::vec2>& var, int& id) {
+    bool has_changed = false;
     ImGui::TableNextColumn();
     ImGui::Text(name);
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::DragFloat2("##", glm::value_ptr(var.base_val));
+    has_changed |= ImGui::DragFloat2("##", glm::value_ptr(var.base_val));
     ImGui::PopID();
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::DragFloat2("##", glm::value_ptr(var.variability));
+    has_changed |= ImGui::DragFloat2("##", glm::value_ptr(var.variability));
     ImGui::PopID();
+    return has_changed;
 }
 
 inline glm::vec3 get_variable_vec3_val(const VariableField<glm::vec3>& var_color) {
@@ -121,17 +127,19 @@ inline glm::vec3 get_variable_vec3_val(const VariableField<glm::vec3>& var_color
     return var_color.base_val + color_var;
 }
 
-inline void imgui_variable_color(const char* name, VariableField<glm::vec3>& var, int& id) {
+inline bool imgui_variable_color(const char* name, VariableField<glm::vec3>& var, int& id) {
+    bool has_changed = false;
     ImGui::TableNextColumn();
     ImGui::Text(name);
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::ColorEdit3("##", glm::value_ptr(var.base_val));
+    has_changed = has_changed || ImGui::ColorEdit3("##", glm::value_ptr(var.base_val));
     ImGui::PopID();
     ImGui::TableNextColumn();
     ImGui::PushID(id++);
-    ImGui::ColorEdit3("##", glm::value_ptr(var.variability));
+    has_changed = has_changed || ImGui::ColorEdit3("##", glm::value_ptr(var.variability));
     ImGui::PopID();
+    return has_changed;
 }
 
 struct Particle {
@@ -244,7 +252,9 @@ struct ParticleEmitter {
         }
     }
 
-    void imgui_node() {
+    bool imgui_node() {
+        bool has_changed = false;
+
         if (ImGui::BeginTable("Values", 3)) {
 
             ImGui::TableSetupColumn("Field");
@@ -253,15 +263,15 @@ struct ParticleEmitter {
             ImGui::TableHeadersRow();
 
             int id = 0;
-            imgui_variable_vec2("Starting offset", start_offset, id);
-            imgui_variable_float("Emission Delay", emission_delay, id);
-            imgui_variable_degrees("Emission Angle", emission_angle, id);
-            imgui_variable_float("Particle Lifetime", particle_lifetime, id);
-            imgui_variable_float("Particle Velocity", particle_vel, id);
-            imgui_variable_vec2("Start Size", size.start, id);
-            imgui_variable_vec2("End Size", size.end, id);
-            imgui_variable_color("Start Color", color.start, id);
-            imgui_variable_color("End Color", color.end, id);
+            has_changed |= imgui_variable_vec2("Starting offset", start_offset, id);
+            has_changed |= imgui_variable_float("Emission Delay", emission_delay, id);
+            has_changed |= imgui_variable_degrees("Emission Angle", emission_angle, id);
+            has_changed |= imgui_variable_float("Particle Lifetime", particle_lifetime, id);
+            has_changed |= imgui_variable_float("Particle Velocity", particle_vel, id);
+            has_changed |= imgui_variable_vec2("Start Size", size.start, id);
+            has_changed |= imgui_variable_vec2("End Size", size.end, id);
+            has_changed |= imgui_variable_color("Start Color", color.start, id);
+            has_changed |= imgui_variable_color("End Color", color.end, id);
 
             ImGui::EndTable();
         }
@@ -271,6 +281,8 @@ struct ParticleEmitter {
         if (check) {
             texture = static_cast<TextureSource>(selected_texture);
         }
+
+        return has_changed;
     }
 
     double start_time;
