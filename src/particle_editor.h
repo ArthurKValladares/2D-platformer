@@ -38,7 +38,7 @@ struct ParticleEditor {
         emitter.update_and_create_renderables(renderable, total_elapsed_seconds, renderer, global_data_buffer);
     }
     
-    void imgui_node(double total_elapsed_seconds) {
+    void imgui_node(Renderer* renderer, double total_elapsed_seconds) {
         ImGui::Text("Settings File");
 
         if (show_confirm_load_popup) {
@@ -51,7 +51,7 @@ struct ParticleEditor {
                     ImGui::CloseCurrentPopup();
 
                     show_confirm_load_popup = false;
-                    load(total_elapsed_seconds);
+                    load(renderer, total_elapsed_seconds);
                 }
 
                 ImGui::SameLine();
@@ -72,14 +72,14 @@ struct ParticleEditor {
             if (has_unsaved_changes) {
                 show_confirm_load_popup = true;
             } else {
-                load(total_elapsed_seconds);
+                load(renderer, total_elapsed_seconds);
             }
         }
 
         ImGui::InputText("File Path##2", file_path, MAX_FILE_PATH_SIZE);
         ImGui::SameLine();
         if (ImGui::Button("Save")) {
-            save();
+            save(renderer);
         }
         
         const bool has_changed = emitter.imgui_node();
@@ -95,7 +95,7 @@ private:
         return out_path;
     }
 
-    void save() {
+    void save(Renderer* renderer) {
         // TODO: abstract this json logic
         nlohmann::json root;
         {
@@ -146,16 +146,17 @@ private:
         if (out_file.is_open()) {
             out_file << root;
             out_file.close();
-            // TODO: Log to an imgui `log` tab
+            
+            renderer->logger().add_log("saved particle effect to: %s/%s%s\n", particle_dir, file_path, particle_extension);
         } else {
-            // TODO: Log error to an imgui `log` tab
+            renderer->logger().add_log("ERROR saving particle effect to: %s/%s%s (%s)\n", particle_dir, file_path, particle_extension, strerror(errno));
         }
 
         has_unsaved_changes = false;
         load_particle_files();
     }
 
-    void load(double total_elapsed_seconds) {
+    void load(Renderer* renderer, double total_elapsed_seconds) {
         std::ifstream in_file(get_curr_file_path());
         if (in_file.is_open()) {
             nlohmann::json root;
@@ -227,9 +228,9 @@ private:
                 static_cast<TextureSource>(root["texture"].get<uint32_t>())
             );
 
-            // TODO: Log to an imgui `log` tab
+            renderer->logger().add_log("loaded particle effect from: %s/%s%s\n", particle_dir, file_path, particle_extension);
         } else {
-            // TODO: Log error to an imgui `log` tab
+            renderer->logger().add_log("ERROR loading particle effect from: %s/%s%s (%s)\n", particle_dir, file_path, particle_extension, strerror(errno));
         }
 
         has_unsaved_changes = false;

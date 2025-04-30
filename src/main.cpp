@@ -224,7 +224,7 @@ struct App {
             }
 
             if (ImGui::BeginTabItem("Particle Editor")) {
-                particle_editor.imgui_node(total_elapsed_seconds);
+                particle_editor.imgui_node(&renderer, total_elapsed_seconds);
                 ImGui::EndTabItem();
 
                 particle_tab_open = true;

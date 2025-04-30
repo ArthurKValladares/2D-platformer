@@ -316,6 +316,8 @@ Renderer::Renderer(Window& window) {
 	ImGui_ImplVulkan_Init(&vulkan_init_info);
 
 	ImGui_ImplVulkan_CreateFontsTexture();
+
+    imgui_log.open = false;
 }
 
 Renderer::~Renderer() {
@@ -682,6 +684,11 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
     ImGui::NewFrame();
     ImGui::Begin("Debug Data");
     {
+        ImGui::Checkbox("Show Log Window", &imgui_log.open);
+        if (imgui_log.open) {
+            imgui_log.draw();
+        }
+
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode("Engine Data")) {
             const uint32_t fps = 1.0 / frame_dt;
