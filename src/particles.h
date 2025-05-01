@@ -188,6 +188,25 @@ struct Particle {
     AnimatableFloat anim;
 };
 
+struct EmitterLifetime {
+    EmitterLifetime()
+        : val(-1.f)
+    {}
+    EmitterLifetime(float lifetime)
+        : val(lifetime)
+    {}
+
+    static EmitterLifetime infinite() {
+        return EmitterLifetime();
+    }
+
+    bool is_infinite() const {
+        return val < 0.0;
+    }
+
+    float val;
+};
+
 // TODO: for now these live forever, will need a Emmiter that can die soon
 struct ParticleEmitter {
     ParticleEmitter()
@@ -195,6 +214,7 @@ struct ParticleEmitter {
 
     ParticleEmitter(
         double start_time,
+        EmitterLifetime lifetime, 
         glm::vec2 center,
         VariableField<glm::vec2> start_offset,
         VariableField<float> emission_delay,
@@ -206,9 +226,10 @@ struct ParticleEmitter {
         TextureSource texture
     )
         : start_time(start_time)
-        , start_offset(start_offset)
         , last_updated(start_time)
+        , lifetime(lifetime)
         , center(center)
+        , start_offset(start_offset)
         , emission_delay(emission_delay)
         , emission_angle(emission_angle)
         , particle_lifetime(particle_lifetime)
@@ -228,7 +249,9 @@ struct ParticleEmitter {
             particles.end()
         );
 
-        if (texture != TextureSource::None) {
+        if (texture != TextureSource::None &&
+            (lifetime.is_infinite() || ((curr_time - start_time) > lifetime.val))
+        ) {
             const float c_emission_delay = get_variable_float_val(emission_delay);
             if (curr_time - last_updated > c_emission_delay) {
                 const glm::vec2 c_start_offset      = get_variable_vec2_val_independent(start_offset);
@@ -287,6 +310,8 @@ struct ParticleEmitter {
 
     double start_time;
     double last_updated;
+
+    EmitterLifetime lifetime;
 
     glm::vec2 center;
 

@@ -10,6 +10,7 @@ struct ParticleEditor {
     ParticleEditor()
         : emitter(ParticleEmitter(
             0.0,
+            EmitterLifetime::infinite(),
             glm::vec2(0.0),
             VariableField<glm::vec2>(glm::vec2(0.0, 0.0)),
             VariableField<float>(0.0),
@@ -87,9 +88,9 @@ struct ParticleEditor {
     }
 
 private:
-    std::filesystem::path get_curr_file_path() {
+    std::filesystem::path get_curr_file_path(const char* file_name) {
         std::filesystem::path particle_dir_path(particle_dir);
-        std::filesystem::path file(file_path);
+        std::filesystem::path file(file_name);
         std::filesystem::path out_path = particle_dir_path / file;
         out_path.replace_extension(particle_extension);
         return out_path;
@@ -99,6 +100,8 @@ private:
         // TODO: abstract this json logic
         nlohmann::json root;
         {
+            root["lifetime"] = emitter.lifetime.val;
+
             const glm::vec2 center = emitter.center;
             root["center"] = {center.x, center.y};
 
@@ -142,7 +145,7 @@ private:
             root["texture"] = static_cast<uint32_t>(emitter.texture);
         }
 
-        std::ofstream out_file(get_curr_file_path());
+        std::ofstream out_file(get_curr_file_path(file_path));
         if (out_file.is_open()) {
             out_file << root;
             out_file.close();
@@ -157,13 +160,15 @@ private:
     }
 
     void load(Renderer* renderer, double total_elapsed_seconds) {
-        std::ifstream in_file(get_curr_file_path());
+        std::ifstream in_file(get_curr_file_path(particle_files[selected_file].c_str()));
         if (in_file.is_open()) {
             nlohmann::json root;
             in_file >> root;
             in_file.close();
 
             const double old_start_time = emitter.start_time;
+
+            const float lifetime = root["lifetime"].get<float>();
 
             const std::array<float, 2> center = root["center"].get<std::array<float, 2>>();
 
@@ -184,6 +189,7 @@ private:
 
             emitter = ParticleEmitter(
                 old_start_time,
+                EmitterLifetime(lifetime),
                 glm::vec2(center[0], center[1]),
                 VariableField<glm::vec2>(
                     glm::vec2(start_offset[0],     start_offset[1]),
