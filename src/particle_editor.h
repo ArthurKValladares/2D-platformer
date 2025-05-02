@@ -1,6 +1,7 @@
 #pragma once
 
 #include "particles.h"
+#include "json_serialization.h"
 
 #include <algorithm>
 
@@ -100,49 +101,27 @@ private:
         // TODO: abstract this json logic
         nlohmann::json root;
         {
-            root["lifetime"] = emitter.lifetime.val;
-
-            const glm::vec2 center = emitter.center;
-            root["center"] = {center.x, center.y};
-
-            const glm::vec2 start_offset = emitter.start_offset.base_val;
-            root["start_offset"] = {start_offset.x, start_offset.y};
-            const glm::vec2 start_offset_var = emitter.start_offset.variability;
-            root["start_offset_var"] = {start_offset_var.x, start_offset_var.y};
-
-            root["emission_delay"] = emitter.emission_delay.base_val;
-            root["emission_delay_var"] = emitter.emission_delay.variability;
-
-            root["emission_angle"] = emitter.emission_angle.base_val.val;
-            root["emission_angle_var"] = emitter.emission_angle.variability.val;
-
-            root["particle_lifetime"] = emitter.particle_lifetime.base_val;
-            root["particle_lifetime_var"] = emitter.particle_lifetime.variability;
-
-            root["particle_vel"] = emitter.particle_vel.base_val;
-            root["particle_vel_var"] = emitter.particle_vel.variability;
-
-            const glm::vec2 start_size = emitter.size.start.base_val;
-            root["start_size"] = {start_size.x, start_size.y};
-            const glm::vec2 start_size_var = emitter.size.start.variability;
-            root["start_size_var"] = {start_size_var.x, start_size_var.y};
-
-            const glm::vec2 end_size = emitter.size.end.base_val;
-            root["end_size"] = {end_size.x, end_size.y};
-            const glm::vec2 end_size_var = emitter.size.end.variability;
-            root["end_size_var"] = {end_size_var.x, end_size_var.y};
-
-            const glm::vec3 start_color = emitter.color.start.base_val;
-            root["start_color"] = {start_color.r, start_color.g, start_color.b};
-            const glm::vec3 start_color_var = emitter.color.start.variability;
-            root["start_color_var"] = {start_color_var.r, start_color_var.g, start_color_var.b};
-
-            const glm::vec3 end_color = emitter.color.end.base_val;
-            root["end_color"] = {end_color.r, end_color.g, end_color.b};
-            const glm::vec3 end_color_var = emitter.color.end.variability;
-            root["end_color_var"] = {end_color_var.r, end_color_var.g, end_color_var.b};
-            
-            root["texture"] = static_cast<uint32_t>(emitter.texture);
+            serialize_float(root, "lifetime", emitter.lifetime.val);
+            serialize_vec2(root, "center", emitter.center);
+            serialize_vec2(root, "start_offset", emitter.start_offset.base_val);
+            serialize_vec2(root, "start_offset_var", emitter.start_offset.variability);
+            serialize_float(root, "emission_delay", emitter.emission_delay.base_val);
+            serialize_float(root, "emission_delay_var", emitter.emission_delay.variability);
+            serialize_float(root, "emission_angle", emitter.emission_angle.base_val.val);
+            serialize_float(root, "emission_angle_var", emitter.emission_angle.variability.val);
+            serialize_float(root, "particle_lifetime", emitter.particle_lifetime.base_val);
+            serialize_float(root, "particle_lifetime_var", emitter.particle_lifetime.variability);
+            serialize_float(root, "particle_vel", emitter.particle_vel.base_val);
+            serialize_float(root, "particle_vel_var", emitter.particle_vel.variability);
+            serialize_vec2(root, "start_size", emitter.size.start.base_val);
+            serialize_vec2(root, "start_size_var", emitter.size.start.variability);
+            serialize_vec2(root, "end_size", emitter.size.end.base_val);
+            serialize_vec2(root, "end_size_var", emitter.size.end.variability);
+            serialize_vec3(root, "start_color", emitter.color.start.base_val);
+            serialize_vec3(root, "start_color_var", emitter.color.start.variability);
+            serialize_vec3(root, "end_color", emitter.color.end.base_val);
+            serialize_vec3(root, "end_color_var", emitter.color.end.variability);
+            serialize_uint32(root, "texture", static_cast<uint32_t>(emitter.texture));
         }
 
         std::ofstream out_file(get_curr_file_path(file_path));
@@ -168,70 +147,51 @@ private:
 
             const double old_start_time = emitter.start_time;
 
-            const float lifetime = root["lifetime"].get<float>();
-
-            const std::array<float, 2> center = root["center"].get<std::array<float, 2>>();
-
-            const std::array<float, 2> start_offset     = root["start_offset"].get<std::array<float, 2>>();
-            const std::array<float, 2> start_offset_var = root["start_offset_var"].get<std::array<float, 2>>();
-
-            const std::array<float, 2> start_size     = root["start_size"].get<std::array<float, 2>>();
-            const std::array<float, 2> start_size_var = root["start_size_var"].get<std::array<float, 2>>();
-
-            const std::array<float, 2> end_size     = root["end_size"].get<std::array<float, 2>>();
-            const std::array<float, 2> end_size_var = root["end_size_var"].get<std::array<float, 2>>();
-
-            const std::array<float, 3> start_color     = root["start_color"].get<std::array<float, 3>>();
-            const std::array<float, 3> start_color_var = root["start_color_var"].get<std::array<float, 3>>();
-
-            const std::array<float, 3> end_color     = root["end_color"].get<std::array<float, 3>>();
-            const std::array<float, 3> end_color_var = root["end_color_var"].get<std::array<float, 3>>();
-
             emitter = ParticleEmitter(
                 old_start_time,
-                EmitterLifetime(lifetime),
-                glm::vec2(center[0], center[1]),
+                EmitterLifetime(get_serialized_float(root, "lifetime")),
+                get_serialized_vec2(root, "center"),
                 VariableField<glm::vec2>(
-                    glm::vec2(start_offset[0],     start_offset[1]),
-                    glm::vec2(start_offset_var[0], start_offset_var[1])
+                    get_serialized_vec2(root, "start_offset"),
+                    get_serialized_vec2(root, "start_offset_var")
                 ),
                 VariableField<float>(
-                    root["emission_delay"].get<float>(),
-                    root["emission_delay_var"].get<float>()
+                    get_serialized_float(root, "emission_delay"),
+                    get_serialized_float(root, "emission_delay_var")
                 ),
                 VariableField<Degrees>(
-                    Degrees(root["emission_angle"].get<float>()),
-                    Degrees(root["emission_angle_var"].get<float>())
+                    Degrees(get_serialized_float(root, "emission_angle")),
+                    Degrees(get_serialized_float(root, "emission_angle_var"))
                 ),
                 VariableField<float>(
-                    root["particle_lifetime"].get<float>(),
-                    root["particle_lifetime_var"].get<float>()
+                    get_serialized_float(root, "particle_lifetime"),
+                    get_serialized_float(root, "particle_lifetime_var")
                 ),
                 VariableField<float>(
-                    root["particle_vel"].get<float>(),
-                    root["particle_vel_var"].get<float>()
+                    get_serialized_float(root, "particle_vel"),
+                    get_serialized_float(root, "particle_vel_var")
                 ),
                 InterpolatableField<VariableField<glm::vec2>>(
                     VariableField<glm::vec2>(
-                        glm::vec2(start_size[0],     start_size[1]),
-                        glm::vec2(start_size_var[0], start_size_var[1])
+                        get_serialized_vec2(root, "start_size"),
+                        get_serialized_vec2(root, "start_size_var")
                     ),
                     VariableField<glm::vec2>(
-                        glm::vec2(end_size[0],     end_size[1]),
-                        glm::vec2(end_size_var[0], end_size_var[1])
+                        get_serialized_vec2(root, "end_size"),
+                        get_serialized_vec2(root, "end_size_var")
                     )
                 ),
                 InterpolatableField<VariableField<glm::vec3>>(
                     VariableField<glm::vec3>(
-                        glm::vec3(start_color[0],     start_color[1],     start_color[2]),
-                        glm::vec3(start_color_var[0], start_color_var[1], start_color_var[2])
+                        get_serialized_vec3(root, "start_color"),
+                        get_serialized_vec3(root, "start_color_var")
                     ),
                     VariableField<glm::vec3>(
-                        glm::vec3(end_color[0],     end_color[1],     end_color[2]),
-                        glm::vec3(end_color_var[0], end_color_var[1], end_color_var[2])
+                        get_serialized_vec3(root, "end_color"),
+                        get_serialized_vec3(root, "end_color_var")
                     )
                 ),
-                static_cast<TextureSource>(root["texture"].get<uint32_t>())
+                static_cast<TextureSource>(get_serialized_uint32(root, "texture"))
             );
 
             renderer->logger().add_log("loaded particle effect from: %s/%s%s\n", particle_dir, file_path, particle_extension);
