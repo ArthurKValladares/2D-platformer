@@ -64,6 +64,11 @@ struct GlobalDescriptorSetData {
     BufferID buffer_id;
 };
 
+struct TabItem {
+    const char* name;
+    std::function<void(double)> imgui_fn;
+};
+
 struct App {
     App() 
         : app_start(std::chrono::steady_clock::now())
@@ -87,6 +92,32 @@ struct App {
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
 
         setup_collision_grid();
+
+        tab_items[0] = TabItem {
+            .name = "App",
+            .imgui_fn = [&](double total_elapsed_seconds) {
+                if (ImGui::TreeNode("Camera")) {
+                    ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
+                    ImGui::Text("Size X: %.3f", camera.size_x);
+                    ImGui::Text("Size X: %.3f", camera.size_y);
+                    ImGui::Text("Scale: %.3f", camera.scale);
+
+                    ImGui::TreePop();
+                }
+            }
+        };
+        tab_items[1] = TabItem{
+            .name = "Particle Editor",
+            .imgui_fn = [&](double total_elapsed_seconds) {
+                particle_editor.imgui_node(&renderer, total_elapsed_seconds);
+            }
+        };
+        tab_items[2] = TabItem{
+            .name = "Map Editor",
+            .imgui_fn = [&](double total_elapsed_seconds) {
+                //
+            }
+        };
     }
 
     void setup_collision_grid() {
@@ -208,27 +239,11 @@ struct App {
         renderer.set_imgui_fn([&]() {
             ImGui::BeginTabBar("##tabs");
 
-            if (ImGui::BeginTabItem("App")) {
-                if (ImGui::TreeNode("Camera")) {
-                    ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
-                    ImGui::Text("Size X: %.3f", camera.size_x);
-                    ImGui::Text("Size X: %.3f", camera.size_y);
-                    ImGui::Text("Scale: %.3f", camera.scale);
-    
-                    ImGui::TreePop();
-                }
-                ImGui::EndTabItem();
-
-                app_tab_open = true;
-                particle_tab_open = false;
-            }
-
-            if (ImGui::BeginTabItem("Particle Editor")) {
-                particle_editor.imgui_node(&renderer, total_elapsed_seconds);
-                ImGui::EndTabItem();
-
-                particle_tab_open = true;
-                app_tab_open = false;
+            for (const TabItem& tab : tab_items) {
+                if (ImGui::BeginTabItem(tab.name)) {
+                    tab.imgui_fn(total_elapsed_seconds);
+                    ImGui::EndTabItem();
+                }         
             }
 
             ImGui::EndTabBar();
@@ -301,6 +316,7 @@ struct App {
     OrthographicCamera camera;
 
     // TODO: Handle tab stuff better later
+    std::array<TabItem, 3> tab_items;
     bool app_tab_open;
     bool particle_tab_open;
     ParticleEditor particle_editor;
