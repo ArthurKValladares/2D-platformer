@@ -22,6 +22,7 @@ enum class TileType : unsigned char {
         cog.outl("%s," % tile_type)
     ]]]*/
     //[[[end]]]
+    Count
 };
 
 static char tile_type_to_char(TileType ty) {

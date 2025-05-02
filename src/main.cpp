@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "animatable.h"
 #include "particle_editor.h"
+#include "map_editor.h"
 #include "collision_grid.h"
 
 #include "renderables/includes.h"
@@ -93,6 +94,7 @@ struct App {
 
         setup_collision_grid();
 
+        open_tab_idx = 0;
         tab_items[0] = TabItem {
             .name = "App",
             .imgui_fn = [&](double total_elapsed_seconds) {
@@ -115,7 +117,7 @@ struct App {
         tab_items[2] = TabItem{
             .name = "Map Editor",
             .imgui_fn = [&](double total_elapsed_seconds) {
-                //
+                map_editor.imgui_node();
             }
         };
     }
@@ -139,7 +141,8 @@ struct App {
     Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
 
-        if (app_tab_open) {
+        // TODO: probably need a `draw` function in TabItem
+        if (open_tab_idx == 0) {
             const Rect2D camera_rect = camera.get_rect();
             const uint64_t max_row = maps[map_idx].tiles.size();
             const uint64_t max_col = maps[map_idx].tiles[0].size();
@@ -168,7 +171,7 @@ struct App {
                 player_sprite.texture_at(total_elapsed_seconds),
                 global_set_data.buffer_id
             ));
-        } else if (particle_tab_open) {
+        } else if (open_tab_idx == 1) {
             particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds, global_set_data.buffer_id);
         }
        
@@ -239,11 +242,15 @@ struct App {
         renderer.set_imgui_fn([&]() {
             ImGui::BeginTabBar("##tabs");
 
-            for (const TabItem& tab : tab_items) {
+            uint32_t idx = 0;
+            for (TabItem& tab : tab_items) {
                 if (ImGui::BeginTabItem(tab.name)) {
                     tab.imgui_fn(total_elapsed_seconds);
                     ImGui::EndTabItem();
-                }         
+
+                    open_tab_idx = idx;
+                }
+                ++idx;
             }
 
             ImGui::EndTabBar();
@@ -315,11 +322,10 @@ struct App {
 
     OrthographicCamera camera;
 
-    // TODO: Handle tab stuff better later
+    uint32_t open_tab_idx;
     std::array<TabItem, 3> tab_items;
-    bool app_tab_open;
-    bool particle_tab_open;
     ParticleEditor particle_editor;
+    MapEditor map_editor;
 };
 
 int main(int argc, char *argv[]) {

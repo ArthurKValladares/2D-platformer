@@ -26,6 +26,7 @@ enum class TileType : unsigned char {
     Start,
     End,
     //[[[end]]]
+    Count
 };
 
 static char tile_type_to_char(TileType ty) {
