@@ -117,7 +117,7 @@ struct App {
         tab_items[2] = TabItem{
             .name = "Map Editor",
             .imgui_fn = [&](double total_elapsed_seconds) {
-                map_editor.imgui_node();
+                map_editor.imgui_node(&renderer);
             }
         };
     }

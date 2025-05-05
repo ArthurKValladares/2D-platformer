@@ -49,13 +49,19 @@ struct Renderer {
     VkQueue get_graphics_queue() {
         return graphics_queue;
     }
-    VkDevice get_device() const {
+    VkDevice get_device() {
         return device;
     }
-    VkDescriptorPool get_descriptor_pool() const {
+    VkPhysicalDevice get_physical_device() {
+        return physical_device;
+    }
+    VkDescriptorPool get_descriptor_pool() {
         return descriptor_pool;
     }
-    VmaAllocator get_allocator() const {
+    VkCommandPool get_command_pool() {
+        return command_pool;
+    }
+    VmaAllocator get_allocator() {
         return allocator;
     }
     const ShaderData& get_shader_data(ShaderID shader_id) const {
@@ -64,7 +70,7 @@ struct Renderer {
     const VkPipelineLayout& get_pipeline_layout(PipelineID pipeline_id) const {
         return pipeline_layouts.at(pipeline_id);
     }
-    VkDescriptorSet get_descriptor_set_at(DescriptorSetID set_id) const {
+    VkDescriptorSet get_descriptor_set_at(DescriptorSetID set_id) {
         return descriptor_sets.at(set_id);
     }
     Buffer& get_buffer(BufferID id);
@@ -145,6 +151,7 @@ private:
     std::vector<Buffer> i_buffers;
 
     // TODO: Dedicated transfer pool
+    // TODO: One command pool per frame in flight?
     VkCommandPool command_pool = VK_NULL_HANDLE;
 
     std::vector<VkCommandBuffer> command_buffers;

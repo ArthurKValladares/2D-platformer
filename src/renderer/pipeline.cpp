@@ -6,7 +6,7 @@
 #include <vector>
 
 Pipeline::Pipeline(
-    const Renderer* renderer,
+    Renderer* renderer,
     PipelineID layout_id,
     VkSampleCountFlagBits sample_count,
     uint32_t color_attachment_count, const VkFormat* p_color_attachment_formats,

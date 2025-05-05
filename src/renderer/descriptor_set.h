@@ -10,14 +10,14 @@
 struct Renderer;
 struct DescriptorSetLayout {
     DescriptorSetLayout() {}
-    DescriptorSetLayout(const Renderer* renderer, std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags = {});
+    DescriptorSetLayout(Renderer* renderer, std::span<const VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayoutCreateFlags flags = {});
 
     VkDescriptorSetLayout raw = VK_NULL_HANDLE;
 };
 
 struct DescriptorSet {
     DescriptorSet() {}
-    DescriptorSet(const Renderer* renderer, const DescriptorSetLayout& layout);
+    DescriptorSet(Renderer* renderer, const DescriptorSetLayout& layout);
 
     VkDescriptorSet raw;
 };

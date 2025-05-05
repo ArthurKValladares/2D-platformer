@@ -10,7 +10,7 @@ struct Pipeline {
     Pipeline() {}
 
     Pipeline(
-        const Renderer* renderer,
+        Renderer* renderer,
         PipelineID layout_id,
         VkSampleCountFlagBits sample_count,
         uint32_t color_attachment_count, const VkFormat* p_color_attachment_formats,
@@ -18,7 +18,7 @@ struct Pipeline {
     );
 
     Pipeline(
-        const Renderer* renderer,
+        Renderer* renderer,
         PipelineID layout_id,
         VkSampleCountFlagBits sample_count,
         const std::vector<VkFormat> color_attachment_formats,
@@ -31,7 +31,7 @@ struct Pipeline {
     {}
 
     Pipeline(
-        const Renderer* renderer,
+        Renderer* renderer,
         PipelineID layout_id,
         VkSampleCountFlagBits sample_count,
         const VkFormat& color_attachment_format,
