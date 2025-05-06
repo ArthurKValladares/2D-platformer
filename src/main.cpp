@@ -87,7 +87,7 @@ struct App {
             get_camera_size(maps[map_idx]),
             get_camera_size(maps[map_idx])
         ))
-        
+        , map_editor(&renderer)
     {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -305,6 +305,10 @@ struct App {
         }
     }
 
+    void cleanup() {
+        map_editor.cleanup(&renderer);
+    }
+
     std::chrono::steady_clock::time_point app_start;
     KeyboardState keyboard_state;
     Window window;
@@ -332,6 +336,8 @@ int main(int argc, char *argv[]) {
     App app = App();
     
     app.render_loop();
+
+    app.cleanup();
 
     return 0;
 }

@@ -13,25 +13,6 @@ namespace {
 // Taken from: https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples#example-for-vulkan-users
 //
 
-// A struct to manage data related to one image in vulkan
-struct MyTextureData
-{
-    VkDescriptorSet DS;         // Descriptor set: this is what you'll pass to Image()
-    int             Width;
-    int             Height;
-    int             Channels;
-
-    // Need to keep track of these to properly cleanup
-    VkImageView     ImageView;
-    VkImage         Image;
-    VkDeviceMemory  ImageMemory;
-    VkSampler       Sampler;
-    VkBuffer        UploadBuffer;
-    VkDeviceMemory  UploadBufferMemory;
-
-    MyTextureData() { memset(this, 0, sizeof(*this)); }
-};
-
 // Helper function to find Vulkan memory type bits. See ImGui_ImplVulkan_MemoryType() in imgui_impl_vulkan.cpp
 uint32_t findMemoryType(Renderer* renderer, uint32_t type_filter, VkMemoryPropertyFlags properties)
 {
@@ -238,17 +219,37 @@ bool LoadTextureFromFile(Renderer* renderer, const char* filename, MyTextureData
 
     return true;
 }
+
+// Helper function to cleanup an image loaded with LoadTextureFromFile
+void RemoveTexture(Renderer* renderer, MyTextureData* tex_data)
+{
+    vkFreeMemory(renderer->get_device(), tex_data->UploadBufferMemory, nullptr);
+    vkDestroyBuffer(renderer->get_device(), tex_data->UploadBuffer, nullptr);
+    vkDestroySampler(renderer->get_device(), tex_data->Sampler, nullptr);
+    vkDestroyImageView(renderer->get_device(), tex_data->ImageView, nullptr);
+    vkDestroyImage(renderer->get_device(), tex_data->Image, nullptr);
+    vkFreeMemory(renderer->get_device(), tex_data->ImageMemory, nullptr);
+    ImGui_ImplVulkan_RemoveTexture(tex_data->DS);
+}
 };
 
+MapEditor::MapEditor(Renderer* renderer) {
+    // TODO: Use the stuff I already have instead
+    // const Texture& texture = renderer->get_texture(texture_id(TextureSource::Akv));
+    bool ret = LoadTextureFromFile(renderer, texture_path(TextureSource::Akv), &my_texture);
+    IM_ASSERT(ret);
+}
+
+void MapEditor::cleanup(Renderer* renderer) {
+    // TODO: Pretty bad so far since its not integrated with the Renderer
+    vkDeviceWaitIdle(renderer->get_device());
+
+    RemoveTexture(renderer, &my_texture);
+}
+
 void MapEditor::imgui_node(Renderer* renderer) {
-    ImGuiIO& io = ImGui::GetIO();
-    const ImTextureID my_tex_id = io.Fonts->TexID;
-    const float my_tex_w = (float)io.Fonts->TexWidth;
-    const float my_tex_h = (float)io.Fonts->TexHeight;
+    const float my_tex_w = (float) my_texture.Width;
+    const float my_tex_h = (float) my_texture.Height;
     const ImVec2 size = ImVec2(32.0f, 32.0f);
-    const ImVec2 uv0 = ImVec2(0.0f, 0.0f);
-    const ImVec2 uv1 = ImVec2(32.0f / my_tex_w, 32.0f / my_tex_h);
-    const ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    const ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ImGui::ImageButton("Wall", my_tex_id, size, uv0, uv1, bg_col, tint_col);
+    ImGui::ImageButton("Wall", (ImTextureID) my_texture.DS, size);
 }

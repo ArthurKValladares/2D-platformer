@@ -815,6 +815,10 @@ Buffer& Renderer::get_buffer(BufferID id) {
     return buffers[id];
 }
 
+Texture& Renderer::get_texture(TextureID id) {
+    return textures[id];
+}
+
 void Renderer::process_sdl_event(const SDL_Event* e) {
     ImGui_ImplSDL3_ProcessEvent(e);
 }

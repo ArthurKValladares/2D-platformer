@@ -74,6 +74,7 @@ struct Renderer {
         return descriptor_sets.at(set_id);
     }
     Buffer& get_buffer(BufferID id);
+    Texture& get_texture(TextureID id);
 
     //
     // Renderer info
