@@ -29,5 +29,5 @@ struct MapEditor {
 
     void imgui_node(Renderer* renderer);
 
-    MyTextureData my_texture;
+    std::vector<MyTextureData> my_textures;
 };

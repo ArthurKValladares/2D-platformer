@@ -236,20 +236,34 @@ void RemoveTexture(Renderer* renderer, MyTextureData* tex_data)
 MapEditor::MapEditor(Renderer* renderer) {
     // TODO: Use the stuff I already have instead
     // const Texture& texture = renderer->get_texture(texture_id(TextureSource::Akv));
-    bool ret = LoadTextureFromFile(renderer, texture_path(TextureSource::Akv), &my_texture);
-    IM_ASSERT(ret);
+
+    // TODO: Better way to get list of assets
+    const uint32_t num_textures = texture_count();
+    my_textures.resize(num_textures);
+    for (uint32_t i = 0; i < num_textures; ++i) {
+        // NOTE: + 1 beacuse 'None' is first
+        const TextureSource texture = texture_from_uint(i + 1);
+        bool ret = LoadTextureFromFile(renderer, texture_path(texture), &my_textures[i]);
+        IM_ASSERT(ret);
+    } 
 }
 
 void MapEditor::cleanup(Renderer* renderer) {
     // TODO: Pretty bad so far since its not integrated with the Renderer
     vkDeviceWaitIdle(renderer->get_device());
 
-    RemoveTexture(renderer, &my_texture);
+    for (MyTextureData& my_texture : my_textures) {
+        RemoveTexture(renderer, &my_texture);
+    }
 }
 
 void MapEditor::imgui_node(Renderer* renderer) {
-    const float my_tex_w = (float) my_texture.Width;
-    const float my_tex_h = (float) my_texture.Height;
-    const ImVec2 size = ImVec2(32.0f, 32.0f);
-    ImGui::ImageButton("Wall", (ImTextureID) my_texture.DS, size);
+    const ImVec2 size = ImVec2(128.0f, 128.0f);
+    for (uint32_t id = 0; id < my_textures.size(); ++id) {
+        const MyTextureData& my_texture = my_textures[id];
+        
+        ImGui::PushID(id);
+        ImGui::ImageButton("##", (ImTextureID) my_texture.DS, size);
+        ImGui::PopID();
+    }
 }
