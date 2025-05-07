@@ -258,10 +258,16 @@ void MapEditor::cleanup(Renderer* renderer) {
 }
 
 void MapEditor::imgui_node(Renderer* renderer) {
+    constexpr uint32_t textures_per_line = 4;
+
     const ImVec2 size = ImVec2(128.0f, 128.0f);
     for (uint32_t id = 0; id < my_textures.size(); ++id) {
         const MyTextureData& my_texture = my_textures[id];
         
+        if (id % textures_per_line != 0) {
+            ImGui::SameLine();
+        }
+
         ImGui::PushID(id);
         ImGui::ImageButton("##", (ImTextureID) my_texture.DS, size);
         ImGui::PopID();
