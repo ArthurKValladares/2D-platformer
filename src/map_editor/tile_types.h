@@ -3,6 +3,8 @@
 #include <cassert>
 #include <glm/vec3.hpp>
 
+#define TILE_SIZE 1.0
+
 /*[[[cog
 import cog
 cases = [

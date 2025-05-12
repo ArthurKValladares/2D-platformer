@@ -29,7 +29,6 @@
 // descriptor set number 0 will be used for engine-global resources
 // descriptor set number 1 will be used for per-object resources (using push descriptors)
 
-#define TILE_SIZE 1.0
 #define PLAYER_SCALE 0.9
 #define PLAYER_SIZE TILE_SIZE * PLAYER_SCALE
 
@@ -173,6 +172,9 @@ struct App {
             ));
         } else if (open_tab_idx == 1) {
             particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds, global_set_data.buffer_id);
+        } else if (open_tab_idx == 2) {
+            const Rect2D camera_rect = camera.get_rect();
+            map_editor.add_to_renderable(&renderer, renderable, camera_rect, global_set_data.buffer_id);
         }
        
         return renderable;

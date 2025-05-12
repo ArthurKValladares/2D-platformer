@@ -114,7 +114,7 @@ inline const char** texture_names() {
     //[[[end]]]
 }
 inline uint32_t texture_count() {
-    return static_cast<uint32_t>(TextureSource::Count);
+    return static_cast<uint32_t>(TextureSource::Count) - 1;
 }
 inline TextureSource texture_from_uint(uint32_t i) {
     return static_cast<TextureSource>(i);
@@ -202,7 +202,7 @@ inline const char** shader_names() {
     //[[[end]]]
 }
 inline uint32_t shader_count() {
-    return static_cast<uint32_t>(ShaderSource::Count);
+    return static_cast<uint32_t>(ShaderSource::Count) - 1;
 }
 inline ShaderSource shader_from_uint(uint32_t i) {
     return static_cast<ShaderSource>(i);

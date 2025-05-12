@@ -4,6 +4,8 @@
 
 #include "tile_types.h"
 
+#define TILE_SIZE 1.0
+
 struct TilePosition {
     int row;
     int col;

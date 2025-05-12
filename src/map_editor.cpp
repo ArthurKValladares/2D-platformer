@@ -8,6 +8,11 @@
 #include "imgui_impl_vulkan.h"
 #include "stb_image.h"
 
+#define DEFAULT_WIDTH  15
+#define DEFAULT_HEIGHT 15
+#define MIN_WIDTH      3
+#define MIN_HEIGHT     3
+
 namespace {
 //
 // Taken from: https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples#example-for-vulkan-users
@@ -233,7 +238,10 @@ void RemoveTexture(Renderer* renderer, MyTextureData* tex_data)
 }
 };
 
-MapEditor::MapEditor(Renderer* renderer) {
+MapEditor::MapEditor(Renderer* renderer)
+    : width(DEFAULT_WIDTH)
+    , height(DEFAULT_HEIGHT)
+ {
     // TODO: Use the stuff I already have instead
     // const Texture& texture = renderer->get_texture(texture_id(TextureSource::Akv));
 
@@ -257,8 +265,39 @@ void MapEditor::cleanup(Renderer* renderer) {
     }
 }
 
+void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, Rect2D camera_rect, BufferID global_data_buffer) {
+    for (uint64_t row = 0; row < height; ++row) {
+        for (uint64_t col = 0; col < width; ++col) {
+            const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+
+            if (rect.intersects(camera_rect)) {
+                // TODO: Get actual type from editor
+                const TileType ty = TileType::Path;
+                glm::vec3 color = tile_type_to_color(ty);
+
+                // TODO: Get actual texture from TileType
+                const TextureSource tex = TextureSource::Test1;
+                renderable.push_child(ColoredQuad(
+                    renderer,
+                    rect,
+                    tex,
+                    color,
+                    global_data_buffer
+                ));
+            }
+        }
+    }
+}
+
 void MapEditor::imgui_node(Renderer* renderer) {
     constexpr uint32_t textures_per_line = 4;
+
+    if (ImGui::InputInt("Width", &width) && width < MIN_WIDTH) {
+        width = MIN_WIDTH;
+    }
+    if (ImGui::InputInt("Height", &height) && height < MIN_HEIGHT) {
+        height = MIN_HEIGHT;
+    }
 
     const ImVec2 size = ImVec2(128.0f, 128.0f);
     for (uint32_t id = 0; id < my_textures.size(); ++id) {
