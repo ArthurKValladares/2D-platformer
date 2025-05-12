@@ -249,7 +249,7 @@ struct ParticleEmitter {
             particles.end()
         );
 
-        if (texture != TextureSource::None &&
+        if (texture != TextureSource::Count &&
             (lifetime.is_infinite() || ((curr_time - start_time) > lifetime.val))
         ) {
             const float c_emission_delay = get_variable_float_val(emission_delay);

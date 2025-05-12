@@ -245,12 +245,12 @@ MapEditor::MapEditor(Renderer* renderer)
     // TODO: Use the stuff I already have instead
     // const Texture& texture = renderer->get_texture(texture_id(TextureSource::Akv));
 
-    // TODO: Better way to get list of assets
-    const uint32_t num_textures = texture_count();
-    my_textures.resize(num_textures);
-    for (uint32_t i = 0; i < num_textures; ++i) {
-        // NOTE: + 1 beacuse 'None' is first
-        const TextureSource texture = texture_from_uint(i + 1);
+    const uint32_t num_tile_types = tile_type_count();
+    my_textures.resize(num_tile_types);
+    for (uint32_t i = 0; i < num_tile_types; ++i) {
+        const TileType tile_ty = tile_type_from_uint(i);
+        const TextureSource texture = tile_type_to_texture(tile_ty);
+        
         bool ret = LoadTextureFromFile(renderer, texture_path(texture), &my_textures[i]);
         IM_ASSERT(ret);
     } 

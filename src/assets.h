@@ -34,7 +34,6 @@ formatted_textures = get_formatted_names(texture_files)
 //[[[end]]]
 
 enum class TextureSource : uint32_t {
-    None = 0,
     /*[[[cog
     for texture in formatted_textures:
         cog.outl("%s," % texture)
@@ -80,10 +79,6 @@ inline const char* texture_path(TextureSource texture) {
             return "assets/textures/test_4.png";
         }
         //[[[end]]]
-        case TextureSource::None: {
-            assert(false);
-            return "";
-        }
         case TextureSource::Count: {
             assert(false);
             return "";
@@ -126,10 +121,6 @@ inline const char* texture_name(TextureSource texture) {
             return "Test4";
         }
         //[[[end]]]
-        case TextureSource::None: {
-            assert(false);
-            return "";
-        }
         case TextureSource::Count: {
             assert(false);
             return "";
@@ -143,7 +134,6 @@ inline const char* texture_name(TextureSource texture) {
 inline const char** texture_names() {
     /*[[[cog
     cog.outl("static const char* names[] = {");
-    cog.outl("\t\"None\",")
     for texture in formatted_textures:
         cog.out("""
         \"%s\",
@@ -154,7 +144,6 @@ inline const char** texture_names() {
     cog.outl("return names;")
     ]]]*/
     static const char* names[] = {
-    	"None",
         "Akv",
         "Particle",
         "Test1",
@@ -166,7 +155,7 @@ inline const char** texture_names() {
     //[[[end]]]
 }
 inline uint32_t texture_count() {
-    return static_cast<uint32_t>(TextureSource::Count) - 1;
+    return static_cast<uint32_t>(TextureSource::Count);
 }
 inline TextureSource texture_from_uint(uint32_t i) {
     return static_cast<TextureSource>(i);
@@ -176,7 +165,6 @@ inline TextureID texture_id(TextureSource texture) {
 }
 
 enum class ShaderSource : uint32_t {
-    None = 0,
     /*[[[cog
     for shader in formatted_shaders:
         cog.outl("%s," % shader)
@@ -221,10 +209,6 @@ inline const char* shader_path(ShaderSource shader) {
             return "shaders/triangle_transform.vert.spv";
         }
         //[[[end]]]
-        case ShaderSource::None: {
-            assert(false);
-            return "";
-        }
         case ShaderSource::Count: {
             assert(false);
             return "";
@@ -266,10 +250,6 @@ inline const char* shader_name(ShaderSource shader) {
             return "TriangleTransformVert";
         }
         //[[[end]]]
-        case ShaderSource::None: {
-            assert(false);
-            return "";
-        }
         case ShaderSource::Count: {
             assert(false);
             return "";
@@ -306,7 +286,7 @@ inline const char** shader_names() {
     //[[[end]]]
 }
 inline uint32_t shader_count() {
-    return static_cast<uint32_t>(ShaderSource::Count) - 1;
+    return static_cast<uint32_t>(ShaderSource::Count);
 }
 inline ShaderSource shader_from_uint(uint32_t i) {
     return static_cast<ShaderSource>(i);

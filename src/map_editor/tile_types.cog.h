@@ -19,7 +19,6 @@ cases = [
 //[[[end]]]
 
 enum class TileType : unsigned char {
-    Invalid = 0,
     /*[[[cog
     for case in cases:
         tile_type = case[0]
@@ -28,6 +27,14 @@ enum class TileType : unsigned char {
     //[[[end]]]
     Count
 };
+
+inline uint32_t tile_type_count() {
+    return static_cast<uint32_t>(TileType::Count);
+}
+
+inline TileType tile_type_from_uint(uint32_t i) {
+    return static_cast<TileType>(i);
+}
 
 static char tile_type_to_char(TileType ty) {
     switch (ty) {
@@ -56,7 +63,7 @@ static TileType char_to_tile_type(char c) {
         //[[[end]]]
         default: {
             assert(false &&"Char does not match a TileType");
-            return TileType::Invalid;
+            return TileType::Count;
         }
     }
 }
@@ -88,7 +95,7 @@ static TextureSource tile_type_to_texture(TileType ty) {
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
-            return TextureSource::None;
+            return TextureSource::Count;
         }
     }
 }
