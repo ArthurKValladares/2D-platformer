@@ -274,11 +274,15 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, Re
                 // TODO: Get actual type from editor
                 const TileType ty = TileType::Path;
 
-                renderable.push_child(ColoredQuad(
+                renderable.push_child(OutlineQuad(
                     renderer,
                     rect,
                     tile_type_to_texture(ty),
-                    tile_type_to_color(ty),
+                    OutlinePushConstantData{
+                        .color = tile_type_to_color(ty),
+                        .outline = glm::vec3(1.0, 0.0, 0.0),
+                        .thickness = 0.01
+                    },
                     global_data_buffer
                 ));
             }

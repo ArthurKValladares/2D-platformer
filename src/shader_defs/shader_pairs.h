@@ -12,6 +12,7 @@
 #include "triangle_color_frag.h"
 #include "triangle_data_vert.h"
 #include "triangle_data_frag.h"
+#include "outline_frag.h"
 
 //
 // TODO: A bunch of stuff in thus sub-dir can maybe be auto-generated,

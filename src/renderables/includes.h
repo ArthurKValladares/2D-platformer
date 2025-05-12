@@ -5,3 +5,4 @@
 #include "color_quad.h"
 #include "data_quad.h"
 #include "selectable.h"
+#include "outline_quad.h"

@@ -169,6 +169,7 @@ enum class ShaderSource : uint32_t {
     for shader in formatted_shaders:
         cog.outl("%s," % shader)
     ]]]*/
+    OutlineFrag,
     TriangleFrag,
     TriangleVert,
     TriangleColorFrag,
@@ -190,6 +191,9 @@ inline const char* shader_path(ShaderSource shader) {
             % (shader, shader_path, shader_file),
             dedent=True, trimblanklines=True)
         ]]]*/
+        case ShaderSource::OutlineFrag: {
+            return "shaders/outline.frag.spv";
+        }
         case ShaderSource::TriangleFrag: {
             return "shaders/triangle.frag.spv";
         }
@@ -231,6 +235,9 @@ inline const char* shader_name(ShaderSource shader) {
             % (shader, shader),
             dedent=True, trimblanklines=True)
         ]]]*/
+        case ShaderSource::OutlineFrag: {
+            return "OutlineFrag";
+        }
         case ShaderSource::TriangleFrag: {
             return "TriangleFrag";
         }
@@ -275,6 +282,7 @@ inline const char** shader_names() {
     ]]]*/
     static const char* names[] = {
     	"None",
+        "OutlineFrag",
         "TriangleFrag",
         "TriangleVert",
         "TriangleColorFrag",
