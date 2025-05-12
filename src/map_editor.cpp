@@ -241,7 +241,16 @@ void RemoveTexture(Renderer* renderer, MyTextureData* tex_data)
 MapEditor::MapEditor(Renderer* renderer)
     : width(DEFAULT_WIDTH)
     , height(DEFAULT_HEIGHT)
+    , camera(OrthographicCamera(
+        glm::vec2(0.0),
+        DEFAULT_WIDTH * TILE_SIZE,
+        DEFAULT_WIDTH * TILE_SIZE
+    ))
+    , global_set_data(GlobalDescriptorSetData(renderer, camera))
  {
+    global_set_data.write_shader_data_to_buffer(renderer);
+    update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
+
     // TODO: Use the stuff I already have instead
     // const Texture& texture = renderer->get_texture(texture_id(TextureSource::Akv));
 
@@ -265,7 +274,12 @@ void MapEditor::cleanup(Renderer* renderer) {
     }
 }
 
-void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, Rect2D camera_rect, BufferID global_data_buffer) {
+void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable) {
+    global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
+    global_set_data.write_shader_data_to_buffer(renderer);
+
+    const Rect2D camera_rect = camera.get_rect();
+
     for (uint64_t row = 0; row < height; ++row) {
         for (uint64_t col = 0; col < width; ++col) {
             const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
@@ -283,10 +297,46 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, Re
                         .outline = glm::vec3(1.0, 0.0, 0.0),
                         .thickness = 0.01
                     },
-                    global_data_buffer
+                    global_set_data.buffer_id
                 ));
             }
         }
+    }
+}
+
+void MapEditor::update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
+    // TODO THis pattern is repeated a lot
+    constexpr float displacement_per_second = 5.0;
+    glm::vec2 movement_vec{0.0, 0.0};
+    if (keyboard_state.is_down(SDLK_A)) {
+        movement_vec.x -= 1.0;
+    }
+    if (keyboard_state.is_down(SDLK_W)){
+        movement_vec.y += 1.0;
+    }
+    if (keyboard_state.is_down(SDLK_S)){
+        movement_vec.y -= 1.0;
+    }
+    if (keyboard_state.is_down(SDLK_D)){
+        movement_vec.x += 1.0;
+    }
+
+    if (glm::length(movement_vec) > 0.0) {
+        movement_vec = glm::normalize(movement_vec);
+
+        const float displacement = displacement_per_second * frame_dt;
+        const glm::vec2 displacement_vec = movement_vec * displacement;
+
+        camera.center += displacement_vec;
+    }
+
+    constexpr float camera_zoom_vel = 0.5;
+    if (keyboard_state.is_down(SDLK_E)) {
+        camera.scale += camera_zoom_vel * frame_dt;
+    }
+    if (keyboard_state.is_down(SDLK_Q)) {
+        camera.scale -= camera_zoom_vel * frame_dt;
+        camera.scale = std::max(0.1f, camera.scale);
     }
 }
 

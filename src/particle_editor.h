@@ -2,13 +2,17 @@
 
 #include "particles.h"
 #include "json_serialization.h"
+#include "keyboard_state.h"
+#include "camera.h"
+#include "global_descriptor_set.h"
+#include "renderer/renderer.h"
 
 #include <algorithm>
 
 #include "nlohmann/json.hpp"
 
 struct ParticleEditor {
-    ParticleEditor()
+    ParticleEditor(Renderer* renderer)
         : emitter(ParticleEmitter(
             0.0,
             EmitterLifetime::infinite(),
@@ -30,16 +34,39 @@ struct ParticleEditor {
         ))
         , has_unsaved_changes(false)
         , show_confirm_load_popup(false)
+        , camera(OrthographicCamera(
+            glm::vec2(0.0),
+            emitter.size.start.base_val.x * DEFAULT_SIZE_SCALE,
+            emitter.size.start.base_val.x * DEFAULT_SIZE_SCALE
+        ))
+        , global_set_data(GlobalDescriptorSetData(renderer, camera))
     {
+        global_set_data.write_shader_data_to_buffer(renderer);
+        update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
+
         memset(file_path, 0, MAX_FILE_PATH_SIZE);
         
         load_particle_files();
     }
 
-    void add_to_renderable(Renderer* renderer, Renderable& renderable, double total_elapsed_seconds, BufferID global_data_buffer) {
-        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, renderer, global_data_buffer);
+    void add_to_renderable(Renderer* renderer, Renderable& renderable, double total_elapsed_seconds) {
+        global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
+        global_set_data.write_shader_data_to_buffer(renderer);
+
+        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, renderer, global_set_data.buffer_id);
     }
     
+    void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
+        constexpr float camera_zoom_vel = 0.5;
+        if (keyboard_state.is_down(SDLK_E)) {
+            camera.scale += camera_zoom_vel * frame_dt;
+        }
+        if (keyboard_state.is_down(SDLK_Q)) {
+            camera.scale -= camera_zoom_vel * frame_dt;
+            camera.scale = std::max(0.1f, camera.scale);
+        }
+    }
+
     void imgui_node(Renderer* renderer, double total_elapsed_seconds) {
         ImGui::Text("Settings File");
 
@@ -226,4 +253,9 @@ private:
 
     ParticleEmitter emitter;
 
+    static constexpr float DEFAULT_SIZE_SCALE = 10.0;
+
+public:
+    OrthographicCamera camera;
+    GlobalDescriptorSetData global_set_data;
 };

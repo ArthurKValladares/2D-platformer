@@ -20,6 +20,7 @@
 #include "particle_editor.h"
 #include "map_editor.h"
 #include "collision_grid.h"
+#include "global_descriptor_set.h"
 
 #include "renderables/includes.h"
 
@@ -38,32 +39,6 @@ namespace {
     }
 };
 
-struct GlobalDescriptorSetData {
-    GlobalDescriptorSetData(Renderer& renderer, const OrthographicCamera& camera) 
-        : layout_id(renderer.upload_descriptor_set_layout(get_global_set_bindings()))
-        , set_id(renderer.upload_descriptor_set(layout_id))
-        , shader_data(GlobalShaderData{
-            .proj_matrix = camera.get_proj_matrix()
-        })
-        , buffer_id(renderer.request_buffer(
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VMA_ALLOCATION_CREATE_MAPPED_BIT,
-            VMA_MEMORY_USAGE_CPU_TO_GPU,
-            sizeof(GlobalShaderData)
-        ))
-    {}
-
-    void write_shader_data_to_buffer(Renderer& renderer) {
-        Buffer& buffer = renderer.get_buffer(buffer_id);
-        buffer.write_to(&shader_data, sizeof(GlobalShaderData));
-    }
-
-    DescriptorSetLayoutID layout_id;
-    DescriptorSetID set_id;
-    GlobalShaderData shader_data;
-    BufferID buffer_id;
-};
-
 struct TabItem {
     const char* name;
     std::function<void(double)> imgui_fn;
@@ -75,7 +50,7 @@ struct App {
         , keyboard_state(KeyboardState())
         , window(Window())
         , renderer(window)
-        , global_set_data(GlobalDescriptorSetData(renderer, camera))
+        , global_set_data(GlobalDescriptorSetData(&renderer, camera))
         , map_idx(0)
         , maps({MapLayout("assets/maps/test_map.map"), MapLayout("assets/maps/test_map_2.map")})
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
@@ -86,9 +61,10 @@ struct App {
             get_camera_size(maps[map_idx]),
             get_camera_size(maps[map_idx])
         ))
+        , particle_editor(&renderer)
         , map_editor(&renderer)
     {
-        global_set_data.write_shader_data_to_buffer(renderer);
+        global_set_data.write_shader_data_to_buffer(&renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
 
         setup_collision_grid();
@@ -137,50 +113,7 @@ struct App {
         }
     }
 
-    Renderable build_root_renderable(KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
-        Renderable renderable;
-
-        // TODO: probably need a `draw` function in TabItem
-        if (open_tab_idx == 0) {
-            const Rect2D camera_rect = camera.get_rect();
-            const uint64_t max_row = maps[map_idx].tiles.size();
-            const uint64_t max_col = maps[map_idx].tiles[0].size();
-            for (uint64_t row = 0; row < max_row; ++row) {
-                for (uint64_t col = 0; col < max_col; ++col) {
-                    const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
-
-                    if (rect.intersects(camera_rect)) {
-                        const TileType ty = maps[map_idx].tiles[row][col];
-
-                        renderable.push_child(ColoredQuad(
-                            &renderer,
-                            rect,
-                            tile_type_to_texture(ty),
-                            tile_type_to_color(ty),
-                            global_set_data.buffer_id
-                        ));
-                    }
-                }
-            }
-
-            renderable.push_child(MovingQuad(
-                &renderer,
-                player_rect,
-                glm::vec2(0.0, 0.0),
-                player_sprite.texture_at(total_elapsed_seconds),
-                global_set_data.buffer_id
-            ));
-        } else if (open_tab_idx == 1) {
-            particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds, global_set_data.buffer_id);
-        } else if (open_tab_idx == 2) {
-            const Rect2D camera_rect = camera.get_rect();
-            map_editor.add_to_renderable(&renderer, renderable, camera_rect, global_set_data.buffer_id);
-        }
-       
-        return renderable;
-    }
-
-    void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
+    void app_update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
         // Update player movement
         constexpr float displacement_per_second = 5.0;
         glm::vec2 movement_vec{0.0, 0.0};
@@ -239,6 +172,18 @@ struct App {
         }
 
         camera.center = player_rect.center();
+    }
+
+    void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
+        
+        // TODO: probably need a `update` function in TabItem
+        if (open_tab_idx == 0) {
+            app_update(keyboard_state, total_elapsed_seconds, frame_dt);
+        } else if (open_tab_idx == 1) {
+            particle_editor.update(keyboard_state, total_elapsed_seconds, frame_dt);
+        } else if (open_tab_idx == 2) {
+            map_editor.update(keyboard_state, total_elapsed_seconds, frame_dt);
+        }
 
         // Setup imgui
         renderer.set_imgui_fn([&]() {
@@ -259,12 +204,60 @@ struct App {
         });
     }
 
-    void render(double total_elapse_seconds, double frame_dt) {
-        global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
-        global_set_data.write_shader_data_to_buffer(renderer);
+    void render(double total_elapsed_seconds, double frame_dt) {
+        Renderable renderable;
+        ViewDrawData data;
 
-        Renderable curr_renderable = build_root_renderable(keyboard_state, total_elapse_seconds, frame_dt);
-        ViewDrawData data = curr_renderable.get_draw_data(&renderer, global_set_data.layout_id, global_set_data.set_id);
+        // TODO: probably need a `draw` function in TabItem
+        // Some of this stuff with the global set data being different is annoying atm, handle it in the draw function.
+        if (open_tab_idx == 0) {
+            // TODO: Make better
+            global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
+            global_set_data.write_shader_data_to_buffer(&renderer);
+
+            const Rect2D camera_rect = camera.get_rect();
+            const uint64_t max_row = maps[map_idx].tiles.size();
+            const uint64_t max_col = maps[map_idx].tiles[0].size();
+
+            for (uint64_t row = 0; row < max_row; ++row) {
+                for (uint64_t col = 0; col < max_col; ++col) {
+                    const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+
+                    if (rect.intersects(camera_rect)) {
+                        const TileType ty = maps[map_idx].tiles[row][col];
+
+                        renderable.push_child(ColoredQuad(
+                            &renderer,
+                            rect,
+                            tile_type_to_texture(ty),
+                            tile_type_to_color(ty),
+                            global_set_data.buffer_id
+                        ));
+                    }
+                }
+            }
+
+            renderable.push_child(MovingQuad(
+                &renderer,
+                player_rect,
+                glm::vec2(0.0, 0.0),
+                player_sprite.texture_at(total_elapsed_seconds),
+                global_set_data.buffer_id
+            ));
+
+            // TODO: Make better
+            data = renderable.get_draw_data(&renderer, global_set_data.layout_id, global_set_data.set_id);
+        } else if (open_tab_idx == 1) {
+            particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds);
+
+            // TODO: Make better
+            data = renderable.get_draw_data(&renderer, particle_editor.global_set_data.layout_id, particle_editor.global_set_data.set_id);
+        } else if (open_tab_idx == 2) {
+            map_editor.add_to_renderable(&renderer, renderable);
+
+            // TODO: Make better
+            data = renderable.get_draw_data(&renderer, map_editor.global_set_data.layout_id, map_editor.global_set_data.set_id);
+        }
 
         renderer.wait_for_and_reset_curr_fence();
         data.upload_vertex_index_data(&renderer);
