@@ -150,13 +150,13 @@ struct App {
                     const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
 
                     if (rect.intersects(camera_rect)) {
-                        glm::vec3 color = tile_type_to_color(maps[map_idx].tiles[row][col]);
+                        const TileType ty = maps[map_idx].tiles[row][col];
 
                         renderable.push_child(ColoredQuad(
                             &renderer,
                             rect,
-                            TextureSource::Test1,
-                            color,
+                            tile_type_to_texture(ty),
+                            tile_type_to_color(ty),
                             global_set_data.buffer_id
                         ));
                     }

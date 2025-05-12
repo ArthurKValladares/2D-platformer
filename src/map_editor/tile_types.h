@@ -3,15 +3,17 @@
 #include <cassert>
 #include <glm/vec3.hpp>
 
+#include "../assets.h"
+
 #define TILE_SIZE 1.0
 
 /*[[[cog
 import cog
 cases = [
-    ['Path', ' ', 207, 207, 207],
-    ['Wall', '#', 43, 43, 43],
-    ['Start', 'S', 0, 255, 0],
-    ['End', 'E', 255, 0, 0]
+    ['Path', ' ', 'Test1', [207, 207, 207]],
+    ['Wall', '#', 'Test2', [43, 43, 43]],
+    ['Start', 'S', 'Akv', [0, 255, 0]],
+    ['End', 'E', 'Test3', [255, 0, 0]]
 ]
 ]]]*/
 //[[[end]]]
@@ -76,10 +78,8 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         /*[[[cog
         for case in cases:
             tile_type = case[0]
-            r = case[2]
-            g = case[3]
-            b = case[4]
-            cog.outl("case TileType::%s: { return glm::vec3(%d / 255., %d / 255., %d / 255.); }" % (tile_type, r, g, b))
+            rgb = case[3]
+            cog.outl("case TileType::%s: { return glm::vec3(%d / 255., %d / 255., %d / 255.); }" % (tile_type, rgb[0], rgb[1], rgb[2]))
         ]]]*/
         case TileType::Path: { return glm::vec3(207 / 255., 207 / 255., 207 / 255.); }
         case TileType::Wall: { return glm::vec3(43 / 255., 43 / 255., 43 / 255.); }
@@ -89,6 +89,26 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         default: {
             assert(false && "Tile type not supported");
             return glm::vec3(1.0, 0.0, 1.0);
+        }
+    }
+}
+
+static TextureSource tile_type_to_texture(TileType ty) {
+    switch (ty) {
+        /*[[[cog
+        for case in cases:
+            tile_type = case[0]
+            texture = case[2]
+            cog.outl("case TileType::%s: { return TextureSource::%s; }" % (tile_type, texture))
+        ]]]*/
+        case TileType::Path: { return TextureSource::Test1; }
+        case TileType::Wall: { return TextureSource::Test2; }
+        case TileType::Start: { return TextureSource::Akv; }
+        case TileType::End: { return TextureSource::Test3; }
+        //[[[end]]]
+        default: {
+            assert(false && "Tile type not supported");
+            return TextureSource::None;
         }
     }
 }

@@ -273,15 +273,12 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, Re
             if (rect.intersects(camera_rect)) {
                 // TODO: Get actual type from editor
                 const TileType ty = TileType::Path;
-                glm::vec3 color = tile_type_to_color(ty);
 
-                // TODO: Get actual texture from TileType
-                const TextureSource tex = TextureSource::Test1;
                 renderable.push_child(ColoredQuad(
                     renderer,
                     rect,
-                    tex,
-                    color,
+                    tile_type_to_texture(ty),
+                    tile_type_to_color(ty),
                     global_data_buffer
                 ));
             }
