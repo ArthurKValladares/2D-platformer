@@ -1,11 +1,14 @@
 #pragma once
 
+#include <vector>
+
 #include "util.h"
 #include "renderer/renderer.h"
 #include "renderables/includes.h"
 #include "keyboard_state.h"
 #include "camera.h"
 #include "global_descriptor_set.h"
+#include "map_editor/tile_types.h"
 
 // TODO: see note in cpp
 struct MyTextureData
@@ -34,8 +37,12 @@ struct MapEditor {
     void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt);
     void imgui_node(Renderer* renderer);
 
-    int width, height;
+    void resize();
+
     std::vector<MyTextureData> my_textures;
+
+    int width, height;
+    std::vector<std::vector<TileType>> tiles;
 
     OrthographicCamera camera;
     GlobalDescriptorSetData global_set_data;

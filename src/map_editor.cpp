@@ -1,7 +1,6 @@
 #include "map_editor.h"
 
 #include "renderer/renderer.h"
-#include "map_editor/tile_types.h"
 #include "assets.h"
 
 #include "imgui.h"
@@ -248,6 +247,8 @@ MapEditor::MapEditor(Renderer* renderer)
     ))
     , global_set_data(GlobalDescriptorSetData(renderer, camera))
  {
+    resize();
+
     global_set_data.write_shader_data_to_buffer(renderer);
     update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
 
@@ -285,8 +286,7 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable) {
             const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
 
             if (rect.intersects(camera_rect)) {
-                // TODO: Get actual type from editor
-                const TileType ty = TileType::Path;
+                const TileType ty = tiles[row][col];
 
                 renderable.push_child(OutlineQuad(
                     renderer,
@@ -340,6 +340,13 @@ void MapEditor::update(const KeyboardState& keyboard_state, double total_elapsed
     }
 }
 
+void MapEditor::resize() {
+    tiles.resize(height);
+    for (std::vector<TileType>& row : tiles) {
+        row.resize(width);
+    }
+}
+
 void MapEditor::imgui_node(Renderer* renderer) {
     constexpr uint32_t textures_per_line = 4;
 
@@ -349,6 +356,7 @@ void MapEditor::imgui_node(Renderer* renderer) {
     if (ImGui::InputInt("Height", &height) && height < MIN_HEIGHT) {
         height = MIN_HEIGHT;
     }
+    resize();
 
     const ImVec2 size = ImVec2(128.0f, 128.0f);
     for (uint32_t id = 0; id < my_textures.size(); ++id) {
