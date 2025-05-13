@@ -48,6 +48,7 @@ struct App {
     App() 
         : app_start(std::chrono::steady_clock::now())
         , keyboard_state(KeyboardState())
+        , mouse_state(MouseState())
         , window(Window())
         , renderer(window)
         , global_set_data(GlobalDescriptorSetData(&renderer, camera))
@@ -282,6 +283,8 @@ struct App {
             while(SDL_PollEvent(&e)) {
                 renderer.process_sdl_event(&e);
                 keyboard_state.process_sdl_event(e.key);
+                mouse_state.process_button_event(e.button);
+                mouse_state.process_motion_event(e.motion);
 
                 if (e.type == SDL_EVENT_QUIT ) {
                     quit = true;
@@ -306,6 +309,7 @@ struct App {
 
     std::chrono::steady_clock::time_point app_start;
     KeyboardState keyboard_state;
+    MouseState mouse_state;
     Window window;
     Renderer renderer;
     GlobalDescriptorSetData global_set_data;

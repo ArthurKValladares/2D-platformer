@@ -2,8 +2,11 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <iostream>
 
 #include <SDL3/SDL.h>
+
+#include "glm/vec2.hpp"
 
 struct KeyState {
     void step() {
@@ -44,4 +47,23 @@ struct KeyboardState {
 
     std::unordered_map<SDL_Keycode, KeyState> keys_down;
     std::unordered_set<SDL_Keycode> just_released;
+};
+
+struct MouseState {
+    MouseState()
+    {}
+
+    void process_button_event(const SDL_MouseButtonEvent& event) {
+        std::cout << "key: " << event.button << std::endl;
+    }
+
+    void process_motion_event(const SDL_MouseMotionEvent& event) {
+        std::cout << "x: " << event.x << " y: " << event.y << std::endl;
+        std::cout << "x: " << event.xrel << " y: " << event.yrel << std::endl;
+    }
+
+    glm::vec2 pos;
+
+    std::unordered_map<uint8_t, KeyState> keys_down;
+    std::unordered_set<uint8_t> just_released;
 };
