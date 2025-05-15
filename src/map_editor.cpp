@@ -254,7 +254,7 @@ MapEditor::MapEditor(Renderer* renderer)
 
     // TODO: Use the stuff I already have instead
     // const Texture& texture = renderer->get_texture(texture_id(TextureSource::Akv));
-
+    selected_tile_type = 0;
     const uint32_t num_tile_types = tile_type_count();
     my_textures.resize(num_tile_types);
     for (uint32_t i = 0; i < num_tile_types; ++i) {
@@ -263,7 +263,9 @@ MapEditor::MapEditor(Renderer* renderer)
         
         bool ret = LoadTextureFromFile(renderer, texture_path(texture), &my_textures[i]);
         IM_ASSERT(ret);
-    } 
+    }
+
+    selected_tile = std::make_pair(-1, -1);
 }
 
 void MapEditor::cleanup(Renderer* renderer) {
@@ -275,11 +277,9 @@ void MapEditor::cleanup(Renderer* renderer) {
     }
 }
 
-void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, const MouseState& mouse_state) {
+void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable) {
     global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
     global_set_data.write_shader_data_to_buffer(renderer);
-
-    const glm::vec2 mouse_pos = camera.center + (mouse_state.world_space_pos() * glm::vec2(camera.size_x / 2.0, -camera.size_y / 2.0));
 
     const Rect2D camera_rect = camera.get_rect();
 
@@ -290,11 +290,12 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, co
             if (rect.intersects(camera_rect)) {
                 const TileType ty = tiles[row][col];
 
-                const float outline_thickness = rect.intersects_point(mouse_pos)
+                const bool is_selected = selected_tile == std::make_pair(row, col);
+                const float outline_thickness = is_selected
                     ? 0.03
                     : 0.01;
 
-                const glm::vec3 outline_color = rect.intersects_point(mouse_pos)
+                const glm::vec3 outline_color = is_selected
                     ? glm::vec3(0.0, 0.0, 1.0)
                     : glm::vec3(1.0, 0.0, 0.0);
 
@@ -314,7 +315,7 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, co
     }
 }
 
-void MapEditor::update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
+void MapEditor::update(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
     // TODO THis pattern is repeated a lot
     constexpr float displacement_per_second = 5.0;
     glm::vec2 movement_vec{0.0, 0.0};
@@ -348,6 +349,22 @@ void MapEditor::update(const KeyboardState& keyboard_state, double total_elapsed
         camera.scale -= camera_zoom_vel * frame_dt;
         camera.scale = std::max(0.1f, camera.scale);
     }
+
+    // Find selected tile
+    selected_tile = std::make_pair(-1, -1);
+    const glm::vec2 mouse_pos = camera.center + (mouse_state.world_space_pos() * glm::vec2(camera.size_x / 2.0, -camera.size_y / 2.0));
+
+    for (uint64_t row = 0; row < height; ++row) {
+        for (uint64_t col = 0; col < width; ++col) {
+            const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+            if (rect.intersects_point(mouse_pos)) {
+                selected_tile = std::make_pair(row, col);
+                if (mouse_state.is_down(SDL_BUTTON_LEFT)) {
+                    tiles[row][col] = tile_type_from_uint(selected_tile_type);
+                }
+            }
+        }
+    }
 }
 
 void MapEditor::resize() {
@@ -377,7 +394,9 @@ void MapEditor::imgui_node(Renderer* renderer) {
         }
 
         ImGui::PushID(id);
-        ImGui::ImageButton("##", (ImTextureID) my_texture.DS, size);
+        if (ImGui::ImageButton("##", (ImTextureID) my_texture.DS, size)) {
+            selected_tile_type = id;
+        }
         ImGui::PopID();
     }
 }

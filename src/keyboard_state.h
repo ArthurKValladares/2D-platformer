@@ -56,7 +56,18 @@ struct MouseState {
     MouseState()
     {}
 
+    bool is_down(SDL_MouseButtonFlags button) const {
+        return keys_down.contains(button);
+    }
+
     void process_button_event(const SDL_MouseButtonEvent& event) {
+        if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+            KeyState& state = keys_down[event.button];
+            state.step();
+        } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+            keys_down.erase(event.button);
+            just_released.insert(event.button);
+        }
     }
 
     void process_motion_event(const SDL_MouseMotionEvent& event) {
@@ -84,6 +95,6 @@ struct MouseState {
 
     glm::vec2 pos;
 
-    std::unordered_map<uint8_t, KeyState> keys_down;
-    std::unordered_set<uint8_t> just_released;
+    std::unordered_map<SDL_MouseButtonFlags, KeyState> keys_down;
+    std::unordered_set<SDL_MouseButtonFlags> just_released;
 };

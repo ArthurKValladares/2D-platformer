@@ -185,7 +185,7 @@ struct App {
         } else if (open_tab_idx == 1) {
             particle_editor.update(keyboard_state, total_elapsed_seconds, frame_dt);
         } else if (open_tab_idx == 2) {
-            map_editor.update(keyboard_state, total_elapsed_seconds, frame_dt);
+            map_editor.update(keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
         }
 
         // Setup imgui
@@ -256,7 +256,7 @@ struct App {
             // TODO: Make better
             data = renderable.get_draw_data(&renderer, particle_editor.global_set_data.layout_id, particle_editor.global_set_data.set_id);
         } else if (open_tab_idx == 2) {
-            map_editor.add_to_renderable(&renderer, renderable, mouse_state);
+            map_editor.add_to_renderable(&renderer, renderable);
 
             // TODO: Make better
             data = renderable.get_draw_data(&renderer, map_editor.global_set_data.layout_id, map_editor.global_set_data.set_id);
