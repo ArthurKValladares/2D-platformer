@@ -387,6 +387,12 @@ void MapEditor::imgui_node(Renderer* renderer) {
 
     const ImVec2 size = ImVec2(128.0f, 128.0f);
     for (uint32_t id = 0; id < my_textures.size(); ++id) {
+        bool is_selected_type = id == selected_tile_type;
+        if (is_selected_type) {
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0, 0, 0, 1.0));
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, ImGui::GetIO().FontGlobalScale * 2.0);
+        }
+
         const MyTextureData& my_texture = my_textures[id];
         
         if (id % textures_per_line != 0) {
@@ -398,5 +404,10 @@ void MapEditor::imgui_node(Renderer* renderer) {
             selected_tile_type = id;
         }
         ImGui::PopID();
+
+        if (is_selected_type) {
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+        }
     }
 }
