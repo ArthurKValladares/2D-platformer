@@ -36,6 +36,10 @@ uint64_t Rect2D::index_data(uint32_t vertex_offset, std::vector<uint32_t>& index
     return ArrayCount(quad_indices);
 }
 
+bool Rect2D::intersects_point(glm::vec2 point) const {
+    return intersects(Rect2D(point, glm::vec2(0.0)));
+}
+
 bool Rect2D::intersects(const Rect2D& o) const {
     if (abs(pos.x - o.pos.x) >= (half_size.x + o.half_size.x)) return false;
     if (abs(pos.y - o.pos.y) >= (half_size.y + o.half_size.y)) return false;

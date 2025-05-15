@@ -8,6 +8,9 @@
 
 #include "glm/vec2.hpp"
 
+#include "window.h"
+#include "util.h"
+
 struct KeyState {
     void step() {
         ++steps;
@@ -54,13 +57,30 @@ struct MouseState {
     {}
 
     void process_button_event(const SDL_MouseButtonEvent& event) {
-        std::cout << "key: " << event.button << std::endl;
     }
 
     void process_motion_event(const SDL_MouseMotionEvent& event) {
-        std::cout << "x: " << event.x << " y: " << event.y << std::endl;
-        std::cout << "x: " << event.xrel << " y: " << event.yrel << std::endl;
+        if (event.x >= 0.0 && event.y >= 0.0) {
+            pos = glm::vec2(event.x, event.y);
+        }
     }
+
+    void set_window_size(float width, float height) {
+        w_width = width;
+        w_height = height;
+    }
+
+    glm::vec2 world_space_pos() const {
+        const float n_x = pos.x / w_width;
+        const float n_y = pos.y / w_height;
+
+        const float w_x = lerp(-1.0f, 1.0f, n_x);
+        const float w_y = lerp(-1.0f, 1.0f, n_y);
+
+        return glm::vec2(w_x, w_y);
+    }
+
+    float w_width, w_height;
 
     glm::vec2 pos;
 

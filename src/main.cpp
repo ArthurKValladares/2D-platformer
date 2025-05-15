@@ -65,6 +65,8 @@ struct App {
         , particle_editor(&renderer)
         , map_editor(&renderer)
     {
+        mouse_state.set_window_size(window.get_size().width, window.get_size().height);
+
         global_set_data.write_shader_data_to_buffer(&renderer);
         update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
 
@@ -254,7 +256,7 @@ struct App {
             // TODO: Make better
             data = renderable.get_draw_data(&renderer, particle_editor.global_set_data.layout_id, particle_editor.global_set_data.set_id);
         } else if (open_tab_idx == 2) {
-            map_editor.add_to_renderable(&renderer, renderable);
+            map_editor.add_to_renderable(&renderer, renderable, mouse_state);
 
             // TODO: Make better
             data = renderable.get_draw_data(&renderer, map_editor.global_set_data.layout_id, map_editor.global_set_data.set_id);

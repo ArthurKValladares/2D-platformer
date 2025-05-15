@@ -275,9 +275,11 @@ void MapEditor::cleanup(Renderer* renderer) {
     }
 }
 
-void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable) {
+void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable, const MouseState& mouse_state) {
     global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
     global_set_data.write_shader_data_to_buffer(renderer);
+
+    const glm::vec2 mouse_pos = camera.center + (mouse_state.world_space_pos() * glm::vec2(camera.size_x / 2.0, -camera.size_y / 2.0));
 
     const Rect2D camera_rect = camera.get_rect();
 
@@ -288,14 +290,22 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable) {
             if (rect.intersects(camera_rect)) {
                 const TileType ty = tiles[row][col];
 
+                const float outline_thickness = rect.intersects_point(mouse_pos)
+                    ? 0.03
+                    : 0.01;
+
+                const glm::vec3 outline_color = rect.intersects_point(mouse_pos)
+                    ? glm::vec3(0.0, 0.0, 1.0)
+                    : glm::vec3(1.0, 0.0, 0.0);
+
                 renderable.push_child(OutlineQuad(
                     renderer,
                     rect,
                     tile_type_to_texture(ty),
                     OutlinePushConstantData{
                         .color = tile_type_to_color(ty),
-                        .outline = glm::vec3(1.0, 0.0, 0.0),
-                        .thickness = 0.01
+                        .outline = outline_color,
+                        .thickness = outline_thickness
                     },
                     global_set_data.buffer_id
                 ));

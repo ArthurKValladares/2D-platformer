@@ -46,6 +46,8 @@ struct Rect2D {
     }
 
     bool is_zero_sized() const;
+
+    bool intersects_point(glm::vec2 point) const;
     bool intersects(const Rect2D& other) const;
     Rect2D intersection(const Rect2D& other) const;
 
