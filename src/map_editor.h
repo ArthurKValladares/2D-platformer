@@ -38,6 +38,13 @@ struct MapEditor {
     void update(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt);
     void imgui_node(Renderer* renderer);
 
+    void save(Renderer* renderer);
+    void load(Renderer* renderer);
+
+    // TODO: Duplicated from particles
+    void load_map_files();
+    std::filesystem::path get_curr_file_path(const char* file_name);
+
     void resize();
 
     uint32_t selected_tile_type;
@@ -50,4 +57,14 @@ struct MapEditor {
 
     OrthographicCamera camera;
     GlobalDescriptorSetData global_set_data;
+
+    // TODO: Abstract this logic together with particle stuff
+    int selected_file;
+    std::vector<std::string> map_files;
+
+    static constexpr char map_dir[] = "./assets/maps";
+    static constexpr char map_extension[] = ".map";
+
+    static constexpr uint32_t MAX_FILE_PATH_SIZE = 256;
+    char file_path[MAX_FILE_PATH_SIZE];
 };

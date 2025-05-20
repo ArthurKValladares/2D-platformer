@@ -33,3 +33,12 @@ inline glm::vec3 get_serialized_vec3(nlohmann::json& root, const char* field_nam
     const std::array<float, 3> as_array = root[field_name].get<std::array<float, 3>>();
     return glm::vec3(as_array[0], as_array[1], as_array[2]);
 }
+
+template<class T>
+void serialize_vector(nlohmann::json& root, const char* field_name, const std::vector<T>& vec) {
+    root[field_name] = vec;
+}
+template<class T>
+std::vector<T> get_serialized_vector(nlohmann::json& root, const char* field_name) {
+    return root[field_name];
+}

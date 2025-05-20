@@ -9,8 +9,6 @@
 
 #include <algorithm>
 
-#include "nlohmann/json.hpp"
-
 struct ParticleEditor {
     ParticleEditor(Renderer* renderer)
         : emitter(ParticleEmitter(
@@ -239,15 +237,6 @@ private:
         }
     }
 
-    int selected_file;
-    std::vector<std::string> particle_files;
-
-    static constexpr char particle_dir[] = "./assets/particles";
-    static constexpr char particle_extension[] = ".ptcl";
-
-    static constexpr uint32_t MAX_FILE_PATH_SIZE = 256;
-    char file_path[MAX_FILE_PATH_SIZE];
-
     bool has_unsaved_changes;
     bool show_confirm_load_popup;
 
@@ -255,6 +244,15 @@ private:
 
     static constexpr float DEFAULT_SIZE_SCALE = 10.0;
 
+    // TODO: Abstract this logic together with map stuff
+    int selected_file;
+    std::vector<std::string> particle_files;
+    
+    static constexpr char particle_dir[] = "./assets/particles";
+    static constexpr char particle_extension[] = ".ptcl";
+
+    static constexpr uint32_t MAX_FILE_PATH_SIZE = 256;
+    char file_path[MAX_FILE_PATH_SIZE];
 public:
     OrthographicCamera camera;
     GlobalDescriptorSetData global_set_data;

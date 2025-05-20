@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "imgui_impl_vulkan.h"
 #include "stb_image.h"
+#include "json_serialization.h"
 
 #define DEFAULT_WIDTH  15
 #define DEFAULT_HEIGHT 15
@@ -266,6 +267,8 @@ MapEditor::MapEditor(Renderer* renderer)
     }
 
     selected_tile = std::make_pair(-1, -1);
+
+    memset(file_path, 0, MAX_FILE_PATH_SIZE);
 }
 
 void MapEditor::cleanup(Renderer* renderer) {
@@ -377,6 +380,22 @@ void MapEditor::resize() {
 void MapEditor::imgui_node(Renderer* renderer) {
     constexpr uint32_t textures_per_line = 4;
 
+    ImGui::ComboStringVec("File Path##1", &selected_file, map_files, map_files.size());
+    ImGui::SameLine();
+    if (ImGui::Button("Load")) {
+        //if (has_unsaved_changes) {
+        //    show_confirm_load_popup = true;
+        //} else {
+            load(renderer);
+        //}
+    }
+
+    ImGui::InputText("File Path##2", file_path, MAX_FILE_PATH_SIZE);
+    ImGui::SameLine();
+    if (ImGui::Button("Save")) {
+        save(renderer);
+    }
+
     if (ImGui::InputInt("Width", &width) && width < MIN_WIDTH) {
         width = MIN_WIDTH;
     }
@@ -410,4 +429,67 @@ void MapEditor::imgui_node(Renderer* renderer) {
             ImGui::PopStyleVar();
         }
     }
+}
+
+void MapEditor::save(Renderer* renderer) {
+    nlohmann::json root;
+    {
+        serialize_uint32(root, "width", tiles[0].size());
+        serialize_uint32(root, "height", tiles.size());
+        std::vector<std::vector<uint32_t>> tiles_uint;
+        for (const std::vector<TileType>& row : tiles) {
+            std::vector<uint32_t> row_uint;
+            for (TileType ty : row) {
+                row_uint.push_back(static_cast<uint32_t>(ty));
+            }
+            tiles_uint.push_back(std::move(row_uint));
+        }
+        serialize_vector(root, "tiles", tiles_uint);
+    }
+
+    std::ofstream out_file(get_curr_file_path(file_path));
+    if (out_file.is_open()) {
+        out_file << root;
+        out_file.close();
+        
+        renderer->logger().add_log("saved map to: %s/%s%s\n", map_dir, file_path, map_extension);
+    } else {
+        renderer->logger().add_log("ERROR saving map to: %s/%s%s (%s)\n", map_dir, file_path, map_extension, strerror(errno));
+    }
+
+    load_map_files();
+}
+
+void MapEditor::load(Renderer* renderer) {
+    std::ifstream in_file(get_curr_file_path(map_files[selected_file].c_str()));
+    if (in_file.is_open()) {
+        nlohmann::json root;
+        in_file >> root;
+        in_file.close();
+
+        width = get_serialized_uint32(root, "width");
+        height = get_serialized_uint32(root, "height");
+        //const std::vector<std::vector<uint32_t>> tiles = get_serialized_vector(root, "tiles");
+
+        renderer->logger().add_log("loaded particle effect from: %s/%s%s\n", map_dir, file_path, map_extension);
+    } else {
+        renderer->logger().add_log("ERROR loading particle effect from: %s/%s%s (%s)\n", map_dir, file_path, map_extension, strerror(errno));
+    }
+}
+
+void MapEditor::load_map_files() {
+    map_files = get_file_stems_with_extension(map_dir, map_extension);
+    std::vector<std::string>::iterator it = std::find(map_files.begin(), map_files.end(), std::string(file_path));
+    if (it == map_files.end()) {
+        selected_file = -1;
+    } else {
+        selected_file = it - map_files.begin();
+    }
+}
+std::filesystem::path MapEditor::get_curr_file_path(const char* file_name) {
+    std::filesystem::path map_dir_path(map_dir);
+    std::filesystem::path file(file_name);
+    std::filesystem::path out_path = map_dir_path / file;
+    out_path.replace_extension(map_extension);
+    return out_path;
 }
