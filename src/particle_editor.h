@@ -246,7 +246,7 @@ private:
     std::vector<std::string> particle_files;
 
     static constexpr char particle_dir[] = "./assets/particles";
-    static constexpr char particle_extension[] = ".ptcl";
+    static constexpr char particle_extension[] = ".json";
 
     static constexpr uint32_t MAX_FILE_PATH_SIZE = 256;
     char file_path[MAX_FILE_PATH_SIZE];
