@@ -63,8 +63,11 @@ struct MapEditor {
     std::vector<std::string> map_files;
 
     static constexpr char map_dir[] = "./assets/maps";
-    static constexpr char map_extension[] = ".map";
+    static constexpr char map_extension[] = ".jmap";
 
     static constexpr uint32_t MAX_FILE_PATH_SIZE = 256;
     char file_path[MAX_FILE_PATH_SIZE];
+
+    bool has_unsaved_changes;
+    bool show_confirm_load_popup;
 };

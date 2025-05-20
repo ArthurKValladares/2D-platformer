@@ -247,6 +247,8 @@ MapEditor::MapEditor(Renderer* renderer)
         DEFAULT_WIDTH * TILE_SIZE
     ))
     , global_set_data(GlobalDescriptorSetData(renderer, camera))
+    , has_unsaved_changes(false)
+    , show_confirm_load_popup(false)
  {
     resize();
 
@@ -364,6 +366,7 @@ void MapEditor::update(const KeyboardState& keyboard_state, const MouseState& mo
                 selected_tile = std::make_pair(row, col);
                 if (mouse_state.is_down(SDL_BUTTON_LEFT)) {
                     tiles[row][col] = tile_type_from_uint(selected_tile_type);
+                    has_unsaved_changes = true;
                 }
             }
         }
@@ -380,14 +383,39 @@ void MapEditor::resize() {
 void MapEditor::imgui_node(Renderer* renderer) {
     constexpr uint32_t textures_per_line = 4;
 
+    if (show_confirm_load_popup) {
+        ImGui::OpenPopup("Confirm Popup");
+
+        if (ImGui::BeginPopup("Confirm Popup")) {
+            ImGui::Text("You have unsaved changes. Confirm loading new particle?");
+
+            if (ImGui::Button("Yes")) {
+                ImGui::CloseCurrentPopup();
+
+                show_confirm_load_popup = false;
+                load(renderer);
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("No")) {
+
+                show_confirm_load_popup = false;
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
     ImGui::ComboStringVec("File Path##1", &selected_file, map_files, map_files.size());
     ImGui::SameLine();
     if (ImGui::Button("Load")) {
-        //if (has_unsaved_changes) {
-        //    show_confirm_load_popup = true;
-        //} else {
+        if (has_unsaved_changes) {
+            show_confirm_load_popup = true;
+        } else {
             load(renderer);
-        //}
+        }
     }
 
     ImGui::InputText("File Path##2", file_path, MAX_FILE_PATH_SIZE);
@@ -396,10 +424,13 @@ void MapEditor::imgui_node(Renderer* renderer) {
         save(renderer);
     }
 
+    bool has_changed = false;
     if (ImGui::InputInt("Width", &width) && width < MIN_WIDTH) {
+        has_changed = true;
         width = MIN_WIDTH;
     }
     if (ImGui::InputInt("Height", &height) && height < MIN_HEIGHT) {
+        has_changed = true;
         height = MIN_HEIGHT;
     }
     resize();
@@ -429,6 +460,8 @@ void MapEditor::imgui_node(Renderer* renderer) {
             ImGui::PopStyleVar();
         }
     }
+
+    has_unsaved_changes |= has_changed;
 }
 
 void MapEditor::save(Renderer* renderer) {
@@ -457,6 +490,7 @@ void MapEditor::save(Renderer* renderer) {
         renderer->logger().add_log("ERROR saving map to: %s/%s%s (%s)\n", map_dir, file_path, map_extension, strerror(errno));
     }
 
+    has_unsaved_changes = false;
     load_map_files();
 }
 
@@ -469,12 +503,14 @@ void MapEditor::load(Renderer* renderer) {
 
         width = get_serialized_uint32(root, "width");
         height = get_serialized_uint32(root, "height");
-        //const std::vector<std::vector<uint32_t>> tiles = get_serialized_vector(root, "tiles");
+        const std::vector<std::vector<uint32_t>> tiles = get_serialized_vector<std::vector<uint32_t>>(root, "tiles");
 
         renderer->logger().add_log("loaded particle effect from: %s/%s%s\n", map_dir, file_path, map_extension);
     } else {
         renderer->logger().add_log("ERROR loading particle effect from: %s/%s%s (%s)\n", map_dir, file_path, map_extension, strerror(errno));
     }
+
+    has_unsaved_changes = false;
 }
 
 void MapEditor::load_map_files() {
