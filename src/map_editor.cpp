@@ -267,6 +267,8 @@ MapEditor::MapEditor(Renderer* renderer)
     }
 
     selected_tile = std::make_pair(-1, -1);
+
+    load_save.load_files(MAP_DIR, MAP_EXTENSION);
 }
 
 void MapEditor::cleanup(Renderer* renderer) {

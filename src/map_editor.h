@@ -55,6 +55,5 @@ struct MapEditor {
     OrthographicCamera camera;
     GlobalDescriptorSetData global_set_data;
 
-    // TODO: Abstract this logic together with particle stuff
     LoadSave load_save;
 };

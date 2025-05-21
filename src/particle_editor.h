@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "global_descriptor_set.h"
 #include "renderer/renderer.h"
+#include "load_save.h"
 
 #include <algorithm>
 
@@ -30,8 +31,6 @@ struct ParticleEditor {
             ),
             TextureSource::Particle
         ))
-        , has_unsaved_changes(false)
-        , show_confirm_load_popup(false)
         , camera(OrthographicCamera(
             glm::vec2(0.0),
             emitter.size.start.base_val.x * DEFAULT_SIZE_SCALE,
@@ -42,9 +41,8 @@ struct ParticleEditor {
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
 
-        memset(file_path, 0, MAX_FILE_PATH_SIZE);
         
-        load_particle_files();
+        load_save.load_files(PARTICLES_DIR, PARTICLES_EXTENSION);
     }
 
     void add_to_renderable(Renderer* renderer, Renderable& renderable, double total_elapsed_seconds) {
@@ -68,64 +66,22 @@ struct ParticleEditor {
     void imgui_node(Renderer* renderer, double total_elapsed_seconds) {
         ImGui::Text("Settings File");
 
-        if (show_confirm_load_popup) {
-            ImGui::OpenPopup("Confirm Popup");
-
-            if (ImGui::BeginPopup("Confirm Popup")) {
-                ImGui::Text("You have unsaved changes. Confirm loading new particle?");
-
-                if (ImGui::Button("Yes")) {
-                    ImGui::CloseCurrentPopup();
-
-                    show_confirm_load_popup = false;
-                    load(renderer, total_elapsed_seconds);
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("No")) {
-
-                    show_confirm_load_popup = false;
-                    ImGui::CloseCurrentPopup();
-                }
-
-                ImGui::EndPopup();
-            }
-        }
-
-        ImGui::ComboStringVec("File Path##1", &selected_file, particle_files, particle_files.size());
-        ImGui::SameLine();
-        if (ImGui::Button("Load")) {
-            if (has_unsaved_changes) {
-                show_confirm_load_popup = true;
-            } else {
-                load(renderer, total_elapsed_seconds);
-            }
-        }
-
-        ImGui::InputText("File Path##2", file_path, MAX_FILE_PATH_SIZE);
-        ImGui::SameLine();
-        if (ImGui::Button("Save")) {
+        LoadSave::ImguiResult res = load_save.imgui_node();
+        if (res == LoadSave::ImguiResult::ShouldSave) {
             save(renderer);
+        } else if (res == LoadSave::ImguiResult::ShouldLoad) {
+            load(renderer, total_elapsed_seconds);
         }
         
         const bool has_changed = emitter.imgui_node();
-        has_unsaved_changes |= has_changed;
+        if (has_changed) {
+            load_save.set_has_unsaved_changes(true);
+        }
     }
 
 private:
-    std::filesystem::path get_curr_file_path(const char* file_name) {
-        std::filesystem::path particle_dir_path(particle_dir);
-        std::filesystem::path file(file_name);
-        std::filesystem::path out_path = particle_dir_path / file;
-        out_path.replace_extension(particle_extension);
-        return out_path;
-    }
-
     void save(Renderer* renderer) {
-        // TODO: abstract this json logic
-        nlohmann::json root;
-        {
+        load_save.save(PARTICLES_DIR, PARTICLES_EXTENSION, renderer, [&](nlohmann::json& root) {
             serialize_float(root, "lifetime", emitter.lifetime.val);
             serialize_vec2(root, "center", emitter.center);
             serialize_vec2(root, "start_offset", emitter.start_offset.base_val);
@@ -147,29 +103,11 @@ private:
             serialize_vec3(root, "end_color", emitter.color.end.base_val);
             serialize_vec3(root, "end_color_var", emitter.color.end.variability);
             serialize_uint32(root, "texture", static_cast<uint32_t>(emitter.texture));
-        }
-
-        std::ofstream out_file(get_curr_file_path(file_path));
-        if (out_file.is_open()) {
-            out_file << root;
-            out_file.close();
-            
-            renderer->logger().add_log("saved particle effect to: %s/%s%s\n", particle_dir, file_path, particle_extension);
-        } else {
-            renderer->logger().add_log("ERROR saving particle effect to: %s/%s%s (%s)\n", particle_dir, file_path, particle_extension, strerror(errno));
-        }
-
-        has_unsaved_changes = false;
-        load_particle_files();
+        });
     }
 
     void load(Renderer* renderer, double total_elapsed_seconds) {
-        std::ifstream in_file(get_curr_file_path(particle_files[selected_file].c_str()));
-        if (in_file.is_open()) {
-            nlohmann::json root;
-            in_file >> root;
-            in_file.close();
-
+        load_save.load(PARTICLES_DIR, PARTICLES_EXTENSION, renderer, [&](nlohmann::json& root) {
             const double old_start_time = emitter.start_time;
 
             emitter = ParticleEmitter(
@@ -218,41 +156,14 @@ private:
                 ),
                 static_cast<TextureSource>(get_serialized_uint32(root, "texture"))
             );
-
-            renderer->logger().add_log("loaded particle effect from: %s/%s%s\n", particle_dir, file_path, particle_extension);
-        } else {
-            renderer->logger().add_log("ERROR loading particle effect from: %s/%s%s (%s)\n", particle_dir, file_path, particle_extension, strerror(errno));
-        }
-
-        has_unsaved_changes = false;
-    }
-
-    void load_particle_files() {
-        particle_files = get_file_stems_with_extension(particle_dir, particle_extension);
-        std::vector<std::string>::iterator it = std::find(particle_files.begin(), particle_files.end(), std::string(file_path));
-        if (it == particle_files.end()) {
-            selected_file = -1;
-        } else {
-            selected_file = it - particle_files.begin();
-        }
+        });
     }
 
     ParticleEmitter emitter;
 
     static constexpr float DEFAULT_SIZE_SCALE = 10.0;
 
-    // TODO: Abstract this logic together with map stuff
-    int selected_file;
-    std::vector<std::string> particle_files;
-
-    static constexpr char particle_dir[] = "./assets/particles";
-    static constexpr char particle_extension[] = ".json";
-
-    static constexpr uint32_t MAX_FILE_PATH_SIZE = 256;
-    char file_path[MAX_FILE_PATH_SIZE];
-
-    bool has_unsaved_changes;
-    bool show_confirm_load_popup;
+    LoadSave load_save;
 public:
     OrthographicCamera camera;
     GlobalDescriptorSetData global_set_data;
