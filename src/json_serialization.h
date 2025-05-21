@@ -3,6 +3,7 @@
 #include "nlohmann/json.hpp"
 
 #include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
 
 inline void serialize_uint32(nlohmann::json& root, const char* field_name, uint32_t val) {
     root[field_name] = val;

@@ -42,6 +42,7 @@ add_executable(${PROJECT_NAME}
   src/collision_grid.cpp
   src/main.cpp
   src/map_editor.cpp
+  src/load_save.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp

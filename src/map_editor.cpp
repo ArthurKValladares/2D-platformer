@@ -247,8 +247,6 @@ MapEditor::MapEditor(Renderer* renderer)
         DEFAULT_WIDTH * TILE_SIZE
     ))
     , global_set_data(GlobalDescriptorSetData(renderer, camera))
-    , has_unsaved_changes(false)
-    , show_confirm_load_popup(false)
  {
     resize();
 
@@ -269,8 +267,6 @@ MapEditor::MapEditor(Renderer* renderer)
     }
 
     selected_tile = std::make_pair(-1, -1);
-
-    memset(file_path, 0, MAX_FILE_PATH_SIZE);
 }
 
 void MapEditor::cleanup(Renderer* renderer) {
@@ -366,7 +362,7 @@ void MapEditor::update(const KeyboardState& keyboard_state, const MouseState& mo
                 selected_tile = std::make_pair(row, col);
                 if (mouse_state.is_down(SDL_BUTTON_LEFT)) {
                     tiles[row][col] = tile_type_from_uint(selected_tile_type);
-                    has_unsaved_changes = true;
+                    load_save.set_has_unsaved_changes(true);
                 }
             }
         }
@@ -383,45 +379,11 @@ void MapEditor::resize() {
 void MapEditor::imgui_node(Renderer* renderer) {
     constexpr uint32_t textures_per_line = 4;
 
-    if (show_confirm_load_popup) {
-        ImGui::OpenPopup("Confirm Popup");
-
-        if (ImGui::BeginPopup("Confirm Popup")) {
-            ImGui::Text("You have unsaved changes. Confirm loading new particle?");
-
-            if (ImGui::Button("Yes")) {
-                ImGui::CloseCurrentPopup();
-
-                show_confirm_load_popup = false;
-                load(renderer);
-            }
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("No")) {
-
-                show_confirm_load_popup = false;
-                ImGui::CloseCurrentPopup();
-            }
-
-            ImGui::EndPopup();
-        }
-    }
-
-    ImGui::ComboStringVec("File Path##1", &selected_file, map_files, map_files.size());
-    ImGui::SameLine();
-    if (ImGui::Button("Load")) {
-        if (has_unsaved_changes) {
-            show_confirm_load_popup = true;
-        } else {
-            load(renderer);
-        }
-    }
-
-    ImGui::InputText("File Path##2", file_path, MAX_FILE_PATH_SIZE);
-    ImGui::SameLine();
-    if (ImGui::Button("Save")) {
+    LoadSave::ImguiResult res = load_save.imgui_node();
+    if (res == LoadSave::ImguiResult::ShouldSave) {
         save(renderer);
+    } else if (res == LoadSave::ImguiResult::ShouldLoad) {
+        load(renderer);
     }
 
     bool has_changed = false;
@@ -461,12 +423,13 @@ void MapEditor::imgui_node(Renderer* renderer) {
         }
     }
 
-    has_unsaved_changes |= has_changed;
+    if (has_changed) {
+        load_save.set_has_unsaved_changes(true);
+    }
 }
 
 void MapEditor::save(Renderer* renderer) {
-    nlohmann::json root;
-    {
+    load_save.save(MAP_DIR, MAP_EXTENSION, renderer, [&](nlohmann::json& root) {
         serialize_uint32(root, "width", tiles[0].size());
         serialize_uint32(root, "height", tiles.size());
         std::vector<std::vector<uint32_t>> tiles_uint;
@@ -478,54 +441,13 @@ void MapEditor::save(Renderer* renderer) {
             tiles_uint.push_back(std::move(row_uint));
         }
         serialize_vector(root, "tiles", tiles_uint);
-    }
-
-    std::ofstream out_file(get_curr_file_path(file_path));
-    if (out_file.is_open()) {
-        out_file << root;
-        out_file.close();
-        
-        renderer->logger().add_log("saved map to: %s/%s%s\n", map_dir, file_path, map_extension);
-    } else {
-        renderer->logger().add_log("ERROR saving map to: %s/%s%s (%s)\n", map_dir, file_path, map_extension, strerror(errno));
-    }
-
-    has_unsaved_changes = false;
-    load_map_files();
+    });
 }
 
 void MapEditor::load(Renderer* renderer) {
-    std::ifstream in_file(get_curr_file_path(map_files[selected_file].c_str()));
-    if (in_file.is_open()) {
-        nlohmann::json root;
-        in_file >> root;
-        in_file.close();
-
+    load_save.load(MAP_DIR, MAP_EXTENSION, renderer, [&](nlohmann::json& root) {
         width = get_serialized_uint32(root, "width");
         height = get_serialized_uint32(root, "height");
         const std::vector<std::vector<uint32_t>> tiles = get_serialized_vector<std::vector<uint32_t>>(root, "tiles");
-
-        renderer->logger().add_log("loaded particle effect from: %s/%s%s\n", map_dir, file_path, map_extension);
-    } else {
-        renderer->logger().add_log("ERROR loading particle effect from: %s/%s%s (%s)\n", map_dir, file_path, map_extension, strerror(errno));
-    }
-
-    has_unsaved_changes = false;
-}
-
-void MapEditor::load_map_files() {
-    map_files = get_file_stems_with_extension(map_dir, map_extension);
-    std::vector<std::string>::iterator it = std::find(map_files.begin(), map_files.end(), std::string(file_path));
-    if (it == map_files.end()) {
-        selected_file = -1;
-    } else {
-        selected_file = it - map_files.begin();
-    }
-}
-std::filesystem::path MapEditor::get_curr_file_path(const char* file_name) {
-    std::filesystem::path map_dir_path(map_dir);
-    std::filesystem::path file(file_name);
-    std::filesystem::path out_path = map_dir_path / file;
-    out_path.replace_extension(map_extension);
-    return out_path;
+    });
 }
