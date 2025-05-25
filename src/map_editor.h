@@ -20,7 +20,7 @@ struct MapEditor {
     MapEditor(Renderer* renderer);
     void cleanup(Renderer* renderer);
 
-    void add_to_renderable(Renderer* renderer, Renderable& renderable);
+    void add_to_renderable(Renderer* renderer, Renderable* renderable);
     void update(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt);
     void imgui_node(Renderer* renderer);
 

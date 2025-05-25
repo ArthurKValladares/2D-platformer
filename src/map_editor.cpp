@@ -68,7 +68,7 @@ void MapEditor::cleanup(Renderer* renderer) {
     }
 }
 
-void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable) {
+void MapEditor::add_to_renderable(Renderer* renderer, Renderable* renderable) {
     global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
     global_set_data.write_shader_data_to_buffer(renderer);
 
@@ -90,7 +90,7 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable& renderable) {
                     ? glm::vec3(0.0, 0.0, 1.0)
                     : glm::vec3(1.0, 0.0, 0.0);
 
-                renderable.push_child(OutlineQuad(
+                renderable->push_child(OutlineQuad(
                     renderer,
                     rect,
                     tile_type_to_texture(ty),

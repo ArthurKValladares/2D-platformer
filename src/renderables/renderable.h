@@ -52,6 +52,7 @@ struct Renderable {
     // Or it could be even better if i turned this into an index and made it more of an
     // ECS-like thing, would also help with some other stuff I think.
     // This whole Renderable idea is not great atm, re-think it
+    // After this I might be able to create the `Renderable` inside the `draw_fn` instead of needing to pass it in
     std::shared_ptr<RenderableInterface> renderable;
     // TODO: I'm putting the alpha-blending info here for now, not sure this is the right way to do it
     bool uses_alpha_blending;

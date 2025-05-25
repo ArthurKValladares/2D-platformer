@@ -243,7 +243,7 @@ struct ParticleEmitter {
         return (curr_time - start_time) > lifetime.val;
     }
 
-    void update_and_create_renderables(Renderable& root_renderable, double curr_time, Renderer* renderer, BufferID global_data_buffer) {
+    void update_and_create_renderables(Renderable* root_renderable, double curr_time, Renderer* renderer, BufferID global_data_buffer) {
         particles.erase(
             std::remove_if(particles.begin(), particles.end(), 
             [curr_time](Particle& p) {
@@ -274,7 +274,7 @@ struct ParticleEmitter {
 
         for (const Particle& particle : particles) {
             // NOTE: All particles use alpha-blending by default
-            root_renderable.push_child(Renderable(particle.get_quad(curr_time, renderer, global_data_buffer, texture), true));
+            root_renderable->push_child(Renderable(particle.get_quad(curr_time, renderer, global_data_buffer, texture), true));
         }
     }
 

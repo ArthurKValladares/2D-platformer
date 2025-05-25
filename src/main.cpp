@@ -42,6 +42,8 @@ namespace {
 struct TabItem {
     const char* name;
     std::function<void(double)> imgui_fn;
+    std::function<void(double, double)> update_fn;
+    std::function<ViewDrawData(Renderable*, double)> draw_fn;
 };
 
 struct App {
@@ -84,18 +86,74 @@ struct App {
 
                     ImGui::TreePop();
                 }
+            },
+            .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
+                app_update(keyboard_state, total_elapsed_seconds, frame_dt);
+            },
+            .draw_fn = [&](Renderable* renderable, double total_elapsed_seconds) {
+                // TODO: The "Game/App" stuff should be in its own struct like the editors
+                global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
+                global_set_data.write_shader_data_to_buffer(&renderer);
+
+                const Rect2D camera_rect = camera.get_rect();
+                const uint64_t max_row = maps[map_idx].tiles.size();
+                const uint64_t max_col = maps[map_idx].tiles[0].size();
+
+                for (uint64_t row = 0; row < max_row; ++row) {
+                    for (uint64_t col = 0; col < max_col; ++col) {
+                        const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+
+                        if (rect.intersects(camera_rect)) {
+                            const TileType ty = maps[map_idx].tiles[row][col];
+
+                            renderable->push_child(ColoredQuad(
+                                &renderer,
+                                rect,
+                                tile_type_to_texture(ty),
+                                tile_type_to_color(ty),
+                                global_set_data.buffer_id
+                            ));
+                        }
+                    }
+                }
+
+                renderable->push_child(MovingQuad(
+                    &renderer,
+                    player_rect,
+                    glm::vec2(0.0, 0.0),
+                    player_sprite.texture_at(total_elapsed_seconds),
+                    global_set_data.buffer_id
+                ));
+
+                return renderable->get_draw_data(&renderer, global_set_data.layout_id, global_set_data.set_id);
             }
         };
         tab_items[1] = TabItem{
             .name = "Particle Editor",
             .imgui_fn = [&](double total_elapsed_seconds) {
                 particle_editor.imgui_node(&renderer, total_elapsed_seconds);
+            },
+            .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
+                particle_editor.update(keyboard_state, total_elapsed_seconds, frame_dt);
+            },
+            .draw_fn = [&](Renderable* renderable, double total_elapsed_seconds) {
+                particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds);
+
+                return renderable->get_draw_data(&renderer, particle_editor.global_set_data.layout_id, particle_editor.global_set_data.set_id);
             }
         };
         tab_items[2] = TabItem{
             .name = "Map Editor",
             .imgui_fn = [&](double total_elapsed_seconds) {
                 map_editor.imgui_node(&renderer);
+            },
+            .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
+                map_editor.update(keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
+            },
+            .draw_fn = [&](Renderable* renderable, double total_elapsed_seconds) {
+                map_editor.add_to_renderable(&renderer, renderable);
+
+                return renderable->get_draw_data(&renderer, map_editor.global_set_data.layout_id, map_editor.global_set_data.set_id);
             }
         };
     }
@@ -178,15 +236,7 @@ struct App {
     }
 
     void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
-        
-        // TODO: probably need a `update` function in TabItem
-        if (open_tab_idx == 0) {
-            app_update(keyboard_state, total_elapsed_seconds, frame_dt);
-        } else if (open_tab_idx == 1) {
-            particle_editor.update(keyboard_state, total_elapsed_seconds, frame_dt);
-        } else if (open_tab_idx == 2) {
-            map_editor.update(keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
-        }
+        tab_items[open_tab_idx].update_fn(total_elapsed_seconds, frame_dt);
 
         // Setup imgui
         renderer.set_imgui_fn([&]() {
@@ -209,58 +259,8 @@ struct App {
 
     void render(double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
-        ViewDrawData data;
 
-        // TODO: probably need a `draw` function in TabItem
-        // Some of this stuff with the global set data being different is annoying atm, handle it in the draw function.
-        if (open_tab_idx == 0) {
-            // TODO: Make better
-            global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
-            global_set_data.write_shader_data_to_buffer(&renderer);
-
-            const Rect2D camera_rect = camera.get_rect();
-            const uint64_t max_row = maps[map_idx].tiles.size();
-            const uint64_t max_col = maps[map_idx].tiles[0].size();
-
-            for (uint64_t row = 0; row < max_row; ++row) {
-                for (uint64_t col = 0; col < max_col; ++col) {
-                    const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
-
-                    if (rect.intersects(camera_rect)) {
-                        const TileType ty = maps[map_idx].tiles[row][col];
-
-                        renderable.push_child(ColoredQuad(
-                            &renderer,
-                            rect,
-                            tile_type_to_texture(ty),
-                            tile_type_to_color(ty),
-                            global_set_data.buffer_id
-                        ));
-                    }
-                }
-            }
-
-            renderable.push_child(MovingQuad(
-                &renderer,
-                player_rect,
-                glm::vec2(0.0, 0.0),
-                player_sprite.texture_at(total_elapsed_seconds),
-                global_set_data.buffer_id
-            ));
-
-            // TODO: Make better
-            data = renderable.get_draw_data(&renderer, global_set_data.layout_id, global_set_data.set_id);
-        } else if (open_tab_idx == 1) {
-            particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds);
-
-            // TODO: Make better
-            data = renderable.get_draw_data(&renderer, particle_editor.global_set_data.layout_id, particle_editor.global_set_data.set_id);
-        } else if (open_tab_idx == 2) {
-            map_editor.add_to_renderable(&renderer, renderable);
-
-            // TODO: Make better
-            data = renderable.get_draw_data(&renderer, map_editor.global_set_data.layout_id, map_editor.global_set_data.set_id);
-        }
+        ViewDrawData data = tab_items[open_tab_idx].draw_fn(&renderable, total_elapsed_seconds);
 
         renderer.wait_for_and_reset_curr_fence();
         data.upload_vertex_index_data(&renderer);

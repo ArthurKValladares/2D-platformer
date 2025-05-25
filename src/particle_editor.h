@@ -45,7 +45,7 @@ struct ParticleEditor {
         load_save.load_files(PARTICLES_DIR, PARTICLES_EXTENSION);
     }
 
-    void add_to_renderable(Renderer* renderer, Renderable& renderable, double total_elapsed_seconds) {
+    void add_to_renderable(Renderer* renderer, Renderable* renderable, double total_elapsed_seconds) {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
