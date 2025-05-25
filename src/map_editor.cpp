@@ -35,8 +35,6 @@ MapEditor::MapEditor(Renderer* renderer)
 
     global_set_data.write_shader_data_to_buffer(renderer);
     update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
-
-    // TODO: Use the stuff I already have instead
     
     selected_tile_type = 0;
     const uint32_t num_tile_types = tile_type_count();

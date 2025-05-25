@@ -207,7 +207,6 @@ struct EmitterLifetime {
     float val;
 };
 
-// TODO: for now these live forever, will need a Emmiter that can die soon
 struct ParticleEmitter {
     ParticleEmitter()
     {}
@@ -240,6 +239,10 @@ struct ParticleEmitter {
         , selected_texture(static_cast<int>(texture))
     {}
 
+    bool is_alive_at(double curr_time) const {
+        return (curr_time - start_time) > lifetime.val;
+    }
+
     void update_and_create_renderables(Renderable& root_renderable, double curr_time, Renderer* renderer, BufferID global_data_buffer) {
         particles.erase(
             std::remove_if(particles.begin(), particles.end(), 
@@ -250,7 +253,7 @@ struct ParticleEmitter {
         );
 
         if (texture != TextureSource::Count &&
-            (lifetime.is_infinite() || ((curr_time - start_time) > lifetime.val))
+            (lifetime.is_infinite() || is_alive_at(curr_time))
         ) {
             const float c_emission_delay = get_variable_float_val(emission_delay);
             if (curr_time - last_updated > c_emission_delay) {
