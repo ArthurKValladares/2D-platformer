@@ -12,23 +12,8 @@
 #include "map_editor/tile_types.h"
 #include "load_save.h"
 
-// TODO: see note in cpp
-struct MyTextureData
-{
+struct ImGuiTextureData {
     VkDescriptorSet DS;
-    int             Width;
-    int             Height;
-    int             Channels;
-
-    // Need to keep track of these to properly cleanup
-    VkImageView     ImageView;
-    VkImage         Image;
-    VkDeviceMemory  ImageMemory;
-    VkSampler       Sampler;
-    VkBuffer        UploadBuffer;
-    VkDeviceMemory  UploadBufferMemory;
-
-    MyTextureData() { memset(this, 0, sizeof(*this)); }
 };
 
 struct MapEditor {
@@ -45,7 +30,7 @@ struct MapEditor {
     void resize();
 
     uint32_t selected_tile_type;
-    std::vector<MyTextureData> my_textures;
+    std::vector<ImGuiTextureData> my_textures;
 
     int width, height;
     std::vector<std::vector<TileType>> tiles;
