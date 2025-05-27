@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <print>
-#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 MapLayout::MapLayout(const std::filesystem::path& path) {
@@ -61,4 +61,42 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
     std::reverse(tiles.begin(), tiles.end());   
     start.row = row - 1 - start.row;
     end.row = row - 1 - end.row;
+}
+
+OptimizedMap MapLayout::optimize() const {
+    OptimizedMap optimized = {};
+
+    std::vector<std::vector<MergedTile>> horizontal_step;
+    for (uint32_t r = 0; r < tiles.size(); ++r) {
+        std::vector<MergedTile> opt_row;
+
+        MergedTile curr_tile = MergedTile {
+            .ty = tiles[r][0],
+            .height = 1,
+            .width = 1
+        };
+        for (uint32_t c = 1; c < tiles[r].size(); ++c) {
+            if (tiles[r][c] == curr_tile.ty) {
+                ++curr_tile.width;
+            } else {
+                opt_row.push_back(curr_tile);
+                curr_tile = MergedTile {
+                    .ty = tiles[r][c],
+                    .height = 1,
+                    .width = 1
+                };
+            }
+        }
+        opt_row.push_back(curr_tile);
+
+        horizontal_step.push_back(opt_row);
+    }
+
+    optimized = OptimizedMap {
+        .tiles = horizontal_step,
+        .start = start,
+        .end = end
+    };
+
+    return optimized;
 }

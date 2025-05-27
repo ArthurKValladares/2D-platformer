@@ -66,7 +66,12 @@ struct App {
         ))
         , particle_editor(&renderer)
         , map_editor(&renderer)
+        , draw_optimized_grid(false)
     {
+        for (const MapLayout& map : maps) {
+            opt_maps.push_back(map.optimize());
+        }
+
         mouse_state.set_window_size(window.get_size().width, window.get_size().height);
 
         global_set_data.write_shader_data_to_buffer(&renderer);
@@ -86,6 +91,7 @@ struct App {
 
                     ImGui::TreePop();
                 }
+                ImGui::Checkbox("Optimized Map", &draw_optimized_grid);
             },
             .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
                 app_update(keyboard_state, total_elapsed_seconds, frame_dt);
@@ -96,23 +102,54 @@ struct App {
                 global_set_data.write_shader_data_to_buffer(&renderer);
 
                 const Rect2D camera_rect = camera.get_rect();
-                const uint64_t max_row = maps[map_idx].tiles.size();
-                const uint64_t max_col = maps[map_idx].tiles[0].size();
 
-                for (uint64_t row = 0; row < max_row; ++row) {
-                    for (uint64_t col = 0; col < max_col; ++col) {
-                        const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+                if (draw_optimized_grid) {
+                    const OptimizedMap& opt_map = opt_maps[map_idx];
 
-                        if (rect.intersects(camera_rect)) {
-                            const TileType ty = maps[map_idx].tiles[row][col];
+                    // TODO: Will need to change this once i do vertical merging as well
+                    for (uint32_t row = 0; row < opt_map.tiles.size(); ++row) {
+                        uint32_t start_offset = 0;
+                        for (uint32_t col = 0; col < opt_map.tiles[row].size(); ++col) {
+                            const MergedTile tile = opt_map.tiles[row][col];
 
-                            renderable->push_child(ColoredQuad(
-                                &renderer,
-                                rect,
-                                tile_type_to_texture(ty),
-                                tile_type_to_color(ty),
-                                global_set_data.buffer_id
-                            ));
+                            const Rect2D rect = Rect2D::from_left_and_size(
+                                glm::vec2(start_offset * TILE_SIZE, row * TILE_SIZE),
+                                glm::vec2(tile.width * TILE_SIZE, TILE_SIZE)
+                            );
+                            start_offset += tile.width;
+
+                            if (rect.intersects(camera_rect)) {
+                                const TileType ty = tile.ty;
+
+                                renderable->push_child(ColoredQuad(
+                                    &renderer,
+                                    rect,
+                                    tile_type_to_texture(ty),
+                                    tile_type_to_color(ty),
+                                    global_set_data.buffer_id
+                                ));
+                            }
+                        }
+                    }
+                } else {
+                    for (uint32_t row = 0; row < maps[map_idx].tiles.size(); ++row) {
+                        for (uint32_t col = 0; col < maps[map_idx].tiles[row].size(); ++col) {
+                            const Rect2D rect = Rect2D::from_left_and_size(
+                                glm::vec2(col * TILE_SIZE, row * TILE_SIZE),
+                                glm::vec2(TILE_SIZE, TILE_SIZE)
+                            );
+
+                            if (rect.intersects(camera_rect)) {
+                                const TileType ty = maps[map_idx].tiles[row][col];
+
+                                renderable->push_child(ColoredQuad(
+                                    &renderer,
+                                    rect,
+                                    tile_type_to_texture(ty),
+                                    tile_type_to_color(ty),
+                                    global_set_data.buffer_id
+                                ));
+                            }
                         }
                     }
                 }
@@ -161,10 +198,8 @@ struct App {
     void setup_collision_grid() {
         collision_grid.cells.clear();
 
-        const uint64_t max_row = maps[map_idx].tiles.size();
-        const uint64_t max_col = maps[map_idx].tiles[0].size();
-        for (uint64_t row = 0; row < max_row; ++row) {
-            for (uint64_t col = 0; col < max_col; ++col) {
+        for (uint32_t row = 0; row < maps[map_idx].tiles.size(); ++row) {
+            for (uint32_t col = 0; col < maps[map_idx].tiles[row].size(); ++col) {
                 const TileType ty = maps[map_idx].tiles[row][col];
                 const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
                 if (ty != TileType::Path) {
@@ -319,6 +354,7 @@ struct App {
 
     uint64_t map_idx;
     std::vector<MapLayout> maps;
+    std::vector<OptimizedMap> opt_maps;
 
     CollisionGrid collision_grid;
 
@@ -331,6 +367,9 @@ struct App {
     std::array<TabItem, 3> tab_items;
     ParticleEditor particle_editor;
     MapEditor map_editor;
+
+    // TODO: Better way to do debug stuff like this
+    bool draw_optimized_grid;
 };
 
 int main(int argc, char *argv[]) {

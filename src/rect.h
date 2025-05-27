@@ -14,6 +14,10 @@ struct Rect2D {
         : pos(center)
         , half_size(size / glm::vec2(2.0))
     {}
+    static Rect2D from_left_and_size(glm::vec2 left, glm::vec2 size) {
+        const glm::vec2 center = glm::vec2(left.x + size.x / 2.0, left.y);
+        return Rect2D(center, size);
+    }   
 
     static Rect2D from_min_max(float min_x, float max_x, float min_y, float max_y) {
         const float size_x = max_x - min_x;

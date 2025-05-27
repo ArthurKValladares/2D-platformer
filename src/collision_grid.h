@@ -5,7 +5,7 @@
 
 #include "rect.h"
 #include "hash.h"
-// TODO: bad
+// TODO: depending on tile types is bad
 #include "map_editor/tile_types.h"
 
 struct Cell {
