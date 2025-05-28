@@ -11,12 +11,16 @@ struct TilePosition {
 
 struct MergedTile {
     TileType ty;
+
+    uint32_t x_offset;
+    uint32_t y_offset;
+
     uint32_t height;
     uint32_t width;
 };
 
 struct OptimizedMap {
-    std::vector<std::vector<MergedTile>> tiles;
+    std::vector<MergedTile> tiles;
     TilePosition start;
     TilePosition end;
 };

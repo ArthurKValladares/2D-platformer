@@ -66,12 +66,13 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
 OptimizedMap MapLayout::optimize() const {
     OptimizedMap optimized = {};
 
-    std::vector<std::vector<MergedTile>> horizontal_step;
+    std::vector<MergedTile> opt_tiles;
     for (uint32_t r = 0; r < tiles.size(); ++r) {
-        std::vector<MergedTile> opt_row;
 
         MergedTile curr_tile = MergedTile {
             .ty = tiles[r][0],
+            .x_offset = 0,
+            .y_offset = r,
             .height = 1,
             .width = 1
         };
@@ -79,21 +80,21 @@ OptimizedMap MapLayout::optimize() const {
             if (tiles[r][c] == curr_tile.ty) {
                 ++curr_tile.width;
             } else {
-                opt_row.push_back(curr_tile);
+                opt_tiles.push_back(curr_tile);
                 curr_tile = MergedTile {
                     .ty = tiles[r][c],
+                    .x_offset = c,
+                    .y_offset = r,
                     .height = 1,
                     .width = 1
                 };
             }
         }
-        opt_row.push_back(curr_tile);
-
-        horizontal_step.push_back(opt_row);
+        opt_tiles.push_back(curr_tile);
     }
 
     optimized = OptimizedMap {
-        .tiles = horizontal_step,
+        .tiles = opt_tiles,
         .start = start,
         .end = end
     };

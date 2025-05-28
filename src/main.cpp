@@ -106,29 +106,24 @@ struct App {
                 if (draw_optimized_grid) {
                     const OptimizedMap& opt_map = opt_maps[map_idx];
 
-                    // TODO: Will need to change this once i do vertical merging as well
-                    for (uint32_t row = 0; row < opt_map.tiles.size(); ++row) {
-                        uint32_t start_offset = 0;
-                        for (uint32_t col = 0; col < opt_map.tiles[row].size(); ++col) {
-                            const MergedTile tile = opt_map.tiles[row][col];
+                    for (uint32_t t = 0; t < opt_map.tiles.size(); ++t) {
+                        const MergedTile tile = opt_map.tiles[t];
 
-                            const Rect2D rect = Rect2D::from_left_and_size(
-                                glm::vec2(start_offset * TILE_SIZE, row * TILE_SIZE),
-                                glm::vec2(tile.width * TILE_SIZE, TILE_SIZE)
-                            );
-                            start_offset += tile.width;
+                        const Rect2D rect = Rect2D::from_left_and_size(
+                            glm::vec2(tile.x_offset * TILE_SIZE, tile.y_offset * TILE_SIZE),
+                            glm::vec2(tile.width * TILE_SIZE, tile.height * TILE_SIZE)
+                        );
 
-                            if (rect.intersects(camera_rect)) {
-                                const TileType ty = tile.ty;
+                        if (rect.intersects(camera_rect)) {
+                            const TileType ty = tile.ty;
 
-                                renderable->push_child(ColoredQuad(
-                                    &renderer,
-                                    rect,
-                                    tile_type_to_texture(ty),
-                                    tile_type_to_color(ty),
-                                    global_set_data.buffer_id
-                                ));
-                            }
+                            renderable->push_child(ColoredQuad(
+                                &renderer,
+                                rect,
+                                tile_type_to_texture(ty),
+                                tile_type_to_color(ty),
+                                global_set_data.buffer_id
+                            ));
                         }
                     }
                 } else {
