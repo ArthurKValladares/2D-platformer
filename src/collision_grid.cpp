@@ -34,10 +34,13 @@ std::vector<GridItem> CollisionGrid::get_collisions(Rect2D rect) const {
 
     for (int32_t row = bounds.min_row; row <= bounds.max_row; ++row) {
         for (int32_t col = bounds.min_col; col <= bounds.max_col; ++col) {
-            const std::vector<GridItem>& cell_rects = cells.at(Cell{row, col});
-            for (GridItem item : cell_rects) {
-                if (rect.intersects(item.rect)) {
-                    collisions.push_back(item);
+            const Cell c = Cell{ row, col };
+            if (cells.count(c)) {
+                const std::vector<GridItem>& cell_rects = cells.at(c);
+                for (const GridItem& item : cell_rects) {
+                    if (rect.intersects(item.rect)) {
+                        collisions.push_back(item);
+                    }
                 }
             }
         }

@@ -57,7 +57,10 @@ struct App {
         , map_idx(0)
         , maps({MapLayout("assets/maps/test_map.map"), MapLayout("assets/maps/test_map_2.map")})
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
-        , player_rect(Rect2D(glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE), glm::vec2(PLAYER_SIZE, PLAYER_SIZE)))
+        , player_rect(Rect2D::from_left_and_size(
+            glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE),
+            glm::vec2(PLAYER_SIZE, PLAYER_SIZE)
+        ))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
         , camera(OrthographicCamera(
             player_rect.center(),
@@ -196,7 +199,10 @@ struct App {
         for (uint32_t row = 0; row < maps[map_idx].tiles.size(); ++row) {
             for (uint32_t col = 0; col < maps[map_idx].tiles[row].size(); ++col) {
                 const TileType ty = maps[map_idx].tiles[row][col];
-                const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
+                const Rect2D rect = Rect2D::from_left_and_size(
+                    glm::vec2(col * TILE_SIZE, row * TILE_SIZE),
+                    glm::vec2(TILE_SIZE, TILE_SIZE)
+                );
                 if (ty != TileType::Path) {
                     collision_grid.insert_rect(rect, ty);
                 }
