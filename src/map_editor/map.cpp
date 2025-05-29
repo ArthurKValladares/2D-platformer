@@ -66,7 +66,7 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
 OptimizedMap MapLayout::optimize() const {
     OptimizedMap optimized = {};
 
-    std::vector<MergedTile> opt_tiles;
+    std::vector<MergedTile> horizontal_step;
     for (uint32_t r = 0; r < tiles.size(); ++r) {
 
         MergedTile curr_tile = MergedTile {
@@ -80,7 +80,7 @@ OptimizedMap MapLayout::optimize() const {
             if (tiles[r][c] == curr_tile.ty) {
                 ++curr_tile.width;
             } else {
-                opt_tiles.push_back(curr_tile);
+                horizontal_step.push_back(curr_tile);
                 curr_tile = MergedTile {
                     .ty = tiles[r][c],
                     .x_offset = c,
@@ -90,11 +90,38 @@ OptimizedMap MapLayout::optimize() const {
                 };
             }
         }
-        opt_tiles.push_back(curr_tile);
+        horizontal_step.push_back(curr_tile);
+    }
+
+    std::unordered_set<uint32_t> used_tiles;
+    std::vector<MergedTile> vertical_step;
+    for (uint32_t i = 0; i < horizontal_step.size(); ++i) {
+        if (used_tiles.contains(i)) continue;
+
+        used_tiles.insert(i);
+        MergedTile tile = horizontal_step[i];
+
+        for (uint32_t j = i + 1; j < horizontal_step.size(); ++j) {
+            if (used_tiles.contains(j)) continue;
+
+            const MergedTile other_tile = horizontal_step[j];
+
+            const bool starts_at_same_x = tile.x_offset == other_tile.x_offset;
+            const bool have_same_width  = tile.width == other_tile.width;
+            const bool are_y_aligned    = (tile.y_offset + tile.height) == other_tile.y_offset;
+
+            if (starts_at_same_x && have_same_width && are_y_aligned) {
+                used_tiles.insert(j);
+
+                tile.height += other_tile.height;
+            }
+        }
+       
+        vertical_step.push_back(tile);
     }
 
     optimized = OptimizedMap {
-        .tiles = opt_tiles,
+        .tiles = vertical_step,
         .start = start,
         .end = end
     };

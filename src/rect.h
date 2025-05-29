@@ -14,8 +14,8 @@ struct Rect2D {
         : pos(center)
         , half_size(size / glm::vec2(2.0))
     {}
-    static Rect2D from_left_and_size(glm::vec2 left, glm::vec2 size) {
-        const glm::vec2 center = glm::vec2(left.x + size.x / 2.0, left.y);
+    static Rect2D from_top_left_and_size(glm::vec2 top_left, glm::vec2 size) {
+        const glm::vec2 center = glm::vec2(top_left.x + size.x / 2.0, top_left.y + size.y / 2.0);
         return Rect2D(center, size);
     }   
 
