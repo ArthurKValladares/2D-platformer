@@ -44,7 +44,37 @@ struct CollisionGrid {
     {}
 
     void insert_rect(Rect2D rect, TileType ty);
-    std::vector<GridItem> get_collisions(Rect2D rect) const;
+
+    enum class CollisionWall {
+        Left,
+        Right,
+        Top,
+        Bottom
+    };
+    static const char* wall_to_string(CollisionWall wall) {
+        switch (wall)
+        {
+            case CollisionWall::Left: {
+                return "left";
+            }
+            case CollisionWall::Right: {
+                return "right";
+            }
+            case CollisionWall::Top: {
+                return "top";
+            }
+            case CollisionWall::Bottom: {
+                return "bottom";
+            }
+        }
+    }
+    struct CollisionData {
+        Rect2D rect;
+        TileType ty;
+        CollisionWall wall;
+        float relative_dist;
+    };
+    std::vector<CollisionData> get_collisions(Rect2D rect, glm::vec2 displacement) const;
 
     std::unordered_map<Cell, std::vector<GridItem>> cells;
     float cell_size_x;

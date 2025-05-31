@@ -246,23 +246,22 @@ struct App {
             const float displacement = displacement_per_second * frame_dt;
             const glm::vec2 displacement_vec = movement_vec * displacement;
 
-            Rect2D new_player_rect = player_rect;
-            new_player_rect.pos = player_rect.pos + displacement_vec;
-
-            std::vector<GridItem> collisions;
+            std::vector<CollisionGrid::CollisionData> collisions;
             if (draw_optimized_grid) {
-                collisions = collision_grid.get_collisions(new_player_rect);
+                collisions = collision_grid.get_collisions(player_rect, displacement_vec);
             } else {
-                collisions = opt_collision_grid.get_collisions(new_player_rect);
+                collisions = opt_collision_grid.get_collisions(player_rect, displacement_vec);
             }
 
+            // TODO: Whole thing pretty messy, can cleanup later
             bool hit_wall = false;
             bool has_won = false;
-            for (const GridItem& item : collisions) {
+            for (const CollisionGrid::CollisionData& item : collisions) {
                 if (item.ty == TileType::End) {
                     has_won = true;
                 } else if (item.ty == TileType::Wall) {
                     hit_wall = true;
+                    std::cout << CollisionGrid::wall_to_string(item.wall) << std::endl;
                 }
             }
 
@@ -272,6 +271,9 @@ struct App {
 
                 player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
             } else if (!hit_wall) {
+                Rect2D new_player_rect = player_rect;
+                new_player_rect.pos = player_rect.pos + displacement_vec;
+
                 player_rect = new_player_rect;
             }
         }
