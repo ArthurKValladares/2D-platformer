@@ -57,6 +57,7 @@ struct App {
         , map_idx(0)
         , maps({MapLayout("assets/maps/test_map.map"), MapLayout("assets/maps/test_map_2.map")})
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
+        , opt_collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
         , player_rect(Rect2D::from_top_left_and_size(
             glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE),
             glm::vec2(PLAYER_SIZE, PLAYER_SIZE)
@@ -208,6 +209,18 @@ struct App {
                 }
             }
         }
+
+        opt_collision_grid.cells.clear();
+        for (const MergedTile& tile : opt_maps[map_idx].tiles) {
+            const TileType ty = tile.ty;
+            const Rect2D rect = Rect2D::from_top_left_and_size(
+                glm::vec2(tile.x_offset * TILE_SIZE, tile.y_offset * TILE_SIZE),
+                glm::vec2(tile.width * TILE_SIZE, tile.height * TILE_SIZE)
+            );
+            if (ty != TileType::Path) {
+                opt_collision_grid.insert_rect(rect, ty);
+            }
+        }
     }
 
     void app_update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
@@ -236,7 +249,12 @@ struct App {
             Rect2D new_player_rect = player_rect;
             new_player_rect.pos = player_rect.pos + displacement_vec;
 
-            const std::vector<GridItem> collisions = collision_grid.get_collisions(new_player_rect);
+            std::vector<GridItem> collisions;
+            if (draw_optimized_grid) {
+                collisions = collision_grid.get_collisions(new_player_rect);
+            } else {
+                collisions = opt_collision_grid.get_collisions(new_player_rect);
+            }
 
             bool hit_wall = false;
             bool has_won = false;
@@ -358,6 +376,7 @@ struct App {
     std::vector<OptimizedMap> opt_maps;
 
     CollisionGrid collision_grid;
+    CollisionGrid opt_collision_grid;
 
     Rect2D player_rect;
     SpriteAnimation player_sprite;
