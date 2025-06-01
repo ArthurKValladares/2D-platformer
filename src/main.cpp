@@ -204,7 +204,7 @@ struct App {
                     glm::vec2(col * TILE_SIZE, row * TILE_SIZE),
                     glm::vec2(TILE_SIZE, TILE_SIZE)
                 );
-                if (ty != TileType::Path) {
+                if (ty != TileType::Path && ty != TileType::Start) {
                     collision_grid.insert_rect(rect, ty);
                 }
             }
@@ -217,7 +217,7 @@ struct App {
                 glm::vec2(tile.x_offset * TILE_SIZE, tile.y_offset * TILE_SIZE),
                 glm::vec2(tile.width * TILE_SIZE, tile.height * TILE_SIZE)
             );
-            if (ty != TileType::Path) {
+            if (ty != TileType::Path && ty != TileType::Start) {
                 opt_collision_grid.insert_rect(rect, ty);
             }
         }
@@ -246,35 +246,23 @@ struct App {
             const float displacement = displacement_per_second * frame_dt;
             const glm::vec2 displacement_vec = movement_vec * displacement;
 
+            glm::vec2 non_colliding_disp;
             std::vector<CollisionGrid::CollisionData> collisions;
             if (draw_optimized_grid) {
-                collisions = collision_grid.get_collisions(player_rect, displacement_vec);
+                non_colliding_disp = collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
             } else {
-                collisions = opt_collision_grid.get_collisions(player_rect, displacement_vec);
+                non_colliding_disp = opt_collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
             }
+            player_rect.pos += non_colliding_disp;
 
-            // TODO: Whole thing pretty messy, can cleanup later
-            bool hit_wall = false;
-            bool has_won = false;
             for (const CollisionGrid::CollisionData& item : collisions) {
                 if (item.ty == TileType::End) {
-                    has_won = true;
-                } else if (item.ty == TileType::Wall) {
-                    hit_wall = true;
-                    std::cout << CollisionGrid::wall_to_string(item.wall) << std::endl;
+                    map_idx = (map_idx + 1) % maps.size();
+                    setup_collision_grid();
+
+                    player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
+                    break;
                 }
-            }
-
-            if (has_won) {
-                map_idx = (map_idx + 1) % maps.size();
-                setup_collision_grid();
-
-                player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
-            } else if (!hit_wall) {
-                Rect2D new_player_rect = player_rect;
-                new_player_rect.pos = player_rect.pos + displacement_vec;
-
-                player_rect = new_player_rect;
             }
         }
 

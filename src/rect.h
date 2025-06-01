@@ -53,7 +53,7 @@ struct Rect2D {
 
     bool intersects_point(glm::vec2 point) const;
     bool intersects(const Rect2D& other) const;
-    Rect2D intersection(const Rect2D& other) const;
+    glm::vec2 intersection_vector(const Rect2D& other) const;
 
     Rect2D scaled_by(float scale) const {
         return scaled_by(scale, scale);
