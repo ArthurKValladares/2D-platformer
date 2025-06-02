@@ -113,10 +113,11 @@ struct App {
                     for (uint32_t t = 0; t < opt_map.tiles.size(); ++t) {
                         const MergedTile tile = opt_map.tiles[t];
 
-                        const Rect2D rect = Rect2D::from_top_left_and_size(
+                        Rect2D rect = Rect2D::from_top_left_and_size(
                             glm::vec2(tile.x_offset * TILE_SIZE, tile.y_offset * TILE_SIZE),
                             glm::vec2(tile.width * TILE_SIZE, tile.height * TILE_SIZE)
                         );
+                        rect.set_uv_size(glm::vec2(TILE_SIZE));
 
                         if (rect.intersects(camera_rect)) {
                             const TileType ty = tile.ty;

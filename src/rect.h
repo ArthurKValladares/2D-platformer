@@ -13,12 +13,13 @@ struct Rect2D {
     Rect2D(glm::vec2 center, glm::vec2 size)
         : pos(center)
         , half_size(size / glm::vec2(2.0))
+        , uv_half_size(half_size)
     {}
+
     static Rect2D from_top_left_and_size(glm::vec2 top_left, glm::vec2 size) {
         const glm::vec2 center = glm::vec2(top_left.x + size.x / 2.0, top_left.y + size.y / 2.0);
         return Rect2D(center, size);
     }   
-
     static Rect2D from_min_max(float min_x, float max_x, float min_y, float max_y) {
         const float size_x = max_x - min_x;
         const float size_y = max_y - min_y;
@@ -26,6 +27,10 @@ struct Rect2D {
         glm::vec2 center = glm::vec2(min_x + size_x / 2.0, min_y + size_y / 2.0);
 
         return Rect2D(center, glm::vec2(size_x, size_y));
+    }
+
+    void set_uv_size(glm::vec2 size) {
+        uv_half_size = size / glm::vec2(2.0);
     }
 
     glm::vec2 center() const {
@@ -67,4 +72,5 @@ struct Rect2D {
 
     glm::vec2 pos;
     glm::vec2 half_size;
+    glm::vec2 uv_half_size;
 };
