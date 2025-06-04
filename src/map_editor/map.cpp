@@ -123,7 +123,9 @@ OptimizedMap MapLayout::optimize() const {
     optimized = OptimizedMap {
         .tiles = vertical_step,
         .start = start,
-        .end = end
+        .end = end,
+        .width = (uint32_t) tiles[0].size(),
+        .height = (uint32_t) tiles.size()
     };
 
     return optimized;

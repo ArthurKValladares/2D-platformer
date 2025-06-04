@@ -23,6 +23,8 @@ struct OptimizedMap {
     std::vector<MergedTile> tiles;
     TilePosition start;
     TilePosition end;
+    uint32_t width;
+    uint32_t height;
 };
 
 struct MapLayout {

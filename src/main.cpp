@@ -34,10 +34,6 @@
 #define PLAYER_SIZE TILE_SIZE * PLAYER_SCALE
 
 namespace {
-    float get_camera_size(const MapLayout& map) {
-        return map.tiles[0].size() * TILE_SIZE;
-    }
-
     Rect2D get_tile_rect(uint32_t x_start, uint32_t y_start, uint32_t tile_width = 1, uint32_t tile_height = 1) {
         return Rect2D::from_top_left_and_size(
             glm::vec2(x_start * TILE_SIZE, y_start * TILE_SIZE),
@@ -62,23 +58,27 @@ struct App {
         , renderer(window)
         , global_set_data(GlobalDescriptorSetData(&renderer, camera))
         , map_idx(0)
-        , maps({MapLayout("assets/maps/test_map.map"), MapLayout("assets/maps/test_map_2.map")})
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
-        , opt_collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
-        , player_rect(get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
-        , camera(OrthographicCamera(
-            player_rect.center(),
-            get_camera_size(maps[map_idx]),
-            get_camera_size(maps[map_idx])
-        ))
         , particle_editor(&renderer)
         , map_editor(&renderer)
-        , draw_optimized_grid(false)
     {
-        for (const MapLayout& map : maps) {
-            opt_maps.push_back(map.optimize());
+        // TODO: This should be auto-generated like the shader/texture stuff
+        const char* map_paths[] = {
+            "assets/maps/test_map.map",
+            "assets/maps/test_map_2.map"
+        };
+        for (const char* path : map_paths) {
+            const MapLayout map = MapLayout(path);
+            maps.push_back(map.optimize());
         }
+
+        player_rect = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row);
+        camera = OrthographicCamera(
+            player_rect.center(),
+            maps[map_idx].width,
+            maps[map_idx].width
+        );
 
         mouse_state.set_window_size(window.get_size().width, window.get_size().height);
 
@@ -99,56 +99,33 @@ struct App {
 
                     ImGui::TreePop();
                 }
-                ImGui::Checkbox("Optimized Map", &draw_optimized_grid);
             },
             .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
                 app_update(keyboard_state, total_elapsed_seconds, frame_dt);
             },
             .draw_fn = [&](Renderable* renderable, double total_elapsed_seconds) {
-                // TODO: The "Game/App" stuff should be in its own struct like the editors
                 global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
                 global_set_data.write_shader_data_to_buffer(&renderer);
 
                 const Rect2D camera_rect = camera.get_rect();
 
-                if (draw_optimized_grid) {
-                    const OptimizedMap& opt_map = opt_maps[map_idx];
+                const OptimizedMap& opt_map = maps[map_idx];
+                for (uint32_t t = 0; t < opt_map.tiles.size(); ++t) {
+                    const MergedTile tile = opt_map.tiles[t];
 
-                    for (uint32_t t = 0; t < opt_map.tiles.size(); ++t) {
-                        const MergedTile tile = opt_map.tiles[t];
+                    Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
+                    rect.set_uv_size(glm::vec2(TILE_SIZE));
 
-                        Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
-                        rect.set_uv_size(glm::vec2(TILE_SIZE));
+                    if (rect.intersects(camera_rect)) {
+                        const TileType ty = tile.ty;
 
-                        if (rect.intersects(camera_rect)) {
-                            const TileType ty = tile.ty;
-
-                            renderable->push_child(ColoredQuad(
-                                &renderer,
-                                rect,
-                                tile_type_to_texture(ty),
-                                tile_type_to_color(ty),
-                                global_set_data.buffer_id
-                            ));
-                        }
-                    }
-                } else {
-                    for (uint32_t row = 0; row < maps[map_idx].tiles.size(); ++row) {
-                        for (uint32_t col = 0; col < maps[map_idx].tiles[row].size(); ++col) {
-                            const Rect2D rect = get_tile_rect(col, row);
-
-                            if (rect.intersects(camera_rect)) {
-                                const TileType ty = maps[map_idx].tiles[row][col];
-
-                                renderable->push_child(ColoredQuad(
-                                    &renderer,
-                                    rect,
-                                    tile_type_to_texture(ty),
-                                    tile_type_to_color(ty),
-                                    global_set_data.buffer_id
-                                ));
-                            }
-                        }
+                        renderable->push_child(ColoredQuad(
+                            &renderer,
+                            rect,
+                            tile_type_to_texture(ty),
+                            tile_type_to_color(ty),
+                            global_set_data.buffer_id
+                        ));
                     }
                 }
 
@@ -195,23 +172,11 @@ struct App {
 
     void setup_collision_grid() {
         collision_grid.cells.clear();
-
-        for (uint32_t row = 0; row < maps[map_idx].tiles.size(); ++row) {
-            for (uint32_t col = 0; col < maps[map_idx].tiles[row].size(); ++col) {
-                const TileType ty = maps[map_idx].tiles[row][col];
-                if (ty == TileType::Wall) {
-                    const Rect2D rect = get_tile_rect(col, row);
-                    collision_grid.insert_rect(rect);
-                }
-            }
-        }
-
-        opt_collision_grid.cells.clear();
-        for (const MergedTile& tile : opt_maps[map_idx].tiles) {
+        for (const MergedTile& tile : maps[map_idx].tiles) {
             const TileType ty = tile.ty;
             if (ty == TileType::Wall) {
                 const Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
-                opt_collision_grid.insert_rect(rect);
+                collision_grid.insert_rect(rect);
             }
         }
     }
@@ -239,13 +204,8 @@ struct App {
             const float displacement = displacement_per_second * frame_dt;
             const glm::vec2 displacement_vec = movement_vec * displacement;
 
-            glm::vec2 non_colliding_disp;
             std::vector<CollisionGrid::CollisionData> collisions;
-            if (draw_optimized_grid) {
-                non_colliding_disp = collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
-            } else {
-                non_colliding_disp = opt_collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
-            }
+            const glm::vec2 non_colliding_disp = collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
             player_rect.pos += non_colliding_disp;
 
             const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
@@ -353,11 +313,9 @@ struct App {
     std::chrono::steady_clock::time_point last_frame;
 
     uint64_t map_idx;
-    std::vector<MapLayout> maps;
-    std::vector<OptimizedMap> opt_maps;
+    std::vector<OptimizedMap> maps;
 
     CollisionGrid collision_grid;
-    CollisionGrid opt_collision_grid;
 
     Rect2D player_rect;
     SpriteAnimation player_sprite;
@@ -368,9 +326,6 @@ struct App {
     std::array<TabItem, 3> tab_items;
     ParticleEditor particle_editor;
     MapEditor map_editor;
-
-    // TODO: Better way to do debug stuff like this
-    bool draw_optimized_grid;
 };
 
 int main(int argc, char *argv[]) {

@@ -35,5 +35,6 @@ struct Texture {
     uint32_t mip_levels;
     VkDescriptorImageInfo descriptor;
     VkSampler sampler;
-    // TODO: Use staging buffers for the transfer from CPU to GPU
+    // TODO: Use staging buffers for the transfer from CPU to GPU,
+    // do them at in a batch
 };
