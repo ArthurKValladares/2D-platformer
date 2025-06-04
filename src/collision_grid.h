@@ -5,8 +5,6 @@
 
 #include "rect.h"
 #include "hash.h"
-// TODO: depending on tile types is bad
-#include "map_editor/tile_types.h"
 
 struct Cell {
     int32_t row;
@@ -31,28 +29,21 @@ namespace std
     };
 }
 
-// TODO: This is bad, i need a better way to handle needing to know **what** I hit
-struct GridItem {
-    Rect2D rect;
-    TileType ty;
-};
-
 struct CollisionGrid {
     CollisionGrid(float cell_size_x, float cell_size_y)
         : cell_size_x(cell_size_x)
         , cell_size_y(cell_size_y)
     {}
 
-    void insert_rect(Rect2D rect, TileType ty);
+    void insert_rect(Rect2D rect);
 
     struct CollisionData {
         Rect2D rect;
-        TileType ty;
         glm::vec2 collision_size;
     };
     glm::vec2 get_collisions(Rect2D rect, glm::vec2 init_displacement, std::vector<CollisionData>* collision_data) const;
 
-    std::unordered_map<Cell, std::vector<GridItem>> cells;
+    std::unordered_map<Cell, std::vector<Rect2D>> cells;
     float cell_size_x;
     float cell_size_y;
 };

@@ -37,6 +37,13 @@ namespace {
     float get_camera_size(const MapLayout& map) {
         return map.tiles[0].size() * TILE_SIZE;
     }
+
+    Rect2D get_tile_rect(uint32_t x_start, uint32_t y_start, uint32_t tile_width = 1, uint32_t tile_height = 1) {
+        return Rect2D::from_top_left_and_size(
+            glm::vec2(x_start * TILE_SIZE, y_start * TILE_SIZE),
+            glm::vec2(tile_width * TILE_SIZE, tile_height * TILE_SIZE)
+        );
+    }
 };
 
 struct TabItem {
@@ -58,10 +65,7 @@ struct App {
         , maps({MapLayout("assets/maps/test_map.map"), MapLayout("assets/maps/test_map_2.map")})
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
         , opt_collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
-        , player_rect(Rect2D::from_top_left_and_size(
-            glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE),
-            glm::vec2(PLAYER_SIZE, PLAYER_SIZE)
-        ))
+        , player_rect(get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
         , camera(OrthographicCamera(
             player_rect.center(),
@@ -113,10 +117,7 @@ struct App {
                     for (uint32_t t = 0; t < opt_map.tiles.size(); ++t) {
                         const MergedTile tile = opt_map.tiles[t];
 
-                        Rect2D rect = Rect2D::from_top_left_and_size(
-                            glm::vec2(tile.x_offset * TILE_SIZE, tile.y_offset * TILE_SIZE),
-                            glm::vec2(tile.width * TILE_SIZE, tile.height * TILE_SIZE)
-                        );
+                        Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
                         rect.set_uv_size(glm::vec2(TILE_SIZE));
 
                         if (rect.intersects(camera_rect)) {
@@ -134,10 +135,7 @@ struct App {
                 } else {
                     for (uint32_t row = 0; row < maps[map_idx].tiles.size(); ++row) {
                         for (uint32_t col = 0; col < maps[map_idx].tiles[row].size(); ++col) {
-                            const Rect2D rect = Rect2D::from_top_left_and_size(
-                                glm::vec2(col * TILE_SIZE, row * TILE_SIZE),
-                                glm::vec2(TILE_SIZE, TILE_SIZE)
-                            );
+                            const Rect2D rect = get_tile_rect(col, row);
 
                             if (rect.intersects(camera_rect)) {
                                 const TileType ty = maps[map_idx].tiles[row][col];
@@ -201,12 +199,9 @@ struct App {
         for (uint32_t row = 0; row < maps[map_idx].tiles.size(); ++row) {
             for (uint32_t col = 0; col < maps[map_idx].tiles[row].size(); ++col) {
                 const TileType ty = maps[map_idx].tiles[row][col];
-                const Rect2D rect = Rect2D::from_top_left_and_size(
-                    glm::vec2(col * TILE_SIZE, row * TILE_SIZE),
-                    glm::vec2(TILE_SIZE, TILE_SIZE)
-                );
-                if (ty != TileType::Path && ty != TileType::Start) {
-                    collision_grid.insert_rect(rect, ty);
+                if (ty == TileType::Wall) {
+                    const Rect2D rect = get_tile_rect(col, row);
+                    collision_grid.insert_rect(rect);
                 }
             }
         }
@@ -214,12 +209,9 @@ struct App {
         opt_collision_grid.cells.clear();
         for (const MergedTile& tile : opt_maps[map_idx].tiles) {
             const TileType ty = tile.ty;
-            const Rect2D rect = Rect2D::from_top_left_and_size(
-                glm::vec2(tile.x_offset * TILE_SIZE, tile.y_offset * TILE_SIZE),
-                glm::vec2(tile.width * TILE_SIZE, tile.height * TILE_SIZE)
-            );
-            if (ty != TileType::Path && ty != TileType::Start) {
-                opt_collision_grid.insert_rect(rect, ty);
+            if (ty == TileType::Wall) {
+                const Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
+                opt_collision_grid.insert_rect(rect);
             }
         }
     }
@@ -256,14 +248,12 @@ struct App {
             }
             player_rect.pos += non_colliding_disp;
 
-            for (const CollisionGrid::CollisionData& item : collisions) {
-                if (item.ty == TileType::End) {
-                    map_idx = (map_idx + 1) % maps.size();
-                    setup_collision_grid();
+            const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
+            if (player_rect.intersects(end_rect)) {
+                map_idx = (map_idx + 1) % maps.size();
+                setup_collision_grid();
 
-                    player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
-                    break;
-                }
+                player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
             }
         }
 

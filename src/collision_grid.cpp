@@ -17,12 +17,12 @@ namespace {
     }
 };
 
-void CollisionGrid::insert_rect(Rect2D rect, TileType ty) {
+void CollisionGrid::insert_rect(Rect2D rect) {
     const CellBounds bounds = get_cell_bounds(rect, cell_size_x, cell_size_y);
 
     for (int32_t row = bounds.min_row; row <= bounds.max_row; ++row) {
         for (int32_t col = bounds.min_col; col <= bounds.max_col; ++col) {
-            cells[Cell{row, col}].push_back(GridItem{rect, ty});
+            cells[Cell{row, col}].push_back(rect);
         }
     }
 }
@@ -35,19 +35,18 @@ glm::vec2 CollisionGrid::get_collisions(Rect2D rect, glm::vec2 init_displacement
         for (int32_t col = bounds.min_col; col <= bounds.max_col; ++col) {
             const Cell c = Cell{ row, col };
             if (cells.count(c)) {
-                const std::vector<GridItem>& cell_rects = cells.at(c);
-                for (const GridItem& item : cell_rects) {
+                const std::vector<Rect2D>& cell_rects = cells.at(c);
+                for (const Rect2D& cell_rect : cell_rects) {
                     Rect2D displaced_rect = rect;
                     displaced_rect.pos += non_colliding_disp;
 
-                    if (displaced_rect.intersects(item.rect)) {
-                        const glm::vec2 intersection = displaced_rect.intersection_vector(item.rect);
+                    if (displaced_rect.intersects(cell_rect)) {
+                        const glm::vec2 intersection = displaced_rect.intersection_vector(cell_rect);
                         non_colliding_disp -= intersection;
 
                         if (collisions != nullptr) {
                             CollisionData data = CollisionData {
-                                .rect = item.rect,
-                                .ty = item.ty,
+                                .rect = cell_rect,
                                 .collision_size = intersection
                             };
                             collisions->push_back(data);
