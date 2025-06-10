@@ -63,13 +63,8 @@ struct App {
         , particle_editor(&renderer)
         , map_editor(&renderer)
     {
-        // TODO: This should be auto-generated like the shader/texture stuff
-        const char* map_paths[] = {
-            "assets/maps/test_map.map",
-            "assets/maps/test_map_2.map"
-        };
-        for (const char* path : map_paths) {
-            const MapLayout map = MapLayout(path);
+        for (uint32_t i = 0; i < (uint32_t) MapSource::Count; ++i) {
+            const MapLayout map = MapLayout(map_path(static_cast<MapSource>(i)));
             maps.push_back(map.optimize());
         }
 

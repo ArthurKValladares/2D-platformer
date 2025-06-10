@@ -11,10 +11,11 @@ import re
 from os import listdir
 from os.path import isfile, join
 
-filters = ["png"]
+filters = ["png", "map"]
 
 shader_path = "shaders"
 texture_path = "assets/textures"
+maps_path = "assets/maps"
 
 def get_file_names(dir):
     return [f for f in listdir(dir) if isfile(join(dir, f))]
@@ -30,8 +31,15 @@ formatted_shaders = get_formatted_names(shader_files)
 texture_files = get_file_names(texture_path)
 formatted_textures = get_formatted_names(texture_files)
 
+map_files = get_file_names(maps_path)
+formatted_maps = get_formatted_names(map_files)
+
 ]]]*/
 //[[[end]]]
+
+//
+// TEXTURES
+//
 
 enum class TextureSource : uint32_t {
     /*[[[cog
@@ -113,6 +121,10 @@ inline TextureID texture_id(TextureSource texture) {
     return TextureID(static_cast<uint32_t>(texture));
 }
 
+//
+// SHADERS
+//
+
 enum class ShaderSource : uint32_t {
     /*[[[cog
     for shader in formatted_shaders:
@@ -190,4 +202,85 @@ inline ShaderSource shader_from_uint(uint32_t i) {
 }
 inline ShaderID shader_id(ShaderSource shader) {
     return ShaderID(static_cast<uint32_t>(shader));
+}
+
+//
+// MAPS
+//
+
+enum class MapSource : uint32_t {
+    /*[[[cog
+    for map in formatted_maps:
+        cog.outl("%s," % map)
+    ]]]*/
+    //[[[end]]]
+    Count
+};
+inline const char* map_path(MapSource map) {
+    switch (map)
+    {
+        /*[[[cog
+        for (map, map_file) in zip(formatted_maps, map_files):
+            cog.out("""
+            case MapSource::%s: {
+                return \"%s/%s\";
+            }
+            """
+            % (map, maps_path, map_file),
+            dedent=True, trimblanklines=True)
+        ]]]*/
+        //[[[end]]]
+        case MapSource::Count: {
+            assert(false);
+            return "";
+        }
+        default: {
+            assert(false);
+            return "";
+        }
+    }    
+}
+inline const char* map_name(MapSource map) {
+    switch (map)
+    {
+        /*[[[cog
+        for map in formatted_maps:
+            cog.out("""
+            case MapSource::%s: {
+                return \"%s\";
+            }
+            """
+            % (map, map),
+            dedent=True, trimblanklines=True)
+        ]]]*/
+        //[[[end]]]
+        case MapSource::Count: {
+            assert(false);
+            return "";
+        }
+        default:{
+            assert(false);
+            return "";
+        }
+    }   
+}
+inline const char** map_names() {
+    /*[[[cog
+    cog.outl("static const char* names[] = {");
+    for map in formatted_maps:
+        cog.out("""
+        \"%s\",
+        """
+        % map,
+        trimblanklines=True)
+    cog.outl("};")
+    cog.outl("return names;")
+    ]]]*/
+    //[[[end]]]
+}
+inline uint32_t map_count() {
+    return static_cast<uint32_t>(MapSource::Count);
+}
+inline MapSource map_from_uint(uint32_t i) {
+    return static_cast<MapSource>(i);
 }
