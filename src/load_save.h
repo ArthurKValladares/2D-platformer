@@ -13,7 +13,6 @@
 #define PARTICLES_DIR "./assets/particles"
 #define PARTICLES_EXTENSION ".json"
 
-struct Renderer;
 struct LoadSave {
     LoadSave();
 
@@ -31,8 +30,8 @@ struct LoadSave {
     };
     ImguiResult imgui_node();
 
-    void save(const char* dir, const char* extension, Renderer* renderer, std::function<void(nlohmann::json&)> save_fn);
-    void load(const char* dir, const char* extension, Renderer* renderer, std::function<void(nlohmann::json&)> load_fn);
+    void save(const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
+    void load(const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
 
     int selected_file;
     std::vector<std::string> files;

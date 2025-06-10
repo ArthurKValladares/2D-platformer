@@ -11,21 +11,27 @@
 #include "global_descriptor_set.h"
 #include "map_editor/tile_types.h"
 #include "load_save.h"
+#include "view.h"
 
 struct ImGuiTextureData {
     VkDescriptorSet DS;
 };
 
-struct MapEditor {
+struct MapEditor final : View {
     MapEditor(Renderer* renderer);
+
+
     void cleanup(Renderer* renderer);
 
-    void add_to_renderable(Renderer* renderer, Renderable* renderable);
-    void update(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt);
-    void imgui_node(Renderer* renderer);
+    const char* name() const {
+        return "Map Editor";
+    }
+    void update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt);
+    ViewDrawData draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_time);
+    void draw_imgui(double total_elapsed_time);
 
-    void save(Renderer* renderer);
-    void load(Renderer* renderer);
+    void save();
+    void load();
 
     void resize();
 

@@ -15,7 +15,7 @@
 #define MIN_HEIGHT     3
 
 namespace {
-void RemoveTexture(Renderer* renderer, ImGuiTextureData* tex_data)
+void RemoveTexture(ImGuiTextureData* tex_data)
 {
     ImGui_ImplVulkan_RemoveTexture(tex_data->DS);
 }
@@ -64,11 +64,11 @@ void MapEditor::cleanup(Renderer* renderer) {
     vkDeviceWaitIdle(renderer->get_device());
 
     for (ImGuiTextureData& my_texture : my_textures) {
-        RemoveTexture(renderer, &my_texture);
+        RemoveTexture(&my_texture);
     }
 }
 
-void MapEditor::add_to_renderable(Renderer* renderer, Renderable* renderable) {
+ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
     global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
     global_set_data.write_shader_data_to_buffer(renderer);
 
@@ -104,9 +104,11 @@ void MapEditor::add_to_renderable(Renderer* renderer, Renderable* renderable) {
             }
         }
     }
+
+    return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
 }
 
-void MapEditor::update(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
+void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
     // TODO THis pattern is repeated a lot
     constexpr float displacement_per_second = 5.0;
     glm::vec2 movement_vec{0.0, 0.0};
@@ -166,14 +168,14 @@ void MapEditor::resize() {
     }
 }
 
-void MapEditor::imgui_node(Renderer* renderer) {
+void MapEditor::draw_imgui(double total_elapsed_time) {
     constexpr uint32_t textures_per_line = 4;
 
     LoadSave::ImguiResult res = load_save.imgui_node();
     if (res == LoadSave::ImguiResult::ShouldSave) {
-        save(renderer);
+        save();
     } else if (res == LoadSave::ImguiResult::ShouldLoad) {
-        load(renderer);
+        load();
     }
 
     bool has_changed = false;
@@ -218,8 +220,8 @@ void MapEditor::imgui_node(Renderer* renderer) {
     }
 }
 
-void MapEditor::save(Renderer* renderer) {
-    load_save.save(MAP_DIR, MAP_EXTENSION, renderer, [&](nlohmann::json& root) {
+void MapEditor::save() {
+    load_save.save(MAP_DIR, MAP_EXTENSION, [&](nlohmann::json& root) {
         serialize_uint32(root, "width", tiles[0].size());
         serialize_uint32(root, "height", tiles.size());
         std::vector<std::vector<uint32_t>> tiles_uint;
@@ -234,8 +236,8 @@ void MapEditor::save(Renderer* renderer) {
     });
 }
 
-void MapEditor::load(Renderer* renderer) {
-    load_save.load(MAP_DIR, MAP_EXTENSION, renderer, [&](nlohmann::json& root) {
+void MapEditor::load() {
+    load_save.load(MAP_DIR, MAP_EXTENSION, [&](nlohmann::json& root) {
         width = get_serialized_uint32(root, "width");
         height = get_serialized_uint32(root, "height");
         const std::vector<std::vector<uint32_t>> tiles = get_serialized_vector<std::vector<uint32_t>>(root, "tiles");

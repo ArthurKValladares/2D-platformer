@@ -15,12 +15,11 @@
 #include "util.h"
 #include "image.h"
 #include "keyboard_state.h"
-#include "camera.h"
-#include "animatable.h"
 #include "particle_editor.h"
 #include "map_editor.h"
-#include "collision_grid.h"
 #include "global_descriptor_set.h"
+#include "view.h"
+#include "game.h"
 
 #include "renderables/includes.h"
 
@@ -30,25 +29,6 @@
 // descriptor set number 0 will be used for engine-global resources
 // descriptor set number 1 will be used for per-object resources (using push descriptors)
 
-#define PLAYER_SCALE 0.9
-#define PLAYER_SIZE TILE_SIZE * PLAYER_SCALE
-
-namespace {
-    Rect2D get_tile_rect(uint32_t x_start, uint32_t y_start, uint32_t tile_width = 1, uint32_t tile_height = 1) {
-        return Rect2D::from_top_left_and_size(
-            glm::vec2(x_start * TILE_SIZE, y_start * TILE_SIZE),
-            glm::vec2(tile_width * TILE_SIZE, tile_height * TILE_SIZE)
-        );
-    }
-};
-
-struct TabItem {
-    const char* name;
-    std::function<void(double)> imgui_fn;
-    std::function<void(double, double)> update_fn;
-    std::function<ViewDrawData(Renderable*, double)> draw_fn;
-};
-
 struct App {
     App() 
         : app_start(std::chrono::steady_clock::now())
@@ -56,186 +36,26 @@ struct App {
         , mouse_state(MouseState())
         , window(Window())
         , renderer(window)
-        , global_set_data(GlobalDescriptorSetData(&renderer, camera))
-        , map_idx(0)
-        , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
-        , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
-        , particle_editor(&renderer)
-        , map_editor(&renderer)
     {
-        for (uint32_t i = 0; i < (uint32_t) MapSource::Count; ++i) {
-            const MapLayout map = MapLayout(map_path(static_cast<MapSource>(i)));
-            maps.push_back(map.optimize());
-        }
-
-        player_rect = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row);
-        camera = OrthographicCamera(
-            player_rect.center(),
-            maps[map_idx].width,
-            maps[map_idx].width
-        );
-
         mouse_state.set_window_size(window.get_size().width, window.get_size().height);
 
-        global_set_data.write_shader_data_to_buffer(&renderer);
-        update_global_set(&renderer, global_set_data.buffer_id, global_set_data.set_id);
-
-        setup_collision_grid();
-
         open_tab_idx = 0;
-        tab_items[0] = TabItem {
-            .name = "App",
-            .imgui_fn = [&](double total_elapsed_seconds) {
-                if (ImGui::TreeNode("Camera")) {
-                    ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
-                    ImGui::Text("Size X: %.3f", camera.size_x);
-                    ImGui::Text("Size X: %.3f", camera.size_y);
-                    ImGui::Text("Scale: %.3f", camera.scale);
-
-                    ImGui::TreePop();
-                }
-            },
-            .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
-                app_update(keyboard_state, total_elapsed_seconds, frame_dt);
-            },
-            .draw_fn = [&](Renderable* renderable, double total_elapsed_seconds) {
-                global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
-                global_set_data.write_shader_data_to_buffer(&renderer);
-
-                const Rect2D camera_rect = camera.get_rect();
-
-                const OptimizedMap& opt_map = maps[map_idx];
-                for (uint32_t t = 0; t < opt_map.tiles.size(); ++t) {
-                    const MergedTile tile = opt_map.tiles[t];
-
-                    Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
-                    rect.set_uv_size(glm::vec2(TILE_SIZE));
-
-                    if (rect.intersects(camera_rect)) {
-                        const TileType ty = tile.ty;
-
-                        renderable->push_child(ColoredQuad(
-                            &renderer,
-                            rect,
-                            tile_type_to_texture(ty),
-                            tile_type_to_color(ty),
-                            global_set_data.buffer_id
-                        ));
-                    }
-                }
-
-                renderable->push_child(MovingQuad(
-                    &renderer,
-                    player_rect,
-                    glm::vec2(0.0, 0.0),
-                    player_sprite.texture_at(total_elapsed_seconds),
-                    global_set_data.buffer_id
-                ));
-
-                return renderable->get_draw_data(&renderer, global_set_data.layout_id, global_set_data.set_id);
-            }
-        };
-        tab_items[1] = TabItem{
-            .name = "Particle Editor",
-            .imgui_fn = [&](double total_elapsed_seconds) {
-                particle_editor.imgui_node(&renderer, total_elapsed_seconds);
-            },
-            .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
-                particle_editor.update(keyboard_state, total_elapsed_seconds, frame_dt);
-            },
-            .draw_fn = [&](Renderable* renderable, double total_elapsed_seconds) {
-                particle_editor.add_to_renderable(&renderer, renderable, total_elapsed_seconds);
-
-                return renderable->get_draw_data(&renderer, particle_editor.global_set_data.layout_id, particle_editor.global_set_data.set_id);
-            }
-        };
-        tab_items[2] = TabItem{
-            .name = "Map Editor",
-            .imgui_fn = [&](double total_elapsed_seconds) {
-                map_editor.imgui_node(&renderer);
-            },
-            .update_fn = [&](double total_elapsed_seconds, double frame_dt) {
-                map_editor.update(keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
-            },
-            .draw_fn = [&](Renderable* renderable, double total_elapsed_seconds) {
-                map_editor.add_to_renderable(&renderer, renderable);
-
-                return renderable->get_draw_data(&renderer, map_editor.global_set_data.layout_id, map_editor.global_set_data.set_id);
-            }
-        };
+        tab_items[0] = std::make_unique<Game>(&renderer);
+        tab_items[1] = std::make_unique<ParticleEditor>(&renderer);
+        tab_items[2] = std::make_unique<MapEditor>(&renderer);
     }
 
-    void setup_collision_grid() {
-        collision_grid.cells.clear();
-        for (const MergedTile& tile : maps[map_idx].tiles) {
-            const TileType ty = tile.ty;
-            if (ty == TileType::Wall) {
-                const Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
-                collision_grid.insert_rect(rect);
-            }
-        }
-    }
-
-    void app_update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
-        // Update player movement
-        constexpr float displacement_per_second = 5.0;
-        glm::vec2 movement_vec{0.0, 0.0};
-        if (keyboard_state.is_down(SDLK_A)) {
-            movement_vec.x -= 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_W)){
-            movement_vec.y += 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_S)){
-            movement_vec.y -= 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_D)){
-            movement_vec.x += 1.0;
-        }
-
-        if (glm::length(movement_vec) > 0.0) {
-            movement_vec = glm::normalize(movement_vec);
-
-            const float displacement = displacement_per_second * frame_dt;
-            const glm::vec2 displacement_vec = movement_vec * displacement;
-
-            std::vector<CollisionGrid::CollisionData> collisions;
-            const glm::vec2 non_colliding_disp = collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
-            player_rect.pos += non_colliding_disp;
-
-            const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
-            if (player_rect.intersects(end_rect)) {
-                map_idx = (map_idx + 1) % maps.size();
-                setup_collision_grid();
-
-                player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
-            }
-        }
-
-        // Update camera
-        constexpr float camera_zoom_vel = 0.5;
-        if (keyboard_state.is_down(SDLK_E)) {
-            camera.scale += camera_zoom_vel * frame_dt;
-        }
-        if (keyboard_state.is_down(SDLK_Q)) {
-            camera.scale -= camera_zoom_vel * frame_dt;
-            camera.scale = std::max(0.1f, camera.scale);
-        }
-
-        camera.center = player_rect.center();
-    }
-
-    void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
-        tab_items[open_tab_idx].update_fn(total_elapsed_seconds, frame_dt);
+    void update(double total_elapsed_seconds, double frame_dt) {
+        tab_items[open_tab_idx]->update_fn(keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
 
         // Setup imgui
         renderer.set_imgui_fn([&]() {
             ImGui::BeginTabBar("##tabs");
 
             uint32_t idx = 0;
-            for (TabItem& tab : tab_items) {
-                if (ImGui::BeginTabItem(tab.name)) {
-                    tab.imgui_fn(total_elapsed_seconds);
+            for (const std::unique_ptr<View>& tab : tab_items) {
+                if (ImGui::BeginTabItem(tab->name())) {
+                    tab->draw_imgui(total_elapsed_seconds);
                     ImGui::EndTabItem();
 
                     open_tab_idx = idx;
@@ -250,7 +70,7 @@ struct App {
     void render(double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
 
-        ViewDrawData data = tab_items[open_tab_idx].draw_fn(&renderable, total_elapsed_seconds);
+        ViewDrawData data = tab_items[open_tab_idx]->draw_fn(&renderer, &renderable, total_elapsed_seconds);
 
         renderer.wait_for_and_reset_curr_fence();
         data.upload_vertex_index_data(&renderer);
@@ -290,13 +110,15 @@ struct App {
 
             const double elapsed_secounds_count = elapsed_seconds.count();
             const double frame_dt_count = frame_dt.count();
-            update(keyboard_state, elapsed_secounds_count, frame_dt_count);
+            update(elapsed_secounds_count, frame_dt_count);
             render(elapsed_secounds_count, frame_dt_count);
         }
     }
 
     void cleanup() {
-        map_editor.cleanup(&renderer);
+        for (std::unique_ptr<View>& tab : tab_items) {
+            tab->cleanup(&renderer);
+        }
     }
 
     std::chrono::steady_clock::time_point app_start;
@@ -304,23 +126,10 @@ struct App {
     MouseState mouse_state;
     Window window;
     Renderer renderer;
-    GlobalDescriptorSetData global_set_data;
     std::chrono::steady_clock::time_point last_frame;
 
-    uint64_t map_idx;
-    std::vector<OptimizedMap> maps;
-
-    CollisionGrid collision_grid;
-
-    Rect2D player_rect;
-    SpriteAnimation player_sprite;
-
-    OrthographicCamera camera;
-
     uint32_t open_tab_idx;
-    std::array<TabItem, 3> tab_items;
-    ParticleEditor particle_editor;
-    MapEditor map_editor;
+    std::array<std::unique_ptr<View>, 3> tab_items;
 };
 
 int main(int argc, char *argv[]) {

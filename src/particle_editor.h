@@ -7,10 +7,11 @@
 #include "global_descriptor_set.h"
 #include "renderer/renderer.h"
 #include "load_save.h"
+#include "view.h"
 
 #include <algorithm>
 
-struct ParticleEditor {
+struct ParticleEditor final : View {
     ParticleEditor(Renderer* renderer)
         : emitter(ParticleEmitter(
             0.0,
@@ -45,14 +46,21 @@ struct ParticleEditor {
         load_save.load_files(PARTICLES_DIR, PARTICLES_EXTENSION);
     }
 
-    void add_to_renderable(Renderer* renderer, Renderable* renderable, double total_elapsed_seconds) {
+    ViewDrawData draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_seconds) {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
         emitter.update_and_create_renderables(renderable, total_elapsed_seconds, renderer, global_set_data.buffer_id);
+
+
+        return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
     
-    void update(const KeyboardState& keyboard_state, double total_elapsed_seconds, double frame_dt) {
+    const char* name() const {
+        return "Particle Editor";
+    }
+
+    void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
         constexpr float camera_zoom_vel = 0.5;
         if (keyboard_state.is_down(SDLK_E)) {
             camera.scale += camera_zoom_vel * frame_dt;
@@ -63,14 +71,14 @@ struct ParticleEditor {
         }
     }
 
-    void imgui_node(Renderer* renderer, double total_elapsed_seconds) {
+    void draw_imgui(double total_elapsed_seconds) {
         ImGui::Text("Settings File");
 
         LoadSave::ImguiResult res = load_save.imgui_node();
         if (res == LoadSave::ImguiResult::ShouldSave) {
-            save(renderer);
+            save();
         } else if (res == LoadSave::ImguiResult::ShouldLoad) {
-            load(renderer, total_elapsed_seconds);
+            load(total_elapsed_seconds);
         }
         
         const bool has_changed = emitter.imgui_node();
@@ -79,9 +87,10 @@ struct ParticleEditor {
         }
     }
 
+    void cleanup(Renderer* renderer) {}
 private:
-    void save(Renderer* renderer) {
-        load_save.save(PARTICLES_DIR, PARTICLES_EXTENSION, renderer, [&](nlohmann::json& root) {
+    void save() {
+        load_save.save(PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
             serialize_float(root, "lifetime", emitter.lifetime.val);
             serialize_vec2(root, "center", emitter.center);
             serialize_vec2(root, "start_offset", emitter.start_offset.base_val);
@@ -106,8 +115,8 @@ private:
         });
     }
 
-    void load(Renderer* renderer, double total_elapsed_seconds) {
-        load_save.load(PARTICLES_DIR, PARTICLES_EXTENSION, renderer, [&](nlohmann::json& root) {
+    void load(double total_elapsed_seconds) {
+        load_save.load(PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
             const double old_start_time = emitter.start_time;
 
             emitter = ParticleEmitter(
