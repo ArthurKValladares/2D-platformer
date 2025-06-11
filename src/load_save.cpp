@@ -27,7 +27,7 @@ std::filesystem::path LoadSave::get_curr_file_path(const char* dir, const char* 
     return out_path;
 }
 
-void LoadSave::save(const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn) {
+void LoadSave::save(ImguiLog& logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn) {
     nlohmann::json root;
     save_fn(root);
 
@@ -37,17 +37,16 @@ void LoadSave::save(const char* dir, const char* extension, std::function<void(n
         out_file << root;
         out_file.close();
         
-        // TODO: Get logging back
-        //renderer->logger().add_log("saved file to: %s\n", curr_file_path.string());
+        logger.add_log("saved file to: %s\n", curr_file_path.string());
     } else {
-        //renderer->logger().add_log("ERROR saving file to: %s (%s)\n", curr_file_path.string(), strerror(errno));
+        logger.add_log("ERROR saving file to: %s (%s)\n", curr_file_path.string(), strerror(errno));
     }
 
     has_unsaved_changes = false;
     load_files(dir, extension);
 }
 
-void LoadSave::load(const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn) {
+void LoadSave::load(ImguiLog& logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn) {
     const std::string& path_str = files[selected_file];
     const std::filesystem::path curr_path = get_curr_file_path(dir, extension, path_str.c_str());
     std::ifstream in_file(curr_path);
@@ -58,10 +57,9 @@ void LoadSave::load(const char* dir, const char* extension, std::function<void(n
 
         load_fn(root);
 
-        // TODO: Get logging back
-        //renderer->logger().add_log("loaded file from: %s\n", curr_path.string());
+        logger.add_log("loaded file from: %s\n", curr_path.string());
     } else {
-        //renderer->logger().add_log("ERROR loading file from: %s (%s)\n", curr_path.string(), strerror(errno));
+        logger.add_log("ERROR loading file from: %s (%s)\n", curr_path.string(), strerror(errno));
     }
 
     has_unsaved_changes = false;

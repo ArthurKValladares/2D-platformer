@@ -71,14 +71,14 @@ struct ParticleEditor final : View {
         }
     }
 
-    void draw_imgui(double total_elapsed_seconds) {
+    void draw_imgui(ImguiLog& logger, double total_elapsed_seconds) {
         ImGui::Text("Settings File");
 
         LoadSave::ImguiResult res = load_save.imgui_node();
         if (res == LoadSave::ImguiResult::ShouldSave) {
-            save();
+            save(logger);
         } else if (res == LoadSave::ImguiResult::ShouldLoad) {
-            load(total_elapsed_seconds);
+            load(logger, total_elapsed_seconds);
         }
         
         const bool has_changed = emitter.imgui_node();
@@ -89,8 +89,8 @@ struct ParticleEditor final : View {
 
     void cleanup(Renderer* renderer) {}
 private:
-    void save() {
-        load_save.save(PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
+    void save(ImguiLog& logger) {
+        load_save.save(logger, PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
             serialize_float(root, "lifetime", emitter.lifetime.val);
             serialize_vec2(root, "center", emitter.center);
             serialize_vec2(root, "start_offset", emitter.start_offset.base_val);
@@ -115,8 +115,8 @@ private:
         });
     }
 
-    void load(double total_elapsed_seconds) {
-        load_save.load(PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
+    void load(ImguiLog& logger, double total_elapsed_seconds) {
+        load_save.load(logger, PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
             const double old_start_time = emitter.start_time;
 
             emitter = ParticleEmitter(

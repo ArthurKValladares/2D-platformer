@@ -1,4 +1,4 @@
-#include "imgui_log.h"
+#include "logger.h"
 
 void ImguiLog::clear() {
     buf.clear();

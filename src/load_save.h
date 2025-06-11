@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "json_serialization.h"
+#include "logger.h"
 
 #define MAP_DIR "./assets/maps"
 #define MAP_EXTENSION ".json"
@@ -30,8 +31,8 @@ struct LoadSave {
     };
     ImguiResult imgui_node();
 
-    void save(const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
-    void load(const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
+    void save(ImguiLog& logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
+    void load(ImguiLog& logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
 
     int selected_file;
     std::vector<std::string> files;

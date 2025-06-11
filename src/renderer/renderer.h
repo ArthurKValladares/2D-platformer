@@ -14,7 +14,8 @@
 #include "resource_ids.h"
 #include "purgatory.h"
 #include "tools.h"
-#include "imgui_log.h"
+
+#include "../logger.h"
 
 struct Window;
 struct Renderer {
@@ -91,7 +92,7 @@ struct Renderer {
     //
     void resize_swapchain(Window& window);
     void wait_for_and_reset_curr_fence();
-    void render(Window& window, std::vector<DrawCommand> draws, double frame_dt);
+    void render(ImguiLog& logger, Window& window, std::vector<DrawCommand> draws, double frame_dt);
 
     //
     // Command Submission
@@ -104,9 +105,6 @@ struct Renderer {
     //
     void set_imgui_fn(std::function<void()> fn) {
         imgui_fn = fn;
-    }
-    ImguiLog& logger() {
-        return imgui_log;
     }
 private:
     VkSwapchainCreateInfoKHR get_swapchain_ci(uint32_t width, uint32_t height);
@@ -163,7 +161,6 @@ private:
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     VkDescriptorPool imgui_descriptor_pool = VK_NULL_HANDLE;
     std::function<void()> imgui_fn;
-    ImguiLog imgui_log;
 
     std::unordered_map<BufferID, Buffer> buffers;
     std::unordered_map<TextureID, Texture> textures;

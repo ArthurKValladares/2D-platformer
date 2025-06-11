@@ -168,14 +168,14 @@ void MapEditor::resize() {
     }
 }
 
-void MapEditor::draw_imgui(double total_elapsed_time) {
+void MapEditor::draw_imgui(ImguiLog& logger, double total_elapsed_time) {
     constexpr uint32_t textures_per_line = 4;
 
     LoadSave::ImguiResult res = load_save.imgui_node();
     if (res == LoadSave::ImguiResult::ShouldSave) {
-        save();
+        save(logger);
     } else if (res == LoadSave::ImguiResult::ShouldLoad) {
-        load();
+        load(logger);
     }
 
     bool has_changed = false;
@@ -220,8 +220,8 @@ void MapEditor::draw_imgui(double total_elapsed_time) {
     }
 }
 
-void MapEditor::save() {
-    load_save.save(MAP_DIR, MAP_EXTENSION, [&](nlohmann::json& root) {
+void MapEditor::save(ImguiLog& logger) {
+    load_save.save(logger, MAP_DIR, MAP_EXTENSION, [&](nlohmann::json& root) {
         serialize_uint32(root, "width", tiles[0].size());
         serialize_uint32(root, "height", tiles.size());
         std::vector<std::vector<uint32_t>> tiles_uint;
@@ -236,8 +236,8 @@ void MapEditor::save() {
     });
 }
 
-void MapEditor::load() {
-    load_save.load(MAP_DIR, MAP_EXTENSION, [&](nlohmann::json& root) {
+void MapEditor::load(ImguiLog& logger) {
+    load_save.load(logger, MAP_DIR, MAP_EXTENSION, [&](nlohmann::json& root) {
         width = get_serialized_uint32(root, "width");
         height = get_serialized_uint32(root, "height");
         const std::vector<std::vector<uint32_t>> tiles = get_serialized_vector<std::vector<uint32_t>>(root, "tiles");

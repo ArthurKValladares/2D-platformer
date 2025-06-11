@@ -316,8 +316,6 @@ Renderer::Renderer(Window& window) {
 	ImGui_ImplVulkan_Init(&vulkan_init_info);
 
 	ImGui_ImplVulkan_CreateFontsTexture();
-
-    imgui_log.open = false;
 }
 
 Renderer::~Renderer() {
@@ -553,7 +551,7 @@ void Renderer::wait_for_and_reset_curr_fence() {
     vkResetFences(device, 1, &fences[frame_idx]);
 }
 
-void Renderer::render(Window& window, std::vector<DrawCommand> draws, double frame_dt) {
+void Renderer::render(ImguiLog& logger, Window& window, std::vector<DrawCommand> draws, double frame_dt) {
     const uint32_t frame_idx = get_frame_index();
 
     vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, present_semaphores[frame_idx], VK_NULL_HANDLE, &image_index);
@@ -684,9 +682,9 @@ void Renderer::render(Window& window, std::vector<DrawCommand> draws, double fra
     ImGui::NewFrame();
     ImGui::Begin("Debug Data");
     {
-        ImGui::Checkbox("Show Log Window", &imgui_log.open);
-        if (imgui_log.open) {
-            imgui_log.draw();
+        ImGui::Checkbox("Show Log Window", &logger.open);
+        if (logger.open) {
+            logger.draw();
         }
 
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);

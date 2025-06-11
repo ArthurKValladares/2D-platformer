@@ -148,7 +148,7 @@ struct Game final : View {
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
 
-    void draw_imgui(double total_elapsed_time) {
+    void draw_imgui(ImguiLog& logger, double total_elapsed_time) {
         if (ImGui::TreeNode("Camera")) {
             ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
             ImGui::Text("Size X: %.3f", camera.size_x);

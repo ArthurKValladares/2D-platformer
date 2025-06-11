@@ -3,6 +3,11 @@
 #include "imgui.h"
 
 struct ImguiLog {
+    ImguiLog()
+        : open(false)
+        , scroll_to_bottom(false)
+    {}
+
     bool open;
     ImGuiTextBuffer buf;
     ImGuiTextFilter filter;

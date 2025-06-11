@@ -55,7 +55,7 @@ struct App {
             uint32_t idx = 0;
             for (const std::unique_ptr<View>& tab : tab_items) {
                 if (ImGui::BeginTabItem(tab->name())) {
-                    tab->draw_imgui(total_elapsed_seconds);
+                    tab->draw_imgui(logger, total_elapsed_seconds);
                     ImGui::EndTabItem();
 
                     open_tab_idx = idx;
@@ -75,7 +75,7 @@ struct App {
         renderer.wait_for_and_reset_curr_fence();
         data.upload_vertex_index_data(&renderer);
 
-        renderer.render(window, data.draws, frame_dt);
+        renderer.render(logger, window, data.draws, frame_dt);
     }
 
     void render_loop() {
@@ -120,6 +120,8 @@ struct App {
             tab->cleanup(&renderer);
         }
     }
+
+    ImguiLog logger;
 
     std::chrono::steady_clock::time_point app_start;
     KeyboardState keyboard_state;

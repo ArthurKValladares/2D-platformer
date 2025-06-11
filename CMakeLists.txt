@@ -26,7 +26,6 @@ add_executable(${PROJECT_NAME}
   src/renderer/pipeline.cpp
   src/renderer/purgatory.cpp
   src/renderer/descriptor_set.cpp
-  src/renderer/imgui_log.cpp
   # shader defs
   src/shader_defs/shader_pairs.cpp
   # renderables
@@ -43,6 +42,7 @@ add_executable(${PROJECT_NAME}
   src/main.cpp
   src/map_editor.cpp
   src/load_save.cpp
+  src/logger.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp
