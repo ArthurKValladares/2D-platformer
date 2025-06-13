@@ -23,7 +23,7 @@ namespace {
 };
 
 struct Game final : View {
-    Game(Renderer* renderer)
+    Game(const Window& window, Renderer* renderer)
         : map_idx(0)
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
         , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
@@ -35,10 +35,13 @@ struct Game final : View {
         }
 
         player_rect = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row);
+        const Size2Di32 window_size = window.get_size();
+        const float scale = static_cast<float>(maps[map_idx].width * TILE_SIZE) / window_size.width;
         camera = OrthographicCamera(
             player_rect.center(),
-            maps[map_idx].width,
-            maps[map_idx].width
+            window_size.width,
+            window_size.height,
+            scale
         );
 
         setup_collision_grid();

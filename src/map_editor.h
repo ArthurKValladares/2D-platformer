@@ -18,7 +18,7 @@ struct ImGuiTextureData {
 };
 
 struct MapEditor final : View {
-    MapEditor(Renderer* renderer);
+    MapEditor(const Window& window, Renderer* renderer);
 
 
     void cleanup(Renderer* renderer);

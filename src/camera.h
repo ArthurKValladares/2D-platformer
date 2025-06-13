@@ -13,7 +13,7 @@ struct OrthographicCamera {
     OrthographicCamera(glm::vec2 pos, float size_x, float size_y, float scale = 1.0)
         : size_x(size_x)
         , size_y(size_y)
-        , scale(scale)
+        , scale(sqrt(scale))
         , center(pos)
     {}
 

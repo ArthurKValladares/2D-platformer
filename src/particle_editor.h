@@ -12,7 +12,7 @@
 #include <algorithm>
 
 struct ParticleEditor final : View {
-    ParticleEditor(Renderer* renderer)
+    ParticleEditor(const Window& window, Renderer* renderer)
         : emitter(ParticleEmitter(
             0.0,
             EmitterLifetime::infinite(),
@@ -32,13 +32,17 @@ struct ParticleEditor final : View {
             ),
             TextureSource::Particle
         ))
-        , camera(OrthographicCamera(
-            glm::vec2(0.0),
-            emitter.size.start.base_val.x * DEFAULT_SIZE_SCALE,
-            emitter.size.start.base_val.x * DEFAULT_SIZE_SCALE
-        ))
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
     {
+        const Size2Di32 window_size = window.get_size();
+        const float scale = static_cast<float>(emitter.size.start.base_val.x * DEFAULT_SIZE_SCALE) / window_size.width;
+        camera = OrthographicCamera(
+            glm::vec2(0.0),
+            window_size.width,
+            window_size.height,
+            scale
+        );
+
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
 

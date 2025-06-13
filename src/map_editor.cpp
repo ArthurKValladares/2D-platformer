@@ -21,16 +21,20 @@ void RemoveTexture(ImGuiTextureData* tex_data)
 }
 };
 
-MapEditor::MapEditor(Renderer* renderer)
+MapEditor::MapEditor(const Window& window, Renderer* renderer)
     : width(DEFAULT_WIDTH)
     , height(DEFAULT_HEIGHT)
-    , camera(OrthographicCamera(
-        glm::vec2(0.0),
-        DEFAULT_WIDTH * TILE_SIZE,
-        DEFAULT_WIDTH * TILE_SIZE
-    ))
     , global_set_data(GlobalDescriptorSetData(renderer, camera))
  {
+    const Size2Di32 window_size = window.get_size();
+    const float scale = static_cast<float>(DEFAULT_WIDTH * TILE_SIZE) / window_size.width;
+    camera = OrthographicCamera(
+        glm::vec2(0.0),
+        window_size.width,
+        window_size.height,
+        scale
+    );
+
     resize();
 
     global_set_data.write_shader_data_to_buffer(renderer);

@@ -40,9 +40,9 @@ struct App {
         mouse_state.set_window_size(window.get_size().width, window.get_size().height);
 
         open_tab_idx = 0;
-        tab_items[0] = std::make_unique<Game>(&renderer);
-        tab_items[1] = std::make_unique<ParticleEditor>(&renderer);
-        tab_items[2] = std::make_unique<MapEditor>(&renderer);
+        tab_items[0] = std::make_unique<Game>(window, &renderer);
+        tab_items[1] = std::make_unique<ParticleEditor>(window, &renderer);
+        tab_items[2] = std::make_unique<MapEditor>(window, &renderer);
     }
 
     void update(double total_elapsed_seconds, double frame_dt) {
