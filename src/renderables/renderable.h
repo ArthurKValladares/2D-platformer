@@ -36,7 +36,7 @@ struct Renderable {
 
     template<class T>
     requires std::is_base_of_v<RenderableInterface, T>
-    Renderable(T renderable, bool alpha_blending = false)
+    Renderable(T renderable, bool alpha_blending = true)
         : renderable(new T(std::move(renderable)))
         , uses_alpha_blending(alpha_blending)
     {}

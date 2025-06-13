@@ -10,10 +10,10 @@
 /*[[[cog
 import cog
 cases = [
-    ['Path', ' ', 'Test1', [207, 207, 207]],
-    ['Wall', '#', 'Test2', [43, 43, 43]],
-    ['Start', 'S', 'Akv', [0, 255, 0]],
-    ['End', 'E', 'Test3', [255, 0, 0]]
+    ['Path', ' ', 'Path', [255, 255, 255]],
+    ['Wall', '#', 'Wall', [255, 255, 255]],
+    ['Start', 'S', 'Path', [255, 255, 255]],
+    ['End', 'E', 'End', [255, 255, 255]]
 ]
 ]]]*/
 //[[[end]]]
@@ -88,10 +88,10 @@ static glm::vec3 tile_type_to_color(TileType ty) {
             rgb = case[3]
             cog.outl("case TileType::%s: { return glm::vec3(%d / 255., %d / 255., %d / 255.); }" % (tile_type, rgb[0], rgb[1], rgb[2]))
         ]]]*/
-        case TileType::Path: { return glm::vec3(207 / 255., 207 / 255., 207 / 255.); }
-        case TileType::Wall: { return glm::vec3(43 / 255., 43 / 255., 43 / 255.); }
-        case TileType::Start: { return glm::vec3(0 / 255., 255 / 255., 0 / 255.); }
-        case TileType::End: { return glm::vec3(255 / 255., 0 / 255., 0 / 255.); }
+        case TileType::Path: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::Wall: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::Start: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::End: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -108,10 +108,10 @@ static TextureSource tile_type_to_texture(TileType ty) {
             texture = case[2]
             cog.outl("case TileType::%s: { return TextureSource::%s; }" % (tile_type, texture))
         ]]]*/
-        case TileType::Path: { return TextureSource::Test1; }
-        case TileType::Wall: { return TextureSource::Test2; }
-        case TileType::Start: { return TextureSource::Akv; }
-        case TileType::End: { return TextureSource::Test3; }
+        case TileType::Path: { return TextureSource::Path; }
+        case TileType::Wall: { return TextureSource::Wall; }
+        case TileType::Start: { return TextureSource::Path; }
+        case TileType::End: { return TextureSource::End; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");

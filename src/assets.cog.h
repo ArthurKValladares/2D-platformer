@@ -5,13 +5,15 @@
 
 #include "renderer/resource_ids.h"
 
+// Credit for skeleton asset: https://opengameart.org/content/skeleton-animations
+
 /*[[[cog
 import cog
 import re
 from os import listdir
 from os.path import isfile, join
 
-filters = ["png", "map"]
+filters = ["png", "jpg", "map"]
 
 shader_path = "shaders"
 texture_path = "assets/textures"

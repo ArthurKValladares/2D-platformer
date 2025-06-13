@@ -5,13 +5,15 @@
 
 #include "renderer/resource_ids.h"
 
+// Credit for skeleton asset: https://opengameart.org/content/skeleton-animations
+
 /*[[[cog
 import cog
 import re
 from os import listdir
 from os.path import isfile, join
 
-filters = ["png", "map"]
+filters = ["png", "jpg", "map"]
 
 shader_path = "shaders"
 texture_path = "assets/textures"
@@ -46,12 +48,18 @@ enum class TextureSource : uint32_t {
     for texture in formatted_textures:
         cog.outl("%s," % texture)
     ]]]*/
-    Akv,
+    End,
+    Go1,
+    Go2,
+    Go3,
+    Go4,
+    Go5,
+    Go6,
+    Go7,
+    Go8,
     Particle,
-    Test1,
-    Test2,
-    Test3,
-    Test4,
+    Path,
+    Wall,
     //[[[end]]]
     Count
 };
@@ -68,23 +76,41 @@ inline const char* texture_path(TextureSource texture) {
             % (texture, texture_path, texture_file),
             dedent=True, trimblanklines=True)
         ]]]*/
-        case TextureSource::Akv: {
-            return "assets/textures/akv.png";
+        case TextureSource::End: {
+            return "assets/textures/end.png";
+        }
+        case TextureSource::Go1: {
+            return "assets/textures/go_1.png";
+        }
+        case TextureSource::Go2: {
+            return "assets/textures/go_2.png";
+        }
+        case TextureSource::Go3: {
+            return "assets/textures/go_3.png";
+        }
+        case TextureSource::Go4: {
+            return "assets/textures/go_4.png";
+        }
+        case TextureSource::Go5: {
+            return "assets/textures/go_5.png";
+        }
+        case TextureSource::Go6: {
+            return "assets/textures/go_6.png";
+        }
+        case TextureSource::Go7: {
+            return "assets/textures/go_7.png";
+        }
+        case TextureSource::Go8: {
+            return "assets/textures/go_8.png";
         }
         case TextureSource::Particle: {
             return "assets/textures/particle.png";
         }
-        case TextureSource::Test1: {
-            return "assets/textures/test_1.png";
+        case TextureSource::Path: {
+            return "assets/textures/path.jpg";
         }
-        case TextureSource::Test2: {
-            return "assets/textures/test_2.png";
-        }
-        case TextureSource::Test3: {
-            return "assets/textures/test_3.png";
-        }
-        case TextureSource::Test4: {
-            return "assets/textures/test_4.png";
+        case TextureSource::Wall: {
+            return "assets/textures/wall.jpg";
         }
         //[[[end]]]
         case TextureSource::Count: {
@@ -110,23 +136,41 @@ inline const char* texture_name(TextureSource texture) {
             % (texture, texture),
             dedent=True, trimblanklines=True)
         ]]]*/
-        case TextureSource::Akv: {
-            return "Akv";
+        case TextureSource::End: {
+            return "End";
+        }
+        case TextureSource::Go1: {
+            return "Go1";
+        }
+        case TextureSource::Go2: {
+            return "Go2";
+        }
+        case TextureSource::Go3: {
+            return "Go3";
+        }
+        case TextureSource::Go4: {
+            return "Go4";
+        }
+        case TextureSource::Go5: {
+            return "Go5";
+        }
+        case TextureSource::Go6: {
+            return "Go6";
+        }
+        case TextureSource::Go7: {
+            return "Go7";
+        }
+        case TextureSource::Go8: {
+            return "Go8";
         }
         case TextureSource::Particle: {
             return "Particle";
         }
-        case TextureSource::Test1: {
-            return "Test1";
+        case TextureSource::Path: {
+            return "Path";
         }
-        case TextureSource::Test2: {
-            return "Test2";
-        }
-        case TextureSource::Test3: {
-            return "Test3";
-        }
-        case TextureSource::Test4: {
-            return "Test4";
+        case TextureSource::Wall: {
+            return "Wall";
         }
         //[[[end]]]
         case TextureSource::Count: {
@@ -152,12 +196,18 @@ inline const char** texture_names() {
     cog.outl("return names;")
     ]]]*/
     static const char* names[] = {
-        "Akv",
+        "End",
+        "Go1",
+        "Go2",
+        "Go3",
+        "Go4",
+        "Go5",
+        "Go6",
+        "Go7",
+        "Go8",
         "Particle",
-        "Test1",
-        "Test2",
-        "Test3",
-        "Test4",
+        "Path",
+        "Wall",
     };
     return names;
     //[[[end]]]

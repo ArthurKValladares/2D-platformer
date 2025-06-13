@@ -26,7 +26,15 @@ struct Game final : View {
     Game(const Window& window, Renderer* renderer)
         : map_idx(0)
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
-        , player_sprite(3.0, 0.0, {TextureSource::Test1, TextureSource::Test2, TextureSource::Test3, TextureSource::Test4})
+        , player_sprite(0.75, 0.0, {
+            TextureSource::Go1,
+            TextureSource::Go2,
+            TextureSource::Go3,
+            TextureSource::Go4,
+            TextureSource::Go6,
+            TextureSource::Go7,
+            TextureSource::Go8
+        })
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
     {
         for (uint32_t i = 0; i < (uint32_t) MapSource::Count; ++i) {
