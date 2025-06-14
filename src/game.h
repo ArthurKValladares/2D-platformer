@@ -35,6 +35,7 @@ struct Game final : View {
             TextureSource::Go7,
             TextureSource::Go8
         })
+        , player_moving_right(true)
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
     {
         for (uint32_t i = 0; i < (uint32_t) MapSource::Count; ++i) {
@@ -99,7 +100,8 @@ struct Game final : View {
             std::vector<CollisionGrid::CollisionData> collisions;
             const glm::vec2 non_colliding_disp = collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
             player_rect.pos += non_colliding_disp;
-
+            player_moving_right = non_colliding_disp.x >= 0.0;
+            
             const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
             if (player_rect.intersects(end_rect)) {
                 map_idx = (map_idx + 1) % maps.size();
@@ -133,7 +135,7 @@ struct Game final : View {
             const MergedTile tile = opt_map.tiles[t];
 
             Rect2D rect = get_tile_rect(tile.x_offset, tile.y_offset, tile.width, tile.height);
-            rect.set_uv_size(glm::vec2(TILE_SIZE));
+            rect.max_uv = glm::vec2(tile.width, tile.height);
 
             if (rect.intersects(camera_rect)) {
                 const TileType ty = tile.ty;
@@ -148,9 +150,13 @@ struct Game final : View {
             }
         }
 
+        Rect2D player_draw_rect = player_rect;
+        if (player_moving_right) {
+            player_draw_rect.max_uv = glm::vec2(-1.0, 1.0);
+        }
         renderable->push_child(MovingQuad(
             renderer,
-            player_rect,
+            player_draw_rect,
             glm::vec2(0.0, 0.0),
             player_sprite.texture_at(total_elapsed_time),
             global_set_data.buffer_id
@@ -179,6 +185,7 @@ struct Game final : View {
 
     Rect2D player_rect;
     SpriteAnimation player_sprite;
+    bool player_moving_right;
 
     OrthographicCamera camera;
 

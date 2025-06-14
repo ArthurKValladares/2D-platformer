@@ -13,15 +13,12 @@ uint64_t Rect2D::vertex_data(std::vector<float>& vertex_buffer) const {
     const float mid_x = pos.x;
     const float mid_y = pos.y;
 
-    const float uv_scale_x = half_size.x / uv_half_size.x;
-    const float uv_scale_y = half_size.y / uv_half_size.y;
-
     const float quad_vertices[] = {
         // Pos                                          // UV
-        mid_x - half_size.x, mid_y - half_size.y, 0.0f, 0.0f,       uv_scale_y, 0.0f,
-        mid_x + half_size.x, mid_y + half_size.y, 0.0f, uv_scale_x, 0.0f,       0.0f, 
-        mid_x - half_size.x, mid_y + half_size.y, 0.0f, 0.0f,       0.0f,       0.0f,
-        mid_x + half_size.x, mid_y - half_size.y, 0.0f, uv_scale_x, uv_scale_y, 0.0f
+        mid_x - half_size.x, mid_y - half_size.y, 0.0f, min_uv.x, max_uv.y, 0.0f,
+        mid_x + half_size.x, mid_y + half_size.y, 0.0f, max_uv.x, min_uv.y, 0.0f, 
+        mid_x - half_size.x, mid_y + half_size.y, 0.0f, min_uv.x, min_uv.y, 0.0f,
+        mid_x + half_size.x, mid_y - half_size.y, 0.0f, max_uv.x, max_uv.y, 0.0f
    };
 
    std::move(&quad_vertices[0], &quad_vertices[ArrayCount(quad_vertices)], back_inserter(vertex_buffer));
