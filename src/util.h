@@ -9,6 +9,7 @@
 #include <functional>
 
 #include <vulkan/vulkan.h>
+#include <glm/vec2.hpp>
 
 #include "imgui.h"
 
@@ -72,6 +73,10 @@ template<std::floating_point T>
 T lerp(T a, T b, T f)
 {
     return a * (1.0 - f) + (b * f);
+}
+
+inline glm::vec2 lerp_vec2(glm::vec2 a, glm::vec2 b, float f) {
+    return glm::vec2(lerp(a.x, b.x, f), lerp(a.y, b.y, f));
 }
 
 template<std::floating_point T>

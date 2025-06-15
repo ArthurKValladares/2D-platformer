@@ -79,6 +79,7 @@ struct Game final : View {
 
     void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
         player.update(keyboard_state, collision_grid, frame_dt);
+        camera.update(total_elapsed_seconds);
 
         // Test if game is won
         const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
@@ -99,8 +100,7 @@ struct Game final : View {
             camera.scale = std::max(0.1f, camera.scale);
         }
 
-        // TODO: Better camera later
-        camera.center = player.rect.center();
+        camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
     }
 
     ViewDrawData draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
