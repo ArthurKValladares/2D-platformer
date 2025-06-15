@@ -4,6 +4,7 @@
 #include "view.h"
 #include "camera.h"
 #include "animatable.h"
+#include "player.h"
 
 #include "map_editor/map.h"
 
@@ -26,16 +27,6 @@ struct Game final : View {
     Game(const Window& window, Renderer* renderer)
         : map_idx(0)
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
-        , player_sprite(0.75, 0.0, {
-            TextureSource::Go1,
-            TextureSource::Go2,
-            TextureSource::Go3,
-            TextureSource::Go4,
-            TextureSource::Go6,
-            TextureSource::Go7,
-            TextureSource::Go8
-        })
-        , player_moving_right(true)
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
     {
         for (uint32_t i = 0; i < (uint32_t) MapSource::Count; ++i) {
@@ -43,11 +34,23 @@ struct Game final : View {
             maps.push_back(map.optimize());
         }
 
-        player_rect = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row);
+        player = Player(
+            get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row), 
+            SpriteAnimation(0.75, 0.0, {
+                TextureSource::Go1,
+                TextureSource::Go2,
+                TextureSource::Go3,
+                TextureSource::Go4,
+                TextureSource::Go6,
+                TextureSource::Go7,
+                TextureSource::Go8
+            })
+        );
+
         const Size2Di32 window_size = window.get_size();
         const float scale = static_cast<float>(maps[map_idx].width * TILE_SIZE) / window_size.width;
         camera = OrthographicCamera(
-            player_rect.center(),
+            player.rect.center(),
             window_size.width,
             window_size.height,
             scale
@@ -75,40 +78,15 @@ struct Game final : View {
     }
 
     void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
-        // Update player movement
-        constexpr float displacement_per_second = 5.0;
-        glm::vec2 movement_vec{0.0, 0.0};
-        if (keyboard_state.is_down(SDLK_A)) {
-            movement_vec.x -= 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_W)){
-            movement_vec.y += 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_S)){
-            movement_vec.y -= 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_D)){
-            movement_vec.x += 1.0;
-        }
+        player.update(keyboard_state, collision_grid, frame_dt);
 
-        if (glm::length(movement_vec) > 0.0) {
-            movement_vec = glm::normalize(movement_vec);
+        // Test if game is won
+        const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
+        if (player.rect.intersects(end_rect)) {
+            map_idx = (map_idx + 1) % maps.size();
+            setup_collision_grid();
 
-            const float displacement = displacement_per_second * frame_dt;
-            const glm::vec2 displacement_vec = movement_vec * displacement;
-
-            std::vector<CollisionGrid::CollisionData> collisions;
-            const glm::vec2 non_colliding_disp = collision_grid.get_collisions(player_rect, displacement_vec, &collisions);
-            player_rect.pos += non_colliding_disp;
-            player_moving_right = non_colliding_disp.x >= 0.0;
-            
-            const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
-            if (player_rect.intersects(end_rect)) {
-                map_idx = (map_idx + 1) % maps.size();
-                setup_collision_grid();
-
-                player_rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
-            }
+            player.rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
         }
 
         // Update camera
@@ -121,7 +99,8 @@ struct Game final : View {
             camera.scale = std::max(0.1f, camera.scale);
         }
 
-        camera.center = player_rect.center();
+        // TODO: Better camera later
+        camera.center = player.rect.center();
     }
 
     ViewDrawData draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
@@ -161,17 +140,7 @@ struct Game final : View {
             }
         }
 
-        Rect2D player_draw_rect = player_rect;
-        if (player_moving_right) {
-            player_draw_rect.max_uv = glm::vec2(-1.0, 1.0);
-        }
-        renderable->push_child(MovingQuad(
-            renderer,
-            player_draw_rect,
-            glm::vec2(0.0, 0.0),
-            player_sprite.texture_at(total_elapsed_time),
-            global_set_data.buffer_id
-        ));
+        player.add_to_renderable(renderer, renderable, total_elapsed_time, global_set_data.buffer_id);
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
@@ -194,9 +163,7 @@ struct Game final : View {
 
     CollisionGrid collision_grid;
 
-    Rect2D player_rect;
-    SpriteAnimation player_sprite;
-    bool player_moving_right;
+    Player player;
 
     OrthographicCamera camera;
 
