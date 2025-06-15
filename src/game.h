@@ -147,6 +147,17 @@ struct Game final : View {
                     tile_type_to_color(ty),
                     global_set_data.buffer_id
                 ));
+
+                const TextureSource item_tex = tile_type_to_item_texture(ty);
+                if (item_tex != TextureSource::Count) {
+                    renderable->push_child(ColoredQuad(
+                        renderer,
+                        rect,
+                        item_tex,
+                        tile_type_to_color(ty),
+                        global_set_data.buffer_id
+                    ));
+                }
             }
         }
 

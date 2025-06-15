@@ -10,10 +10,10 @@
 /*[[[cog
 import cog
 cases = [
-    ['Path', ' ', 'Path', [255, 255, 255]],
-    ['Wall', '#', 'Wall', [255, 255, 255]],
-    ['Start', 'S', 'Path', [255, 255, 255]],
-    ['End', 'E', 'End', [255, 255, 255]]
+    ['Path', ' ', 'Path', '', [255, 255, 255]],
+    ['Wall', '#', 'Wall', '', [255, 255, 255]],
+    ['Start', 'S', 'Path', '', [255, 255, 255]],
+    ['End', 'E', 'Path', 'End', [255, 255, 255]]
 ]
 ]]]*/
 //[[[end]]]
@@ -85,7 +85,7 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         /*[[[cog
         for case in cases:
             tile_type = case[0]
-            rgb = case[3]
+            rgb = case[4]
             cog.outl("case TileType::%s: { return glm::vec3(%d / 255., %d / 255., %d / 255.); }" % (tile_type, rgb[0], rgb[1], rgb[2]))
         ]]]*/
         case TileType::Path: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
@@ -111,10 +111,27 @@ static TextureSource tile_type_to_texture(TileType ty) {
         case TileType::Path: { return TextureSource::Path; }
         case TileType::Wall: { return TextureSource::Wall; }
         case TileType::Start: { return TextureSource::Path; }
-        case TileType::End: { return TextureSource::End; }
+        case TileType::End: { return TextureSource::Path; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
+            return TextureSource::Count;
+        }
+    }
+}
+
+static TextureSource tile_type_to_item_texture(TileType ty) {
+    switch (ty) {
+        /*[[[cog
+        for case in cases:
+            tile_type = case[0]
+            texture = case[3]
+            if texture != '':
+                cog.outl("case TileType::%s: { return TextureSource::%s; }" % (tile_type, texture))
+        ]]]*/
+        case TileType::End: { return TextureSource::End; }
+        //[[[end]]]
+        default: {
             return TextureSource::Count;
         }
     }
