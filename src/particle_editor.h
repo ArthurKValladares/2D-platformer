@@ -38,8 +38,7 @@ struct ParticleEditor final : View {
         const float scale = static_cast<float>(emitter.size.start.base_val.x * DEFAULT_SIZE_SCALE) / window_size.width;
         camera = OrthographicCamera(
             glm::vec2(0.0),
-            window_size.width,
-            window_size.height,
+            glm::vec2(window_size.width, window_size.height),
             scale
         );
 
@@ -67,11 +66,11 @@ struct ParticleEditor final : View {
     void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
         constexpr float camera_zoom_vel = 0.5;
         if (keyboard_state.is_down(SDLK_E)) {
-            camera.scale += camera_zoom_vel * frame_dt;
+            camera.sqrt_scale += camera_zoom_vel * frame_dt;
         }
         if (keyboard_state.is_down(SDLK_Q)) {
-            camera.scale -= camera_zoom_vel * frame_dt;
-            camera.scale = std::max(0.1f, camera.scale);
+            camera.sqrt_scale -= camera_zoom_vel * frame_dt;
+            camera.sqrt_scale = std::max(0.1f, camera.sqrt_scale);
         }
     }
 

@@ -10,18 +10,22 @@
 
 struct OrthographicCamera {
     OrthographicCamera() {}
-    OrthographicCamera(glm::vec2 pos, float size_x, float size_y, float scale = 1.0, double damping_time = 0.125)
-        : size_x(size_x)
-        , size_y(size_y)
-        , scale(sqrt(scale))
+    OrthographicCamera(glm::vec2 pos, glm::vec2 size, float scale = 1.0, double damping_time = 0.125, glm::vec2 static_area_scale = glm::vec2(0.0))
+        : size(size)
+        , sqrt_scale(sqrt(scale))
         , center(pos)
         , damping_time(damping_time)
         , move_to(center)
+        , static_area_scale(static_area_scale)
     {}
 
     void mark_move_to(glm::vec2 pos, double total_elapsed_time) {
-        move_to = pos;
-        started_next_movement = total_elapsed_time; 
+        const glm::vec2 static_area_size = static_area_scale * get_size();
+        const glm::vec2 distance = glm::abs(pos - center);
+        if (distance.x > static_area_size.x || distance.y > static_area_size.y) {
+            move_to = pos;
+            started_next_movement = total_elapsed_time;
+        }        
     }
 
     void update(double total_elapsed_time) {
@@ -35,7 +39,7 @@ struct OrthographicCamera {
     }
 
     glm::vec2 get_size() const {
-        return glm::vec2(scale * size_x, scale * size_y);
+        return (sqrt_scale * sqrt_scale) * size;
     }
     Rect2D get_rect() const {
         return Rect2D(center, get_size());
@@ -43,12 +47,14 @@ struct OrthographicCamera {
 
     glm::mat4 get_proj_matrix() const;
 
-    float size_x;
-    float size_y;
-    float scale;
+    glm::vec2 size;
+    float sqrt_scale;
+
     glm::vec2 center;
 
     double damping_time;
     double started_next_movement;
     glm::vec2 move_to;
+
+    glm::vec2 static_area_scale;
 };

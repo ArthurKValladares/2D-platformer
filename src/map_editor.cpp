@@ -30,8 +30,7 @@ MapEditor::MapEditor(const Window& window, Renderer* renderer)
     const float scale = static_cast<float>(DEFAULT_WIDTH * TILE_SIZE) / window_size.width;
     camera = OrthographicCamera(
         glm::vec2(0.0),
-        window_size.width,
-        window_size.height,
+        glm::vec2(window_size.width, window_size.height),
         scale
     );
 
@@ -140,16 +139,16 @@ void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState&
 
     constexpr float camera_zoom_vel = 0.5;
     if (keyboard_state.is_down(SDLK_E)) {
-        camera.scale += camera_zoom_vel * frame_dt;
+        camera.sqrt_scale += camera_zoom_vel * frame_dt;
     }
     if (keyboard_state.is_down(SDLK_Q)) {
-        camera.scale -= camera_zoom_vel * frame_dt;
-        camera.scale = std::max(0.1f, camera.scale);
+        camera.sqrt_scale -= camera_zoom_vel * frame_dt;
+        camera.sqrt_scale = std::max(0.1f, camera.sqrt_scale);
     }
 
     // Find selected tile
     selected_tile = std::make_pair(-1, -1);
-    const glm::vec2 mouse_pos = camera.center + (mouse_state.world_space_pos() * glm::vec2(camera.size_x / 2.0, -camera.size_y / 2.0));
+    const glm::vec2 mouse_pos = camera.center + (mouse_state.world_space_pos() * glm::vec2(camera.size.x / 2.0, -camera.size.y / 2.0));
 
     for (uint32_t row = 0; row < height; ++row) {
         for (uint32_t col = 0; col < width; ++col) {

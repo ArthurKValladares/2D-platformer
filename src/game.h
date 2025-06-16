@@ -51,10 +51,10 @@ struct Game final : View {
         const float scale = static_cast<float>(maps[map_idx].width * TILE_SIZE) / window_size.width;
         camera = OrthographicCamera(
             player.rect.center(),
-            window_size.width,
-            window_size.height,
+            glm::vec2(window_size.width, window_size.height),
             scale
         );
+        camera.static_area_scale = glm::vec2(0.05, 0.05);
 
         setup_collision_grid();
 
@@ -91,13 +91,14 @@ struct Game final : View {
         }
 
         // Update camera
+        // TODO: I repeat this a lot, move it to Camera itself
         constexpr float camera_zoom_vel = 0.5;
         if (keyboard_state.is_down(SDLK_E)) {
-            camera.scale += camera_zoom_vel * frame_dt;
+            camera.sqrt_scale += camera_zoom_vel * frame_dt;
         }
         if (keyboard_state.is_down(SDLK_Q)) {
-            camera.scale -= camera_zoom_vel * frame_dt;
-            camera.scale = std::max(0.1f, camera.scale);
+            camera.sqrt_scale -= camera_zoom_vel * frame_dt;
+            camera.sqrt_scale = std::max(0.1f, camera.sqrt_scale);
         }
 
         camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
@@ -148,9 +149,9 @@ struct Game final : View {
     void draw_imgui(ImguiLog& logger, double total_elapsed_time) {
         if (ImGui::TreeNode("Camera")) {
             ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
-            ImGui::Text("Size X: %.3f", camera.size_x);
-            ImGui::Text("Size X: %.3f", camera.size_y);
-            ImGui::Text("Scale: %.3f", camera.scale);
+            ImGui::Text("Size X: %.3f", camera.size.x);
+            ImGui::Text("Size X: %.3f", camera.size.y);
+            ImGui::Text("Scale: %.3f", camera.sqrt_scale * camera.sqrt_scale);
 
             ImGui::TreePop();
         }
