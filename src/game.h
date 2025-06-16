@@ -54,7 +54,7 @@ struct Game final : View {
             glm::vec2(window_size.width, window_size.height),
             scale
         );
-        camera.static_area_scale = glm::vec2(0.05, 0.05);
+        camera.static_area_scale = glm::vec2(0.25, 0.25);
 
         setup_collision_grid();
 
@@ -142,6 +142,7 @@ struct Game final : View {
         }
 
         player.add_to_renderable(renderer, renderable, total_elapsed_time, global_set_data.buffer_id);
+        camera.add_to_renderable(renderer, renderable, global_set_data.buffer_id);
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
