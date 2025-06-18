@@ -15,28 +15,9 @@ struct Player {
     {}
 
     void update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt) {
-        // Update player movement
         constexpr float displacement_per_second = 5.0;
-        glm::vec2 movement_vec{0.0, 0.0};
-        if (keyboard_state.is_down(SDLK_A)) {
-            movement_vec.x -= 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_W)){
-            movement_vec.y += 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_S)){
-            movement_vec.y -= 1.0;
-        }
-        if (keyboard_state.is_down(SDLK_D)){
-            movement_vec.x += 1.0;
-        }
-
-        if (glm::length(movement_vec) > 0.0) {
-            movement_vec = glm::normalize(movement_vec);
-
-            const float displacement = displacement_per_second * frame_dt;
-            const glm::vec2 displacement_vec = movement_vec * displacement;
-
+        const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt);
+        if (glm::length(displacement_vec) != 0.0) {
             std::vector<CollisionGrid::CollisionData> collisions;
             const glm::vec2 non_colliding_disp = collision_grid.get_collisions(rect, displacement_vec, &collisions);
             rect.pos += non_colliding_disp;

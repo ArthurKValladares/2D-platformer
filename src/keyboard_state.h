@@ -48,6 +48,31 @@ struct KeyboardState {
         }
     }
 
+    glm::vec2 displacement_vector(float displacement_per_second, float frame_dt) const {
+        glm::vec2 movement_vec = glm::vec2(0.0);
+        if (is_down(SDLK_A)) {
+            movement_vec.x -= 1.0;
+        }
+        if (is_down(SDLK_W)){
+            movement_vec.y += 1.0;
+        }
+        if (is_down(SDLK_S)){
+            movement_vec.y -= 1.0;
+        }
+        if (is_down(SDLK_D)){
+            movement_vec.x += 1.0;
+        }
+
+        if (glm::length(movement_vec) == 0.0) {
+            return movement_vec;
+        } else {
+            movement_vec = glm::normalize(movement_vec);
+
+            const float displacement = displacement_per_second * frame_dt;
+            return movement_vec * displacement;
+        }
+    }
+    
     std::unordered_map<SDL_Keycode, KeyState> keys_down;
     std::unordered_set<SDL_Keycode> just_released;
 };

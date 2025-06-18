@@ -113,31 +113,12 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
 }
 
 void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
-    // TODO THis pattern is repeated a lot
     constexpr float displacement_per_second = 5.0;
-    glm::vec2 movement_vec{0.0, 0.0};
-    if (keyboard_state.is_down(SDLK_A)) {
-        movement_vec.x -= 1.0;
-    }
-    if (keyboard_state.is_down(SDLK_W)){
-        movement_vec.y += 1.0;
-    }
-    if (keyboard_state.is_down(SDLK_S)){
-        movement_vec.y -= 1.0;
-    }
-    if (keyboard_state.is_down(SDLK_D)){
-        movement_vec.x += 1.0;
-    }
-
-    if (glm::length(movement_vec) > 0.0) {
-        movement_vec = glm::normalize(movement_vec);
-
-        const float displacement = displacement_per_second * frame_dt;
-        const glm::vec2 displacement_vec = movement_vec * displacement;
-
+    const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt);
+    if (glm::length(displacement_vec) != 0.0) {
         camera.mark_move_to(camera.center + displacement_vec, total_elapsed_seconds);
     }
-
+    
     camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
 
     // Find selected tile
