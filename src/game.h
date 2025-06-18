@@ -79,7 +79,7 @@ struct Game final : View {
 
     void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
         player.update(keyboard_state, collision_grid, frame_dt);
-        camera.update(total_elapsed_seconds);
+        camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
 
         // Test if game is won
         const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
@@ -88,17 +88,6 @@ struct Game final : View {
             setup_collision_grid();
 
             player.rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
-        }
-
-        // Update camera
-        // TODO: I repeat this a lot, move it to Camera itself
-        constexpr float camera_zoom_vel = 0.5;
-        if (keyboard_state.is_down(SDLK_E)) {
-            camera.sqrt_scale += camera_zoom_vel * frame_dt;
-        }
-        if (keyboard_state.is_down(SDLK_Q)) {
-            camera.sqrt_scale -= camera_zoom_vel * frame_dt;
-            camera.sqrt_scale = std::max(0.1f, camera.sqrt_scale);
         }
 
         camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
@@ -149,15 +138,7 @@ struct Game final : View {
 
     void draw_imgui(ImguiLog& logger, double total_elapsed_time) {
         if (ImGui::TreeNode("Camera")) {
-            ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
-            ImGui::Text("Size: (%.3f, %.3f)", camera.size.x, camera.size.y);
-            ImGui::InputFloat("Root cale", &camera.sqrt_scale, 0.005, 0.01);
-            ImGui::SliderFloat2("Static Area Scale", (float*) &camera.static_area_scale, 0.0f, 1.0f);
-            if (ImGui::InputDouble("Damping Time", &camera.damping_time, 0.05, 0.1) && camera.damping_time < 0.0) {
-                camera.damping_time = 0.0;
-            }
-
-            ImGui::Checkbox("Draw Debug", &camera.draw_debug);
+            camera.draw_imgui();
             
             ImGui::TreePop();
         }

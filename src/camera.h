@@ -13,7 +13,7 @@
 
 struct OrthographicCamera {
     OrthographicCamera() {}
-    OrthographicCamera(glm::vec2 pos, glm::vec2 size, float scale = 1.0, double damping_time = 0.125, glm::vec2 static_area_scale = glm::vec2(0.0))
+    OrthographicCamera(glm::vec2 pos, glm::vec2 size, float scale = 1.0, double damping_time = 0.5, glm::vec2 static_area_scale = glm::vec2(0.0))
         : size(size)
         , sqrt_scale(sqrt(scale))
         , center(pos)
@@ -40,7 +40,16 @@ struct OrthographicCamera {
         started_next_movement = total_elapsed_time;
     }
 
-    void update(double total_elapsed_time) {
+    void update(const KeyboardState& keyboard_state, double frame_dt, double total_elapsed_time) {
+        constexpr float camera_zoom_vel = 0.5;
+        if (keyboard_state.is_down(SDLK_E)) {
+            sqrt_scale += camera_zoom_vel * frame_dt;
+        }
+        if (keyboard_state.is_down(SDLK_Q)) {
+            sqrt_scale -= camera_zoom_vel * frame_dt;
+            sqrt_scale = std::max(0.01f, sqrt_scale);
+        }
+
         if (center == move_to) return;
 
         double elapsed_damping = (damping_time == 0.0)
@@ -72,6 +81,18 @@ struct OrthographicCamera {
                 global_data_buffer
             ));
         }
+    }
+
+    void draw_imgui() {
+        ImGui::Text("Center: (%.3f, %.3f)", center.x, center.y);
+        ImGui::Text("Size: (%.3f, %.3f)", size.x, size.y);
+        ImGui::InputFloat("Root cale", &sqrt_scale, 0.005, 0.01);
+        ImGui::SliderFloat2("Static Area Scale", (float*) &static_area_scale, 0.0f, 1.0f);
+        if (ImGui::InputDouble("Damping Time", &damping_time, 0.05, 0.1) && damping_time < 0.0) {
+            damping_time = 0.0;
+        }
+
+        ImGui::Checkbox("Draw Debug", &draw_debug);
     }
 
     glm::vec2 size;
