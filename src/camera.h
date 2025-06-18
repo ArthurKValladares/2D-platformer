@@ -20,6 +20,7 @@ struct OrthographicCamera {
         , damping_time(damping_time)
         , move_to(center)
         , static_area_scale(static_area_scale)
+        , draw_debug(false)
     {}
 
     void mark_move_to(glm::vec2 pos, double total_elapsed_time) {
@@ -52,16 +53,16 @@ struct OrthographicCamera {
     glm::mat4 get_proj_matrix() const;
 
     void add_to_renderable(Renderer* renderer, Renderable* renderable, BufferID global_data_buffer) {
-        Rect2D static_area_rect = Rect2D(center, static_area_scale * get_size());
+        if (draw_debug) {
+            Rect2D static_area_rect = Rect2D(center, static_area_scale * get_size());
 
-        // TODO: Just a way to draw a quad with no texture and just color + alpha
-        renderable->push_child(ColoredQuad(
-            renderer,
-            static_area_rect,
-            TextureSource::Path,
-            glm::vec3(1.0, 0.0, 0.0),
-            global_data_buffer
-        ));
+            renderable->push_child(FlatColorQuad(
+                renderer,
+                static_area_rect,
+                glm::vec4(1.0, 0.0, 0.0, 0.5),
+                global_data_buffer
+            ));
+        }
     }
 
     glm::vec2 size;
@@ -74,4 +75,6 @@ struct OrthographicCamera {
     glm::vec2 move_to;
 
     glm::vec2 static_area_scale;
+
+    bool draw_debug;
 };

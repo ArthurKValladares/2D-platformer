@@ -64,7 +64,8 @@ struct Rect2D {
 
     Rect2D merge(Rect2D other) const;
 
-    uint64_t vertex_data(std::vector<float>& vertex_buffer) const;
+    uint64_t vertex_data(std::vector<float>& vertex_buffer, bool with_uv = true) const;
+
     uint64_t index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const;
 
     glm::vec2 pos;

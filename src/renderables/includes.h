@@ -6,3 +6,4 @@
 #include "data_quad.h"
 #include "selectable.h"
 #include "outline_quad.h"
+#include "flat_color.h"

@@ -153,6 +153,7 @@ struct Game final : View {
             ImGui::Text("Size X: %.3f", camera.size.x);
             ImGui::Text("Size X: %.3f", camera.size.y);
             ImGui::Text("Scale: %.3f", camera.sqrt_scale * camera.sqrt_scale);
+            ImGui::Checkbox("Draw Debug", &camera.draw_debug);
 
             ImGui::TreePop();
         }

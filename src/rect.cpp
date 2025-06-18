@@ -9,21 +9,65 @@ bool Rect2D::is_zero_sized() const {
     return glm::length2(half_size) == 0.;
 }
 
-uint64_t Rect2D::vertex_data(std::vector<float>& vertex_buffer) const {
+uint64_t Rect2D::vertex_data(std::vector<float>& vertex_buffer, bool with_uv) const {
     const float mid_x = pos.x;
     const float mid_y = pos.y;
 
-    const float quad_vertices[] = {
-        // Pos                                          // UV
-        mid_x - half_size.x, mid_y - half_size.y, 0.0f, min_uv.x, max_uv.y, 0.0f,
-        mid_x + half_size.x, mid_y + half_size.y, 0.0f, max_uv.x, min_uv.y, 0.0f, 
-        mid_x - half_size.x, mid_y + half_size.y, 0.0f, min_uv.x, min_uv.y, 0.0f,
-        mid_x + half_size.x, mid_y - half_size.y, 0.0f, max_uv.x, max_uv.y, 0.0f
-   };
+    uint64_t vertex_count = 0;
 
-   std::move(&quad_vertices[0], &quad_vertices[ArrayCount(quad_vertices)], back_inserter(vertex_buffer));
+    const float p0[] = {
+        mid_x - half_size.x, mid_y - half_size.y, 0.0f
+    };
+    std::move(&p0[0], &p0[ArrayCount(p0)], back_inserter(vertex_buffer));
+    vertex_count += ArrayCount(p0);
+    if (with_uv) {
+        const float uv0[] = {
+            min_uv.x, max_uv.y, 0.0f
+        };
+        std::move(&uv0[0], &uv0[ArrayCount(uv0)], back_inserter(vertex_buffer));
+        vertex_count += ArrayCount(uv0);
+    }
 
-   return ArrayCount(quad_vertices);
+    const float p1[] = {
+        mid_x + half_size.x, mid_y + half_size.y, 0.0f
+    };
+    std::move(&p1[0], &p1[ArrayCount(p1)], back_inserter(vertex_buffer));
+    vertex_count += ArrayCount(p1);
+    if (with_uv) {
+        const float uv1[] = {
+            max_uv.x, min_uv.y, 0.0f
+        };
+        std::move(&uv1[0], &uv1[ArrayCount(uv1)], back_inserter(vertex_buffer));
+        vertex_count += ArrayCount(uv1);
+    }
+
+    const float p2[] = {
+        mid_x - half_size.x, mid_y + half_size.y, 0.0f
+    };
+    std::move(&p2[0], &p2[ArrayCount(p2)], back_inserter(vertex_buffer));
+    vertex_count += ArrayCount(p2);
+    if (with_uv) {
+        const float uv2[] = {
+            min_uv.x, min_uv.y, 0.0f
+        };
+        std::move(&uv2[0], &uv2[ArrayCount(uv2)], back_inserter(vertex_buffer));
+        vertex_count += ArrayCount(uv2);
+    }
+
+    const float p3[] = {
+        mid_x + half_size.x, mid_y - half_size.y, 0.0f
+    };
+    std::move(&p3[0], &p3[ArrayCount(p3)], back_inserter(vertex_buffer));
+    vertex_count += ArrayCount(p2);
+    if (with_uv) {
+        const float uv3[] = {
+            max_uv.x, max_uv.y, 0.0f
+        };
+        std::move(&uv3[0], &uv3[ArrayCount(uv3)], back_inserter(vertex_buffer));
+        vertex_count += ArrayCount(uv3);
+    }
+
+   return vertex_count;
 }
 
 uint64_t Rect2D::index_data(uint32_t vertex_offset, std::vector<uint32_t>& index_buffer) const {
