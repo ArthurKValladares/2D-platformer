@@ -24,7 +24,7 @@ struct OrthographicCamera {
     {}
 
     void mark_move_to(glm::vec2 pos, double total_elapsed_time) {
-        // NOTE: We divide by 2 since static area is around the center so we onlt care about half the size
+        // NOTE: We divide by 2 since static area is around the center so we only care about half the size
         const glm::vec2 static_area_size = (static_area_scale / glm::vec2(2.0)) * get_size();
         const glm::vec2 distance = glm::abs(pos - center);
         if (distance.x > static_area_size.x || distance.y > static_area_size.y) {
