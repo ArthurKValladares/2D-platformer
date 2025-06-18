@@ -36,11 +36,13 @@ struct OrthographicCamera {
     void update(double total_elapsed_time) {
         if (center == move_to) return;
 
-        const double elapsed_damping = (total_elapsed_time - started_next_movement) / damping_time;
-        if (elapsed_damping < 1.0) {
-            const glm::vec2 new_pos = lerp_vec2(center, move_to, elapsed_damping);
-            center = new_pos;
-        }
+        double elapsed_damping = (damping_time == 0.0)
+            ? 1.0
+            : (total_elapsed_time - started_next_movement) / damping_time;
+        elapsed_damping = std::min(1.0, elapsed_damping);
+
+        const glm::vec2 new_pos = lerp_vec2(center, move_to, elapsed_damping);
+        center = new_pos;
     }
 
     glm::vec2 get_size() const {

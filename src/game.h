@@ -150,11 +150,15 @@ struct Game final : View {
     void draw_imgui(ImguiLog& logger, double total_elapsed_time) {
         if (ImGui::TreeNode("Camera")) {
             ImGui::Text("Center: (%.3f, %.3f)", camera.center.x, camera.center.y);
-            ImGui::Text("Size X: %.3f", camera.size.x);
-            ImGui::Text("Size X: %.3f", camera.size.y);
-            ImGui::Text("Scale: %.3f", camera.sqrt_scale * camera.sqrt_scale);
-            ImGui::Checkbox("Draw Debug", &camera.draw_debug);
+            ImGui::Text("Size: (%.3f, %.3f)", camera.size.x, camera.size.y);
+            ImGui::InputFloat("Root cale", &camera.sqrt_scale, 0.005, 0.01);
+            ImGui::SliderFloat2("Static Area Scale", (float*) &camera.static_area_scale, 0.0f, 1.0f);
+            if (ImGui::InputDouble("Damping Time", &camera.damping_time, 0.05, 0.1) && camera.damping_time < 0.0) {
+                camera.damping_time = 0.0;
+            }
 
+            ImGui::Checkbox("Draw Debug", &camera.draw_debug);
+            
             ImGui::TreePop();
         }
     }
