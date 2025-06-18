@@ -94,7 +94,7 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
                     ? glm::vec3(0.0, 0.0, 1.0)
                     : glm::vec3(1.0, 0.0, 0.0);
 
-                renderable->push_child(OutlineQuad(
+                renderable->push_child(outline_quad(
                     renderer,
                     rect,
                     tile_type_to_texture(ty),

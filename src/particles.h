@@ -154,7 +154,7 @@ struct Particle {
         , anim(AnimatableFloat(0.0, 1.0, duration, start_time))
     {}
 
-    ColoredQuad get_quad(double curr_time, Renderer* renderer, BufferID global_data_buffer, TextureSource texture) const {
+    RenderableRect get_quad(double curr_time, Renderer* renderer, BufferID global_data_buffer, TextureSource texture) const {
         const double elapsed_time = curr_time - anim.start_time;
         const float anim_at = (float) anim.value_at(curr_time);
         
@@ -169,7 +169,7 @@ struct Particle {
             lerp(start_color.b, end_color.b, anim_at)
         );
 
-        return ColoredQuad(
+        return colored_quad(
             renderer,
             Rect2D(curr_pos, curr_size),
             texture,

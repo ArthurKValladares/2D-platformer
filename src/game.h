@@ -109,7 +109,7 @@ struct Game final : View {
             if (rect.intersects(camera_rect)) {
                 const TileType ty = tile.ty;
 
-                renderable->push_child(ColoredQuad(
+                renderable->push_child(colored_quad(
                     renderer,
                     rect,
                     tile_type_to_texture(ty),
@@ -119,7 +119,7 @@ struct Game final : View {
 
                 const TextureSource item_tex = tile_type_to_item_texture(ty);
                 if (item_tex != TextureSource::Count) {
-                    renderable->push_child(ColoredQuad(
+                    renderable->push_child(colored_quad(
                         renderer,
                         rect,
                         item_tex,

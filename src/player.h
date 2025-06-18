@@ -31,7 +31,7 @@ struct Player {
             draw_rect.max_uv = glm::vec2(-1.0, 1.0);
         }
 
-        renderable->push_child(MovingQuad(
+        renderable->push_child(moving_quad(
             renderer,
             draw_rect,
             glm::vec2(0.0, 0.0),
