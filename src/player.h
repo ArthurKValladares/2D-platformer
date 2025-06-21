@@ -5,29 +5,25 @@
 #include "keyboard_state.h"
 #include "collision_grid.h"
 
+#include "renderer/renderer.h"
+#include "renderables/includes.h"
+
 struct Player {
     Player()
     {}
     Player(Rect2D rect, SpriteAnimation sprite)
         : rect(rect)
         , sprite(sprite)
-        , moving_right(true)
+        , movement_vec(glm::vec2(0.0))
+        , is_mid_jump(false)
+        , last_jump(0.0)
     {}
 
-    void update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt) {
-        constexpr float displacement_per_second = 5.0;
-        const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt);
-        if (glm::length(displacement_vec) != 0.0) {
-            std::vector<CollisionGrid::CollisionData> collisions;
-            const glm::vec2 non_colliding_disp = collision_grid.get_collisions(rect, displacement_vec, &collisions);
-            rect.pos += non_colliding_disp;
-            moving_right = non_colliding_disp.x >= 0.0;
-        }
-    }
+    void update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
 
     void add_to_renderable(Renderer* renderer, Renderable* renderable, double total_elapsed_time, BufferID global_data_buffer) {
         Rect2D draw_rect = rect;
-        if (moving_right) {
+        if (movement_vec.x < 0.0) {
             draw_rect.max_uv = glm::vec2(-1.0, 1.0);
         }
 
@@ -42,5 +38,7 @@ struct Player {
 
     Rect2D rect;
     SpriteAnimation sprite;
-    bool moving_right;
+    glm::vec2 movement_vec;
+    bool is_mid_jump;
+    double last_jump;
 };

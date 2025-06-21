@@ -9,6 +9,7 @@
 
 #include "shader.h"
 
+// TODO: Get these from reflection?
 struct FlatColorVertex {
     glm::vec3 in_position;
 };

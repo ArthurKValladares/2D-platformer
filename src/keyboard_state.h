@@ -16,6 +16,7 @@ struct KeyState {
         ++steps;
     }
 
+    // TODO: Better to just keep track of when the key was pressed instead of this step stuff
     uint32_t steps;
 };
 
@@ -48,18 +49,18 @@ struct KeyboardState {
         }
     }
 
-    glm::vec2 displacement_vector(float displacement_per_second, float frame_dt) const {
+    glm::vec2 displacement_vector(float displacement_per_second, float frame_dt, SDL_Keycode left, SDL_Keycode right, SDL_Keycode up, SDL_Keycode down) const {
         glm::vec2 movement_vec = glm::vec2(0.0);
-        if (is_down(SDLK_A)) {
+        if (is_down(left)) {
             movement_vec.x -= 1.0;
         }
-        if (is_down(SDLK_W)){
+        if (is_down(up)){
             movement_vec.y += 1.0;
         }
-        if (is_down(SDLK_S)){
+        if (is_down(down)){
             movement_vec.y -= 1.0;
         }
-        if (is_down(SDLK_D)){
+        if (is_down(right)){
             movement_vec.x += 1.0;
         }
 

@@ -78,7 +78,7 @@ struct Game final : View {
     }
 
     void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
-        player.update(keyboard_state, collision_grid, frame_dt);
+        player.update(keyboard_state, collision_grid, frame_dt, total_elapsed_seconds);
         camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
 
         // Test if game is won

@@ -43,6 +43,7 @@ add_executable(${PROJECT_NAME}
   src/map_editor.cpp
   src/load_save.cpp
   src/logger.cpp
+  src/player.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp

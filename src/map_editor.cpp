@@ -114,7 +114,7 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
 
 void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
     constexpr float displacement_per_second = 5.0;
-    const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt);
+    const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt, SDLK_A, SDLK_D, SDLK_W, SDLK_S);
     if (glm::length(displacement_vec) != 0.0) {
         camera.mark_move_to(camera.center + displacement_vec, total_elapsed_seconds);
     }
