@@ -23,7 +23,7 @@ struct Player {
 
     void add_to_renderable(Renderer* renderer, Renderable* renderable, double total_elapsed_time, BufferID global_data_buffer) {
         Rect2D draw_rect = rect;
-        if (movement_vec.x < 0.0) {
+        if (movement_vec.x >= 0.0) {
             draw_rect.max_uv = glm::vec2(-1.0, 1.0);
         }
 
