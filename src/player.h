@@ -17,6 +17,9 @@ struct Player {
         , movement_vec(glm::vec2(0.0))
         , is_mid_jump(false)
         , last_jump(0.0)
+        , gravity_force(0.005)
+        , jump_force_scale(30.0)
+        , jump_delay(0.05)
     {}
 
     void update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
@@ -36,9 +39,25 @@ struct Player {
         ));
     }
 
+    void draw_imgui() {
+        if(ImGui::InputFloat("Gravity Force", &gravity_force)) {
+            gravity_force = std::max(0.0f, gravity_force);
+        }
+        if(ImGui::InputFloat("Jump Scale Force", &jump_force_scale, 1.0, 5.0)) {
+            jump_force_scale = std::max(0.0f, jump_force_scale);
+        }
+        if(ImGui::InputFloat("Jump Delay", &jump_delay)) {
+            jump_delay = std::max(0.0f, jump_delay);
+        }
+    }
+
     Rect2D rect;
     SpriteAnimation sprite;
     glm::vec2 movement_vec;
     bool is_mid_jump;
     double last_jump;
+
+    float gravity_force;
+    float jump_force_scale;
+    float jump_delay;
 };

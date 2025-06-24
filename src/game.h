@@ -137,6 +137,11 @@ struct Game final : View {
     }
 
     void draw_imgui(ImguiLog& logger, double total_elapsed_time) {
+        if (ImGui::TreeNode("Player")) {
+            player.draw_imgui();
+            
+            ImGui::TreePop();
+        }
         if (ImGui::TreeNode("Camera")) {
             camera.draw_imgui();
             

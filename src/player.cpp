@@ -1,11 +1,5 @@
 #include "player.h"
 
-namespace {
-    constexpr float gravity_force = 0.005;
-    constexpr float jump_force_scale = 30.0;
-    constexpr float jump_delay = 0.05;
-};
-
 
 void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time) {
     constexpr float displacement_per_second = 5.0;
