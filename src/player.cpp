@@ -3,7 +3,7 @@
 namespace {
     constexpr float gravity_force = 0.005;
     constexpr float jump_force_scale = 30.0;
-    constexpr float jump_delay = 0.5;
+    constexpr float jump_delay = 0.05;
 };
 
 
@@ -14,10 +14,9 @@ void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& co
     glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt, SDLK_A, SDLK_D, SDLK_UNKNOWN, SDLK_UNKNOWN);
 
     displacement_vec.y = movement_vec.y;
-    if (!is_mid_jump && keyboard_state.was_just_pressed(SDLK_SPACE) && (total_elapsed_time - last_jump) > jump_delay) {
+    if (!is_mid_jump && keyboard_state.was_just_pressed(SDLK_SPACE) && ((total_elapsed_time - last_jump) > jump_delay)) {
         displacement_vec.y += gravity_force * jump_force_scale;
         is_mid_jump = true;
-        last_jump = total_elapsed_time;
     }
     displacement_vec.y -= gravity_force;
 
@@ -30,8 +29,9 @@ void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& co
     const auto it = std::find_if(collisions.begin(), collisions.end(), [&](CollisionGrid::CollisionData data) {
         return data.rect.max_y() == rect.min_y();
     });
-    if (it != collisions.end()) {
+    if (it != collisions.end() && is_mid_jump) {
         is_mid_jump = false;
+        last_jump = total_elapsed_time;
     }
 
     movement_vec = non_colliding_disp;

@@ -42,10 +42,13 @@ struct KeyboardState {
         const SDL_Keycode key = event.key;
         if (event.type == SDL_EVENT_KEY_DOWN) {
             KeyState& state = keys_down[key];
-            state.step();
         } else if (event.type == SDL_EVENT_KEY_UP) {
             keys_down.erase(key);
             just_released.insert(key);
+        }
+
+        for (auto& key_pair : keys_down) {
+            key_pair.second.step();
         }
     }
 
