@@ -44,6 +44,7 @@ add_executable(${PROJECT_NAME}
   src/load_save.cpp
   src/logger.cpp
   src/player.cpp
+  src/text_rendering.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp
@@ -79,6 +80,9 @@ add_subdirectory(third-party/glm)
 ### json
 add_subdirectory(third-party/json)
 
+### FreeType
+add_subdirectory(third-party/freetype)
+
 ### Link libs
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
@@ -87,7 +91,8 @@ target_link_libraries(${PROJECT_NAME}
     vk-bootstrap::vk-bootstrap
     SDL3::SDL3
     glm::glm
-    nlohmann_json::nlohmann_json)
+    nlohmann_json::nlohmann_json
+    freetype)
 
 # Compile shaders
 find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
