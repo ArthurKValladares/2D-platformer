@@ -40,7 +40,7 @@ VkSwapchainCreateInfoKHR Renderer::get_swapchain_ci(uint32_t width, uint32_t hei
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surface,
         .minImageCount = 2,
-        .imageFormat = image_format,
+        .imageFormat = render_image_format,
         .imageColorSpace = color_space,
         .imageExtent = {
             .width = width,
@@ -59,7 +59,7 @@ VkImageCreateInfo Renderer::get_render_image_ci(uint32_t width, uint32_t height)
     return VkImageCreateInfo  {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
-        .format = image_format,
+        .format = render_image_format,
         .extent = {
             .width = width,
             .height = height, 
@@ -197,7 +197,7 @@ Renderer::Renderer(Window& window) {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = render_image,
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = image_format,
+        .format = render_image_format,
         .subresourceRange = {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
             .levelCount = 1,
@@ -309,7 +309,7 @@ Renderer::Renderer(Window& window) {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO
     };
 	vulkan_init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
-	vulkan_init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &image_format;
+	vulkan_init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &render_image_format;
 
 	vulkan_init_info.MSAASamples = VK_SAMPLE_COUNT_4_BIT;
 
@@ -438,7 +438,7 @@ void Renderer::upload_pipeline(ShaderID vertex_shader_id, ShaderID fragment_shad
             this,
             pipeline_id,
             sample_count,
-            image_format,
+            render_image_format,
             alpha_blending
         );
     }
@@ -529,7 +529,7 @@ void Renderer::resize_swapchain(Window& window) {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = render_image,
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = image_format,
+        .format = render_image_format,
         .subresourceRange = {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
             .levelCount = 1,

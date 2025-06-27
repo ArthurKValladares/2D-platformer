@@ -140,7 +140,7 @@ private:
     std::vector<VkImage> swapchain_images;
     std::vector<VkImageView> swapchain_image_views;
 
-    const VkFormat image_format = VK_FORMAT_B8G8R8A8_SRGB;
+    const VkFormat render_image_format = VK_FORMAT_B8G8R8A8_SRGB;
     const VkColorSpaceKHR color_space = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 
     VkImage render_image;
