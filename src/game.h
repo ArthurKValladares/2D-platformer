@@ -64,7 +64,7 @@ struct Game final : View {
 
         // Text Rendering
         font = text_renderer.load_font_face("C:/Windows/Fonts/arial.ttf");
-        font.set_pixel_size(16);
+        font.set_pixel_size(128);
         font_tex_id = renderer->request_texture();
         renderer->upload_texture(font_tex_id, font.setup_atlas());
     }
@@ -142,7 +142,7 @@ struct Game final : View {
 
         renderable->push_child(colored_quad(
             renderer,
-            Rect2D::from_top_left_and_size(camera.rect().top_left(), glm::vec2(5, 5)),
+            Rect2D::from_top_left_and_size(glm::vec2(0.0), glm::vec2(font.bmp_width, font.bmp_height)),
             font_tex_id,
             glm::vec3(1.0),
             global_set_data.buffer_id

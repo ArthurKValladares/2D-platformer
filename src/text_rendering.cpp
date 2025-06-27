@@ -42,8 +42,8 @@ Glyph::Glyph(FT_Face face, FT_UInt glyph_index, uint32_t offset)
     error = FT_Render_Glyph(glyp_slot, FT_RENDER_MODE_NORMAL);
     assert(error == 0);
 
-    size = glm::ivec2(face->glyph->bitmap.width,face->glyph->bitmap.rows);
-    bearing = glm::ivec2(face->glyph->bitmap_left,face->glyph->bitmap_top);
+    size = glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows);
+    bearing = glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top);
     this->offset = offset;
     advance = static_cast<unsigned int>(face->glyph->advance.x);
 }
@@ -114,8 +114,8 @@ TextureCreateInfo FontFace::setup_atlas() {
     return TextureCreateInfo{
         .buffer = buffer,
         .buffer_size = buffer_size,
-        .width = bmp_width / 4,
-        .height = bmp_height / 4,
-        .format = VK_FORMAT_R8G8B8A8_SRGB,
+        .width = bmp_width,
+        .height = bmp_height,
+        .format = VK_FORMAT_R8_UNORM,
     };
 }
