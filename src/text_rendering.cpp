@@ -139,9 +139,9 @@ void FontFace::get_text_size(const char* p_text, float& width, float& height) {
 }
 
 void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_data_buffer, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color) {
-    const uint64_t len = ArrayCount(p_text);
+    const uint64_t len = strlen(p_text);
     float x = (float) x_start;
-    const float y = (float) x_start;
+    const float y = (float) y_start;
     const float f_bmp_height = (float) bmp_height;
  
     float text_width, text_height;
