@@ -1,22 +1,23 @@
 #pragma once
 
+#include <unordered_map>
+
+#include <glm/vec2.hpp>
+
 #include <cstdint>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 struct Glyph {
     Glyph() {}
-    Glyph(FT_Face face, FT_UInt glyph_index);
+    Glyph(FT_Face face, FT_UInt glyph_index, uint32_t offset);
 
     FT_UInt glyph_index;
 
-    FT_Int bmp_left;
-    FT_Int bmp_top;
-
-    FT_Pos width;
-    FT_Pos height;
-
-    FT_Vector advance;
+    glm::ivec2 size;
+    glm::ivec2 bearing;
+    uint32_t offset;
+    uint32_t advance;
 };
 
 struct FontFace {
@@ -26,6 +27,10 @@ struct FontFace {
     
     FT_Face face;
     Glyph glyphs[128];
+    std::unordered_map<char, std::vector<uint8_t>> glyph_data;
+    
+    uint32_t bmp_width;
+    uint32_t bmp_height;
 };
 
 struct TextRenderer {
