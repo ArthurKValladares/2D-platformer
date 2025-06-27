@@ -33,6 +33,9 @@ struct Rect2D {
     glm::vec2 center() const {
         return pos;
     }
+    glm::vec2 top_left() const {
+        return center() - half_size;
+    }
     glm::vec2 size() const {
         return half_size * glm::vec2(2.0);
     }

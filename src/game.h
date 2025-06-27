@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "animatable.h"
 #include "player.h"
+#include "text_rendering.h"
 
 #include "map_editor/map.h"
 
@@ -60,6 +61,12 @@ struct Game final : View {
 
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
+
+        // Text Rendering
+        font = text_renderer.load_font_face("C:/Windows/Fonts/arial.ttf");
+        font.set_pixel_size(16);
+        font_tex_id = renderer->request_texture();
+        renderer->upload_texture(font_tex_id, font.setup_atlas());
     }
 
     void setup_collision_grid() {
@@ -97,7 +104,7 @@ struct Game final : View {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        const Rect2D camera_rect = camera.get_rect();
+        const Rect2D camera_rect = camera.rect();
 
         const OptimizedMap& opt_map = maps[map_idx];
         for (uint32_t t = 0; t < opt_map.tiles.size(); ++t) {
@@ -112,7 +119,7 @@ struct Game final : View {
                 renderable->push_child(colored_quad(
                     renderer,
                     rect,
-                    tile_type_to_texture(ty),
+                    texture_id(tile_type_to_texture(ty)),
                     tile_type_to_color(ty),
                     global_set_data.buffer_id
                 ));
@@ -122,7 +129,7 @@ struct Game final : View {
                     renderable->push_child(colored_quad(
                         renderer,
                         rect,
-                        item_tex,
+                        texture_id(item_tex),
                         tile_type_to_color(ty),
                         global_set_data.buffer_id
                     ));
@@ -132,6 +139,14 @@ struct Game final : View {
 
         player.add_to_renderable(renderer, renderable, total_elapsed_time, global_set_data.buffer_id);
         camera.add_to_renderable(renderer, renderable, global_set_data.buffer_id);
+
+        renderable->push_child(colored_quad(
+            renderer,
+            Rect2D::from_top_left_and_size(camera.rect().top_left(), glm::vec2(5, 5)),
+            font_tex_id,
+            glm::vec3(1.0),
+            global_set_data.buffer_id
+        ));
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
@@ -161,4 +176,8 @@ struct Game final : View {
     OrthographicCamera camera;
 
     GlobalDescriptorSetData global_set_data;
+
+    TextRenderer text_renderer;
+    FontFace font;
+    TextureID font_tex_id;
 };

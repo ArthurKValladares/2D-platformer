@@ -10,8 +10,8 @@
 
 struct TriangleFrag final : FragmentShader {
     TriangleFrag() {}
-    TriangleFrag(TextureSource texture)
-        :  texture_binding(texture)
+    TriangleFrag(TextureID texture)
+        :  texture_id(texture)
     {}
 
     ShaderSource source() const {
@@ -26,15 +26,15 @@ struct TriangleFrag final : FragmentShader {
         sets.push_back(PushDescriptorSetData{
             .binding = 0,
             .ty = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .texture_id = texture_id(texture_binding),
+            .texture_id = texture_id,
         });
     }
 
-    TextureSource draw_texture() const {
-        return texture_binding;
+    TextureID draw_texture() const {
+        return texture_id;
     }
 
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
 
-    TextureSource texture_binding;
+    TextureID texture_id;
 };

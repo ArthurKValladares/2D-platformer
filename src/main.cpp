@@ -20,7 +20,6 @@
 #include "global_descriptor_set.h"
 #include "view.h"
 #include "game.h"
-#include "text_rendering.h"
 
 #include "renderables/includes.h"
 
@@ -136,11 +135,6 @@ struct App {
 };
 
 int main(int argc, char *argv[]) {
-    TextRenderer text_renderer;
-    FontFace font = text_renderer.load_font_face("C:/Windows/Fonts/arial.ttf");
-    font.set_pixel_size(10, 10);
-    font.setup_atlas();
-    
     App app = App();
     
     app.render_loop();

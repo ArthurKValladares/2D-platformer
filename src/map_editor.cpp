@@ -76,7 +76,7 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
     global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
     global_set_data.write_shader_data_to_buffer(renderer);
 
-    const Rect2D camera_rect = camera.get_rect();
+    const Rect2D camera_rect = camera.rect();
 
     for (uint64_t row = 0; row < height; ++row) {
         for (uint64_t col = 0; col < width; ++col) {
@@ -97,7 +97,7 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
                 renderable->push_child(outline_quad(
                     renderer,
                     rect,
-                    tile_type_to_texture(ty),
+                    texture_id(tile_type_to_texture(ty)),
                     OutlinePushConstantData{
                         .color = tile_type_to_color(ty),
                         .outline = outline_color,

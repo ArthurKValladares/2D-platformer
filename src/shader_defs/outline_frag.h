@@ -21,8 +21,8 @@ struct OutlinePushConstantData {
 
 struct OutlineFrag final : FragmentShader {
     OutlineFrag() {}
-    OutlineFrag(TextureSource texture, OutlinePushConstantData pc_data = OutlinePushConstantData())
-        :  texture_binding(texture)
+    OutlineFrag(TextureID texture, OutlinePushConstantData pc_data = OutlinePushConstantData())
+        :  texture_id(texture)
         , pc_data(pc_data)
     {}
 
@@ -38,7 +38,7 @@ struct OutlineFrag final : FragmentShader {
         sets.push_back(PushDescriptorSetData{
             .binding = 0,
             .ty = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .texture_id = texture_id(texture_binding),
+            .texture_id = texture_id,
         });
     }
 
@@ -51,6 +51,6 @@ struct OutlineFrag final : FragmentShader {
         });
     }
 
-    TextureSource texture_binding;
+    TextureID texture_id;
     OutlinePushConstantData pc_data;
 };

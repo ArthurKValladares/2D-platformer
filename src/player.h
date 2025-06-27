@@ -34,7 +34,7 @@ struct Player {
             renderer,
             draw_rect,
             glm::vec2(0.0, 0.0),
-            sprite.texture_at(total_elapsed_time),
+            texture_id(sprite.texture_at(total_elapsed_time)),
             global_data_buffer
         ));
     }

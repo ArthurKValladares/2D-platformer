@@ -8,6 +8,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include "renderer/renderer.h"
+
 struct Glyph {
     Glyph() {}
     Glyph(FT_Face face, FT_UInt glyph_index, uint32_t offset);
@@ -21,14 +23,14 @@ struct Glyph {
 };
 
 struct FontFace {
-    void set_pixel_size(uint32_t width, uint32_t height);
+    void set_pixel_size(uint32_t size);
 
-    void setup_atlas();
+    TextureCreateInfo setup_atlas();
     
     FT_Face face;
     Glyph glyphs[128];
     std::unordered_map<char, std::vector<uint8_t>> glyph_data;
-    
+
     uint32_t bmp_width;
     uint32_t bmp_height;
 };

@@ -64,7 +64,7 @@ struct OrthographicCamera {
     glm::vec2 get_size() const {
         return (sqrt_scale * sqrt_scale) * size;
     }
-    Rect2D get_rect() const {
+    Rect2D rect() const {
         return Rect2D(center, get_size());
     }
 

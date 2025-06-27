@@ -35,7 +35,7 @@ struct RenderableRect : RenderableInterface {
     bool vertex_uses_uv;
 };
 
-static RenderableRect colored_quad(Renderer* renderer, Rect2D rect, TextureSource texture, glm::vec3 color, BufferID global_data_buffer) {
+static RenderableRect colored_quad(Renderer* renderer, Rect2D rect, TextureID texture, glm::vec3 color, BufferID global_data_buffer) {
     return RenderableRect(
         rect,
         ShaderPair(
@@ -45,7 +45,7 @@ static RenderableRect colored_quad(Renderer* renderer, Rect2D rect, TextureSourc
     );
 }
 
-static RenderableRect data_quad(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer, glm::vec2 offset, glm::vec3 color) {
+static RenderableRect data_quad(Renderer* renderer, Rect2D rect, TextureID texture, BufferID global_data_buffer, glm::vec2 offset, glm::vec3 color) {
     return RenderableRect(
         rect,
         ShaderPair(
@@ -66,7 +66,7 @@ static RenderableRect flat_color_quad(Renderer* renderer, Rect2D rect, glm::vec4
     );
 }
 
-static RenderableRect moving_quad(Renderer* renderer, Rect2D rect, glm::vec2 offset, TextureSource texture, BufferID global_data_buffer) {
+static RenderableRect moving_quad(Renderer* renderer, Rect2D rect, glm::vec2 offset, TextureID texture, BufferID global_data_buffer) {
     return RenderableRect(
         rect,
         ShaderPair(
@@ -76,7 +76,7 @@ static RenderableRect moving_quad(Renderer* renderer, Rect2D rect, glm::vec2 off
     );
 }
 
-static RenderableRect outline_quad(Renderer* renderer, Rect2D rect, TextureSource texture, OutlinePushConstantData pc_data, BufferID global_data_buffer) {
+static RenderableRect outline_quad(Renderer* renderer, Rect2D rect, TextureID texture, OutlinePushConstantData pc_data, BufferID global_data_buffer) {
     return RenderableRect(
         rect,
         ShaderPair(
@@ -86,7 +86,7 @@ static RenderableRect outline_quad(Renderer* renderer, Rect2D rect, TextureSourc
     );
 }
 
-static RenderableRect quad(Renderer* renderer, Rect2D rect, TextureSource texture, BufferID global_data_buffer) {
+static RenderableRect quad(Renderer* renderer, Rect2D rect, TextureID texture, BufferID global_data_buffer) {
     return RenderableRect(
         rect,
         ShaderPair(

@@ -172,7 +172,7 @@ struct Particle {
         return colored_quad(
             renderer,
             Rect2D(curr_pos, curr_size),
-            texture,
+            texture_id(texture),
             curr_color,
             global_data_buffer
         );

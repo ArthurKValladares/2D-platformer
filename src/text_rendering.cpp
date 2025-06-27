@@ -48,13 +48,13 @@ Glyph::Glyph(FT_Face face, FT_UInt glyph_index, uint32_t offset)
     advance = static_cast<unsigned int>(face->glyph->advance.x);
 }
 
-void FontFace::set_pixel_size(uint32_t width, uint32_t height) {
+void FontFace::set_pixel_size(uint32_t size) {
     FT_Error error;
-    error = FT_Set_Pixel_Sizes(face, width, height);
+    error = FT_Set_Pixel_Sizes(face, 0, size);
     assert(error == 0);
 }
 
-void FontFace::setup_atlas() {
+TextureCreateInfo FontFace::setup_atlas() {
     FT_Error error;
 
     for (unsigned char c = 0; c < 128; c++) {
@@ -86,4 +86,36 @@ void FontFace::setup_atlas() {
 
     error = FT_Done_Face(face);
     assert(error == 0);
+
+    // Create Texture
+    const uint64_t buffer_size = bmp_height * bmp_width;
+    uint8_t* buffer = new uint8_t[buffer_size];
+    memset(buffer, 0, buffer_size);
+
+    uint32_t x_pos = 0;
+    for (unsigned char c = 0; c < 128; c++)
+    {
+        if (glyph_data.contains(c)) {
+            const Glyph& glyph = glyphs[c];
+            const std::vector<uint8_t>& data = glyph_data[c];
+
+            uint32_t width = glyph.size.x;
+            uint32_t height = glyph.size.y;
+            for (uint32_t i = 0; i < height; i++) {
+                for (uint32_t j = 0; j < width; j++) {
+                    uint8_t byte = data[i * width + j];
+                    buffer[i * bmp_width + x_pos + j] = byte;
+                }
+            }
+            x_pos += width;
+        }
+    }
+
+    return TextureCreateInfo{
+        .buffer = buffer,
+        .buffer_size = buffer_size,
+        .width = bmp_width / 4,
+        .height = bmp_height / 4,
+        .format = VK_FORMAT_R8G8B8A8_SRGB,
+    };
 }

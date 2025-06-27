@@ -809,6 +809,12 @@ BufferID Renderer::request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateF
     return id;
 }
 
+TextureID Renderer::request_texture() {
+    // TODO: This is bad in many ways, I need to guarantee it will never clash with the non-runtime textures,
+    // and I also need to gurantee I actually add this id to textures. Maybe runtime textures are separate
+    return TextureID(350);
+}
+
 Buffer& Renderer::get_buffer(BufferID id) {
     return buffers[id];
 }

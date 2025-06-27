@@ -14,8 +14,8 @@
 
 struct TriangleColorFrag final : FragmentShader {
     TriangleColorFrag() {}
-    TriangleColorFrag(TextureSource texture, glm::vec3 color = glm::vec3(0.0))
-        :  texture_binding(texture)
+    TriangleColorFrag(TextureID texture, glm::vec3 color = glm::vec3(0.0))
+        :  texture_id(texture)
         , color(color)
     {}
 
@@ -31,7 +31,7 @@ struct TriangleColorFrag final : FragmentShader {
         sets.push_back(PushDescriptorSetData{
             .binding = 0,
             .ty = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .texture_id = texture_id(texture_binding),
+            .texture_id = texture_id,
         });
     }
 
@@ -44,6 +44,6 @@ struct TriangleColorFrag final : FragmentShader {
         });
     }
 
-    TextureSource texture_binding;
+    TextureID texture_id;
     glm::vec3 color;
 };
