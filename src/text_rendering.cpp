@@ -153,7 +153,7 @@ void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_
         const Glyph& glyph = glyphs[c];
 
         const float x_pos = x + glyph.bearing.x * scale;
-        const float y_pos = y + (text_height - glyph.bearing.y) * scale;
+        const float y_pos = y;
 
         const float glyph_width = (float) glyph.size.x * scale;
         const float glyph_height = (float) glyph.size.y * scale;
@@ -164,7 +164,7 @@ void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_
         const float u1 = (float) (glyph.offset + glyph.size.x) * inv_bmp_width;
 
         const float v0 = 0.0;
-        const float v1 = glyph.size.x / f_bmp_height;
+        const float v1 = glyph.size.y / f_bmp_height;
 
         // TODO: find a way to need to pass the renderer and global buffer around all over the place
         renderable->push_child(colored_quad(
