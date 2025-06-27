@@ -140,13 +140,7 @@ struct Game final : View {
         player.add_to_renderable(renderer, renderable, total_elapsed_time, global_set_data.buffer_id);
         camera.add_to_renderable(renderer, renderable, global_set_data.buffer_id);
 
-        renderable->push_child(colored_quad(
-            renderer,
-            Rect2D::from_top_left_and_size(glm::vec2(0.0), glm::vec2(font.bmp_width, font.bmp_height)),
-            font_tex_id,
-            glm::vec3(1.0),
-            global_set_data.buffer_id
-        ));
+        font.draw(renderer, renderable, global_set_data.buffer_id, font_tex_id, "Hello, world!", 0, 0, glm::vec4(1.0));
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
