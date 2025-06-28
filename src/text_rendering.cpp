@@ -4,6 +4,10 @@
 #include <algorithm>
 #include <vector>
 
+namespace {
+    constexpr uint32_t bmp_padding = 5;
+};
+
 TextRenderer::TextRenderer() {
     FT_Error error;
     error = FT_Init_FreeType(&library);
@@ -79,9 +83,9 @@ TextureCreateInfo FontFace::setup_atlas() {
             }
 
             glyph_data.insert(std::pair<char, std::vector<uint8_t>>(c, char_data));
-        }
 
-        bmp_width += face->glyph->bitmap.width;
+            bmp_width += face->glyph->bitmap.width + bmp_padding;
+        }
     }
 
     error = FT_Done_Face(face);
@@ -107,7 +111,7 @@ TextureCreateInfo FontFace::setup_atlas() {
                     buffer[i * bmp_width + x_pos + j] = byte;
                 }
             }
-            x_pos += width;
+            x_pos += width + bmp_padding;
         }
     }
 
@@ -117,22 +121,25 @@ TextureCreateInfo FontFace::setup_atlas() {
         .width = bmp_width,
         .height = bmp_height,
         .format = VK_FORMAT_R8_UNORM,
+        .address_mode_u = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+        .address_mode_v = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
     };
 }
 
-void FontFace::get_text_size(const char* p_text, float& width, float& height) {
+void FontFace::get_text_size(const char* p_text, float scale, float& width, float& height) {
+    // TODO: Verify this later
     size_t len = strlen(p_text);
     float x = 0.f;
     float y = 0.f;
     for (size_t i = 0; i < len; i++) {
-        char c = p_text[i];
-        Glyph& glyph = glyphs[c];
-        float w = (float)glyph.size.x;
-        float h = (float)glyph.size.y;
+        const char c = p_text[i];
+        const Glyph& glyph = glyphs[c];
 
+        const float w = (float)glyph.size.x;
+        const float h = (float) glyph.size.y * scale;
 
-        x += (glyph.advance >> 6);
         y = std::max(y, h);
+        x += (glyph.advance >> 6) * scale;
     }
     width = x;
     height = y;
@@ -144,8 +151,6 @@ void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_
     const float y = (float) y_start;
     const float f_bmp_height = (float) bmp_height;
  
-    float text_width, text_height;
-    get_text_size(p_text, text_width, text_height);
     const float scale = 1.0;
 
     for (uint32_t i = 0; i < len; ++i) {
@@ -158,16 +163,14 @@ void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_
         const float glyph_width = (float) glyph.size.x * scale;
         const float glyph_height = (float) glyph.size.y * scale;
 
-        const float inv_bmp_width = 1.0 / (float) bmp_width;
-
-        const float u0 = (float) glyph.offset * inv_bmp_width;
-        const float u1 = (float) (glyph.offset + glyph.size.x) * inv_bmp_width;
+        const float u0 =  glyph.offset / (float) bmp_width;
+        const float u1 = (glyph.offset + glyph.size.x) / (float) bmp_width;
 
         const float v0 = 0.0;
         const float v1 = glyph.size.y / f_bmp_height;
 
         // TODO: find a way to need to pass the renderer and global buffer around all over the place
-        renderable->push_child(colored_quad(
+        renderable->push_child(font(
             renderer,
             Rect2D::from_top_left_and_size(glm::vec2(x_pos, y_pos), glm::vec2(glyph_width, glyph_height), glm::vec2(u0, v0), glm::vec2(u1, v1)),
             font_id,

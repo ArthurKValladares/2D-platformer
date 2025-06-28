@@ -15,6 +15,7 @@
 #include "outline_frag.h"
 #include "flat_color_vert.h"
 #include "flat_color_frag.h"
+#include "font_frag.h"
 
 //
 // TODO: A bunch of stuff in thus sub-dir can maybe be auto-generated,

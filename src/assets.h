@@ -233,6 +233,7 @@ enum class ShaderSource : uint32_t {
     ]]]*/
     FlatColorFrag,
     FlatColorVert,
+    FontFrag,
     OutlineFrag,
     TriangleFrag,
     TriangleVert,
@@ -260,6 +261,9 @@ inline const char* shader_path(ShaderSource shader) {
         }
         case ShaderSource::FlatColorVert: {
             return "shaders/flat_color.vert.spv";
+        }
+        case ShaderSource::FontFrag: {
+            return "shaders/font.frag.spv";
         }
         case ShaderSource::OutlineFrag: {
             return "shaders/outline.frag.spv";
@@ -311,6 +315,9 @@ inline const char* shader_name(ShaderSource shader) {
         case ShaderSource::FlatColorVert: {
             return "FlatColorVert";
         }
+        case ShaderSource::FontFrag: {
+            return "FontFrag";
+        }
         case ShaderSource::OutlineFrag: {
             return "OutlineFrag";
         }
@@ -360,6 +367,7 @@ inline const char** shader_names() {
     	"None",
         "FlatColorFrag",
         "FlatColorVert",
+        "FontFrag",
         "OutlineFrag",
         "TriangleFrag",
         "TriangleVert",

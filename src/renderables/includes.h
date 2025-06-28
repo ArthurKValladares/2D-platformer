@@ -95,3 +95,13 @@ static RenderableRect quad(Renderer* renderer, Rect2D rect, TextureID texture, B
         )
     );
 }
+
+static RenderableRect font(Renderer* renderer, Rect2D rect, TextureID texture, glm::vec3 color, BufferID global_data_buffer) {
+    return RenderableRect(
+        rect,
+        ShaderPair(
+            TriangleVert(renderer, global_data_buffer),
+            FontFrag(texture, color)
+        )
+    );
+}

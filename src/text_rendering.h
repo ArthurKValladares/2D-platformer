@@ -29,7 +29,7 @@ struct FontFace {
 
     TextureCreateInfo setup_atlas();
     
-    void get_text_size(const char* p_text, float& width, float& height);
+    void get_text_size(const char* p_text, float scale, float& width, float& height);
     // TODO: Better API
     void draw(Renderer* renderer, Renderable* renderable, BufferID global_data_buffer, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color);
 
