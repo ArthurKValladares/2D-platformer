@@ -145,20 +145,18 @@ void FontFace::get_text_size(const char* p_text, float scale, float& width, floa
     height = y;
 }
 
-void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_data_buffer, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color) {
+void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_data_buffer, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale) {
     const uint64_t len = strlen(p_text);
     float x = (float) x_start;
     const float y = (float) y_start;
     const float f_bmp_height = (float) bmp_height;
  
-    const float scale = 1.0;
-
     for (uint32_t i = 0; i < len; ++i) {
         const char c = p_text[i];
         const Glyph& glyph = glyphs[c];
 
         const float x_pos = x + glyph.bearing.x * scale;
-        const float y_pos = y;
+        const float y_pos = y - (glyph.size.y - glyph.bearing.y) * scale;
 
         const float glyph_width = (float) glyph.size.x * scale;
         const float glyph_height = (float) glyph.size.y * scale;
