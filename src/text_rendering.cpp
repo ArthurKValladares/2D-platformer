@@ -170,7 +170,7 @@ void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_
         // TODO: find a way to need to pass the renderer and global buffer around all over the place
         renderable->push_child(font(
             renderer,
-            Rect2D::from_top_left_and_size(glm::vec2(x_pos, y_pos), glm::vec2(glyph_width, glyph_height), glm::vec2(u0, v0), glm::vec2(u1, v1)),
+            Rect2D::from_bottom_left_and_size(glm::vec2(x_pos, y_pos), glm::vec2(glyph_width, glyph_height), glm::vec2(u0, v0), glm::vec2(u1, v1)),
             font_id,
             color,
             global_data_buffer

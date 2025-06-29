@@ -17,7 +17,7 @@
 
 namespace {
     Rect2D get_tile_rect(uint32_t x_start, uint32_t y_start, uint32_t tile_width = 1, uint32_t tile_height = 1) {
-        return Rect2D::from_top_left_and_size(
+        return Rect2D::from_bottom_left_and_size(
             glm::vec2(x_start * TILE_SIZE, y_start * TILE_SIZE),
             glm::vec2(tile_width * TILE_SIZE, tile_height * TILE_SIZE)
         );
@@ -140,7 +140,7 @@ struct Game final : View {
         player.add_to_renderable(renderer, renderable, total_elapsed_time, global_set_data.buffer_id);
         camera.add_to_renderable(renderer, renderable, global_set_data.buffer_id);
 
-        font.draw(renderer, renderable, global_set_data.buffer_id, font_tex_id, "gogaga, world!", 0, 0, glm::vec4(1.0), 0.005);
+        font.draw(renderer, renderable, global_set_data.buffer_id, font_tex_id, "gogaga, world!", 0, 0, glm::vec4(1.0), text_scale);
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
@@ -156,6 +156,7 @@ struct Game final : View {
             
             ImGui::TreePop();
         }
+        ImGui::InputFloat("Font Scale", &text_scale, 0.0025);
     }
 
     void cleanup(Renderer* renderer) {}
@@ -174,4 +175,5 @@ struct Game final : View {
     TextRenderer text_renderer;
     FontFace font;
     TextureID font_tex_id;
+    float text_scale = 1.0;
 };
