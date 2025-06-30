@@ -126,11 +126,11 @@ TextureCreateInfo FontFace::setup_atlas() {
     };
 }
 
-glm::vec3 FontFace::get_text_size(TextureID font_id, const char* p_text, float scale) {
+TextSize FontFace::get_text_size(TextureID font_id, const char* p_text, float scale) {
     return draw(nullptr, font_id, p_text, 0, 0, 1.0, glm::vec4(1.0));
 }
 
-glm::vec3 FontFace::draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color) {
+TextSize FontFace::draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color) {
     const uint64_t len = strlen(p_text);
  
     float max_y = 0.0;
@@ -168,5 +168,5 @@ glm::vec3 FontFace::draw(Renderable* renderable, TextureID font_id, const char* 
         curr_x += (glyph.advance >> 6) * scale;
     }
 
-    return glm::vec3(curr_x - x_start, max_y, max_descender);
+    return TextSize(curr_x - x_start, max_y, max_descender);
 }

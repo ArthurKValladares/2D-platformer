@@ -24,13 +24,19 @@ struct Glyph {
     uint32_t advance;
 };
 
+struct TextSize {
+    float x;
+    float y;
+    float descender;
+};
+
 struct FontFace {
     void set_pixel_size(uint32_t size);
 
     TextureCreateInfo setup_atlas();
     
-    glm::vec3 get_text_size(TextureID font_id, const char* p_text, float scale);
-    glm::vec3 draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color);
+    TextSize get_text_size(TextureID font_id, const char* p_text, float scale);
+    TextSize draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color);
 
     FT_Face face;
     Glyph glyphs[128];

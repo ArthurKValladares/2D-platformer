@@ -8,7 +8,7 @@
 struct UI {
     UI(Renderer* renderer, const Window& window);
 
-    glm::vec3 get_text_size(const char* p_text, float scale);
+    TextSize get_text_size(const char* p_text, float scale);
     Renderable draw(Renderer* renderer, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color);
     void draw_imgui();
 
