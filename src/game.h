@@ -5,7 +5,7 @@
 #include "camera.h"
 #include "animatable.h"
 #include "player.h"
-#include "text_rendering.h"
+#include "ui.h"
 
 #include "map_editor/map.h"
 
@@ -29,6 +29,7 @@ struct Game final : View {
         : map_idx(0)
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
+        , ui(UI(renderer, window))
     {
         for (uint32_t i = 0; i < (uint32_t) MapSource::Count; ++i) {
             const MapLayout map = MapLayout(map_path(static_cast<MapSource>(i)));
@@ -61,12 +62,6 @@ struct Game final : View {
 
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
-
-        // Text Rendering
-        font = text_renderer.load_font_face("C:/Windows/Fonts/arial.ttf");
-        font.set_pixel_size(128);
-        font_tex_id = renderer->request_texture();
-        renderer->upload_texture(font_tex_id, font.setup_atlas());
     }
 
     void setup_collision_grid() {
@@ -140,7 +135,7 @@ struct Game final : View {
         player.add_to_renderable(renderer, renderable, total_elapsed_time, global_set_data.buffer_id);
         camera.add_to_renderable(renderer, renderable, global_set_data.buffer_id);
 
-        font.draw(renderer, renderable, global_set_data.buffer_id, font_tex_id, "gogaga, world!", 0, 0, glm::vec4(1.0), text_scale);
+        ui.draw(renderer, renderable, "gogaga, world!", 0, 0, glm::vec4(1.0), 0.005);
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
@@ -156,7 +151,6 @@ struct Game final : View {
             
             ImGui::TreePop();
         }
-        ImGui::InputFloat("Font Scale", &text_scale, 0.0025);
     }
 
     void cleanup(Renderer* renderer) {}
@@ -172,8 +166,5 @@ struct Game final : View {
 
     GlobalDescriptorSetData global_set_data;
 
-    TextRenderer text_renderer;
-    FontFace font;
-    TextureID font_tex_id;
-    float text_scale = 1.0;
+    UI ui;
 };
