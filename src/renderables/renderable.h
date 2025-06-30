@@ -13,9 +13,6 @@
 struct ViewDrawData {
     void upload_vertex_index_data(Renderer* renderer);
     
-    DescriptorSetLayoutID global_layout_id;
-    DescriptorSetID global_set_id;
-
     std::vector<float> vertices = {};
     std::vector<uint32_t> indices = {};
     std::vector<DrawCommand> draws = {};
@@ -45,7 +42,7 @@ struct Renderable {
         children.emplace_back(std::move(renderable));
     }
 
-    void append_draw_data(Renderer* renderer, ViewDrawData& data) const;
+    void append_draw_data(Renderer* renderer, ViewDrawData& data, DescriptorSetLayoutID global_layout_id, DescriptorSetID global_set_id) const;
     ViewDrawData get_draw_data(Renderer* renderer, DescriptorSetLayoutID global_layout_id, DescriptorSetID global_set_id);
 
     // TODO: I don't like this shared_ptr, make it a raw pointer later?
