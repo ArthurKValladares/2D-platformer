@@ -15,8 +15,7 @@ struct TriangleVertex {
 };
 
 struct TriangleVert final : VertexShader {    
-    TriangleVert(Renderer* renderer, BufferID global_data_buffer) 
-        : global_data_buffer(global_data_buffer)
+    TriangleVert() 
     {}
 
     ShaderSource source() const {
@@ -35,6 +34,4 @@ struct TriangleVert final : VertexShader {
     }
 
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
-
-    BufferID global_data_buffer;
 };

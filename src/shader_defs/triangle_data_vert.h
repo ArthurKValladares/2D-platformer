@@ -21,12 +21,12 @@ struct TriangleDataVert final : VertexShader {
         glm::vec4 color;
     };
     
-    TriangleDataVert(Renderer* renderer, BufferID global_data_buffer, glm::mat4 render_matrix, glm::vec3 color)
+    // TODO: Remove Renderer dep
+    TriangleDataVert(Renderer* renderer, glm::mat4 render_matrix, glm::vec3 color)
         : uniform_data(UniformData{
             .render_matrix = render_matrix,
             .color = glm::vec4(color.r, color.g, color.b, 1.0),
         })
-        , global_data_buffer(global_data_buffer)
     {
         uniform_buffer = renderer->request_buffer(
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -62,5 +62,4 @@ struct TriangleDataVert final : VertexShader {
 
     UniformData uniform_data;
     BufferID uniform_buffer;
-    BufferID global_data_buffer;
 };

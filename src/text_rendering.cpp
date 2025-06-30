@@ -145,7 +145,7 @@ void FontFace::get_text_size(const char* p_text, float scale, float& width, floa
     height = y;
 }
 
-void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_data_buffer, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale) {
+void FontFace::draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale) {
     const uint64_t len = strlen(p_text);
     float x = (float) x_start;
     const float y = (float) y_start;
@@ -167,13 +167,10 @@ void FontFace::draw(Renderer* renderer, Renderable* renderable, BufferID global_
         const float v0 = 0.0;
         const float v1 = glyph.size.y / f_bmp_height;
 
-        // TODO: find a way to need to pass the renderer and global buffer around all over the place
         renderable->push_child(font(
-            renderer,
             Rect2D::from_bottom_left_and_size(glm::vec2(x_pos, y_pos), glm::vec2(glyph_width, glyph_height), glm::vec2(u0, v0), glm::vec2(u1, v1)),
             font_id,
-            color,
-            global_data_buffer
+            color
         ));
 
         x += (glyph.advance >> 6) * scale;

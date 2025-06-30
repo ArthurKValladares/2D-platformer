@@ -95,15 +95,13 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
                     : glm::vec3(1.0, 0.0, 0.0);
 
                 renderable->push_child(outline_quad(
-                    renderer,
                     rect,
                     texture_id(tile_type_to_texture(ty)),
                     OutlinePushConstantData{
                         .color = tile_type_to_color(ty),
                         .outline = outline_color,
                         .thickness = outline_thickness
-                    },
-                    global_set_data.buffer_id
+                    }
                 ));
             }
         }

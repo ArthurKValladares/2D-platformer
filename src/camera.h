@@ -70,15 +70,13 @@ struct OrthographicCamera {
 
     glm::mat4 get_proj_matrix() const;
 
-    void add_to_renderable(Renderer* renderer, Renderable* renderable, BufferID global_data_buffer) {
+    void add_to_renderable(Renderable* renderable) {
         if (draw_debug) {
             Rect2D static_area_rect = Rect2D(center, static_area_scale * get_size());
 
             renderable->push_child(flat_color_quad(
-                renderer,
                 static_area_rect,
-                glm::vec4(1.0, 0.0, 0.0, 0.5),
-                global_data_buffer
+                glm::vec4(1.0, 0.0, 0.0, 0.5)
             ));
         }
     }

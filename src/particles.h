@@ -154,7 +154,7 @@ struct Particle {
         , anim(AnimatableFloat(0.0, 1.0, duration, start_time))
     {}
 
-    RenderableRect get_quad(double curr_time, Renderer* renderer, BufferID global_data_buffer, TextureSource texture) const {
+    RenderableRect get_quad(double curr_time, TextureSource texture) const {
         const double elapsed_time = curr_time - anim.start_time;
         const float anim_at = (float) anim.value_at(curr_time);
         
@@ -170,11 +170,9 @@ struct Particle {
         );
 
         return colored_quad(
-            renderer,
             Rect2D(curr_pos, curr_size),
             texture_id(texture),
-            curr_color,
-            global_data_buffer
+            curr_color
         );
     }
 
@@ -243,7 +241,7 @@ struct ParticleEmitter {
         return (curr_time - start_time) > lifetime.val;
     }
 
-    void update_and_create_renderables(Renderable* root_renderable, double curr_time, Renderer* renderer, BufferID global_data_buffer) {
+    void update_and_create_renderables(Renderable* root_renderable, double curr_time) {
         particles.erase(
             std::remove_if(particles.begin(), particles.end(), 
             [curr_time](Particle& p) {
@@ -273,7 +271,7 @@ struct ParticleEmitter {
         }
 
         for (const Particle& particle : particles) {
-            root_renderable->push_child(Renderable(particle.get_quad(curr_time, renderer, global_data_buffer, texture)));
+            root_renderable->push_child(Renderable(particle.get_quad(curr_time, texture)));
         }
     }
 

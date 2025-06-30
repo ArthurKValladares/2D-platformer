@@ -35,72 +35,72 @@ struct RenderableRect : RenderableInterface {
     bool vertex_uses_uv;
 };
 
-static RenderableRect colored_quad(Renderer* renderer, Rect2D rect, TextureID texture, glm::vec3 color, BufferID global_data_buffer) {
+static RenderableRect colored_quad(Rect2D rect, TextureID texture, glm::vec3 color) {
     return RenderableRect(
         rect,
         ShaderPair(
-            TriangleVert(renderer, global_data_buffer),
+            TriangleVert(),
             TriangleColorFrag(texture, color)
         )
     );
 }
 
-static RenderableRect data_quad(Renderer* renderer, Rect2D rect, TextureID texture, BufferID global_data_buffer, glm::vec2 offset, glm::vec3 color) {
+static RenderableRect data_quad(Renderer* renderer, Rect2D rect, TextureID texture, glm::vec2 offset, glm::vec3 color) {
     return RenderableRect(
         rect,
         ShaderPair(
-            TriangleDataVert(renderer, global_data_buffer, glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, offset.y, 0.0)), color),
+            TriangleDataVert(renderer, glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, offset.y, 0.0)), color),
             TriangleDataFrag(texture)
         )
     );
 }
 
-static RenderableRect flat_color_quad(Renderer* renderer, Rect2D rect, glm::vec4 color, BufferID global_data_buffer) {
+static RenderableRect flat_color_quad(Rect2D rect, glm::vec4 color) {
     return RenderableRect(
         rect,
         ShaderPair(
-            FlatColorVert(renderer, global_data_buffer),
+            FlatColorVert(),
             FlatColorFrag(color)
         ),
         false
     );
 }
 
-static RenderableRect moving_quad(Renderer* renderer, Rect2D rect, glm::vec2 offset, TextureID texture, BufferID global_data_buffer) {
+static RenderableRect moving_quad(Rect2D rect, glm::vec2 offset, TextureID texture) {
     return RenderableRect(
         rect,
         ShaderPair(
-            TriangleTransformVert(renderer, glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, offset.y, 0.0)), global_data_buffer),
+            TriangleTransformVert(glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, offset.y, 0.0))),
             TriangleFrag(texture)
         )
     );
 }
 
-static RenderableRect outline_quad(Renderer* renderer, Rect2D rect, TextureID texture, OutlinePushConstantData pc_data, BufferID global_data_buffer) {
+static RenderableRect outline_quad(Rect2D rect, TextureID texture, OutlinePushConstantData pc_data) {
     return RenderableRect(
         rect,
         ShaderPair(
-            TriangleVert(renderer, global_data_buffer),
+            TriangleVert(),
             OutlineFrag(texture, pc_data)
         )
     );
 }
 
-static RenderableRect quad(Renderer* renderer, Rect2D rect, TextureID texture, BufferID global_data_buffer) {
+static RenderableRect quad(Rect2D rect, TextureID texture) {
     return RenderableRect(
         rect,
         ShaderPair(
-            TriangleVert(renderer, global_data_buffer),
+            TriangleVert(),
             TriangleFrag(texture)
         )
     );
 }
 
-static RenderableRect font(Renderer* renderer, Rect2D rect, TextureID texture, glm::vec3 color, BufferID global_data_buffer) {
+static RenderableRect font(Rect2D rect, TextureID texture, glm::vec3 color) {
     return RenderableRect(
         rect,
         ShaderPair(
-            TriangleVert(renderer, global_data_buffer),
+            TriangleVert(),
             FontFrag(texture, color)
         )
     );

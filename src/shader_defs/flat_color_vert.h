@@ -15,8 +15,7 @@ struct FlatColorVertex {
 };
 
 struct FlatColorVert final : VertexShader {    
-    FlatColorVert(Renderer* renderer, BufferID global_data_buffer) 
-        : global_data_buffer(global_data_buffer)
+    FlatColorVert() 
     {}
 
     ShaderSource source() const {
@@ -35,6 +34,4 @@ struct FlatColorVert final : VertexShader {
     }
 
     void append_push_constant_data(std::vector<PushConstantData>& pcs) const {}
-
-    BufferID global_data_buffer;
 };

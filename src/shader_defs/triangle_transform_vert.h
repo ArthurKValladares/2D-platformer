@@ -16,9 +16,8 @@ struct TriangleTransformVertex {
 
 struct TriangleTransformVert final : VertexShader {    
     TriangleTransformVert() {}
-    TriangleTransformVert(Renderer* renderer, glm::mat4 render_matrix, BufferID global_data_buffer)
+    TriangleTransformVert(glm::mat4 render_matrix)
         : render_matrix(render_matrix)
-        , global_data_buffer(global_data_buffer)
     {}
     
     ShaderSource source() const {
@@ -46,5 +45,4 @@ struct TriangleTransformVert final : VertexShader {
     }
 
     glm::mat4 render_matrix;
-    BufferID global_data_buffer;
 };

@@ -24,18 +24,16 @@ struct Player {
 
     void update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
 
-    void add_to_renderable(Renderer* renderer, Renderable* renderable, double total_elapsed_time, BufferID global_data_buffer) {
+    void add_to_renderable(Renderable* renderable, double total_elapsed_time) {
         Rect2D draw_rect = rect;
         if (movement_vec.x >= 0.0) {
             draw_rect.max_uv = glm::vec2(-1.0, 1.0);
         }
 
         renderable->push_child(moving_quad(
-            renderer,
             draw_rect,
             glm::vec2(0.0, 0.0),
-            texture_id(sprite.texture_at(total_elapsed_time)),
-            global_data_buffer
+            texture_id(sprite.texture_at(total_elapsed_time))
         ));
     }
 

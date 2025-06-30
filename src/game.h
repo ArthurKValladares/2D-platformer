@@ -112,28 +112,24 @@ struct Game final : View {
                 const TileType ty = tile.ty;
 
                 renderable->push_child(colored_quad(
-                    renderer,
                     rect,
                     texture_id(tile_type_to_texture(ty)),
-                    tile_type_to_color(ty),
-                    global_set_data.buffer_id
+                    tile_type_to_color(ty)
                 ));
 
                 const TextureSource item_tex = tile_type_to_item_texture(ty);
                 if (item_tex != TextureSource::Count) {
                     renderable->push_child(colored_quad(
-                        renderer,
                         rect,
                         texture_id(item_tex),
-                        tile_type_to_color(ty),
-                        global_set_data.buffer_id
+                        tile_type_to_color(ty)
                     ));
                 }
             }
         }
 
-        player.add_to_renderable(renderer, renderable, total_elapsed_time, global_set_data.buffer_id);
-        camera.add_to_renderable(renderer, renderable, global_set_data.buffer_id);
+        player.add_to_renderable(renderable, total_elapsed_time);
+        camera.add_to_renderable(renderable);
 
         ui.draw(renderer, renderable, "gogaga, world!", 0, 0, glm::vec4(1.0), 0.005);
 

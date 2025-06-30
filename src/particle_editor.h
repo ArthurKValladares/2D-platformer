@@ -53,7 +53,7 @@ struct ParticleEditor final : View {
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        emitter.update_and_create_renderables(renderable, total_elapsed_seconds, renderer, global_set_data.buffer_id);
+        emitter.update_and_create_renderables(renderable, total_elapsed_seconds);
 
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
