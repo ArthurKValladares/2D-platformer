@@ -137,8 +137,11 @@ void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState&
 
     // Find selected tile
     selected_tile = std::make_pair(-1, -1);
-    const glm::vec2 mouse_pos = camera.center + (mouse_state.world_space_pos() * glm::vec2(camera.size.x / 2.0, -camera.size.y / 2.0));
 
+    glm::vec2 world_space_pos = mouse_state.world_space_pos();
+    world_space_pos.y = -world_space_pos.y;
+    const glm::vec2 half_size = camera.get_size() / glm::vec2(2.0);
+    const glm::vec2 mouse_pos = camera.center + (world_space_pos * half_size);
     for (uint32_t row = 0; row < height; ++row) {
         for (uint32_t col = 0; col < width; ++col) {
             const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
