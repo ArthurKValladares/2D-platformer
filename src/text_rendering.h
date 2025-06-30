@@ -29,8 +29,8 @@ struct FontFace {
 
     TextureCreateInfo setup_atlas();
     
-    void get_text_size(const char* p_text, float scale, float& width, float& height);
-    void draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale);
+    glm::vec3 get_text_size(TextureID font_id, const char* p_text, float scale);
+    glm::vec3 draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color);
 
     FT_Face face;
     Glyph glyphs[128];

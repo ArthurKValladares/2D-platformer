@@ -2,6 +2,7 @@
 
 UI::UI(Renderer* renderer, const Window& window)
     : global_descriptor_set(GlobalDescriptorSetData(renderer, camera))
+    , draw_debug(false)
 {
     const Size2Di32 window_size = window.get_size();
     camera = OrthographicCamera(
@@ -21,8 +22,27 @@ UI::UI(Renderer* renderer, const Window& window)
     update_global_set(renderer, global_descriptor_set.buffer_id, global_descriptor_set.set_id);
 }
 
-Renderable UI::draw(Renderer* renderer, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale) {
+glm::vec3 UI::get_text_size(const char* p_text, float scale) {
+    return font.get_text_size(font_tex_id, p_text, scale);
+}
+
+Renderable UI::draw(Renderer* renderer, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color) {
     Renderable renderable;
-    font.draw(&renderable, font_tex_id, p_text, x_start, y_start, color, scale);
+    
+    glm::vec3 text_size = font.draw(&renderable, font_tex_id, p_text, x_start, y_start, scale, color);
+    if (draw_debug) {
+        renderable.push_child(flat_color_quad(
+            Rect2D::from_bottom_left_and_size(glm::vec2(x_start, y_start), glm::vec2(text_size.x, text_size.y)),
+            glm::vec4(1.0, 0.0, 0.0, 0.25)
+        ));
+        renderable.push_child(flat_color_quad(
+            Rect2D::from_bottom_left_and_size(glm::vec2(x_start, y_start - text_size.z), glm::vec2(text_size.x, text_size.z)),
+            glm::vec4(0.0, 1.0, 0.0, 0.25)
+        ));
+    }
     return renderable;
+}
+
+void UI::draw_imgui() {
+    ImGui::Checkbox("Draw Debug", &draw_debug);
 }

@@ -143,7 +143,17 @@ struct Game final : View {
     RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
         Renderable renderable;
 
-        renderable.push_child(ui.draw(renderer, "gogaga, world!", 0, 0, glm::vec4(1.0), 1.0));
+        // TODO: This text layout stuff is bad, need a better abstraction later
+        glm::vec3 first_line_size = ui.get_text_size("gogogaga, world!", 1.0);
+        float x_start = - first_line_size.x / 2.0;
+        float y_start = - first_line_size.y / 2.0;
+        renderable.push_child(ui.draw(renderer, "gogaga, world!", x_start, y_start, 1.0, glm::vec4(1.0)));
+
+        glm::vec3 second_line_size = ui.get_text_size("Another line!", 1.0);
+        y_start -= first_line_size.z + second_line_size.y;
+        y_start -= first_line_size.y * 0.25;
+        renderable.push_child(ui.draw(renderer, "Another line!", x_start, y_start, 1.0, glm::vec4(1.0)));
+
         // TODO: can just pass the GlobalDescriptorSetData struct instead, maybe even just a raw ptr
         return RootRenderable {
             renderable,
@@ -160,6 +170,11 @@ struct Game final : View {
         }
         if (ImGui::TreeNode("Camera")) {
             camera.draw_imgui();
+            
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("UI")) {
+            ui.draw_imgui();
             
             ImGui::TreePop();
         }

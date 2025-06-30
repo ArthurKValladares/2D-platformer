@@ -126,53 +126,47 @@ TextureCreateInfo FontFace::setup_atlas() {
     };
 }
 
-void FontFace::get_text_size(const char* p_text, float scale, float& width, float& height) {
-    // TODO: Verify this later
-    size_t len = strlen(p_text);
-    float x = 0.f;
-    float y = 0.f;
-    for (size_t i = 0; i < len; i++) {
-        const char c = p_text[i];
-        const Glyph& glyph = glyphs[c];
-
-        const float w = (float)glyph.size.x;
-        const float h = (float) glyph.size.y * scale;
-
-        y = std::max(y, h);
-        x += (glyph.advance >> 6) * scale;
-    }
-    width = x;
-    height = y;
+glm::vec3 FontFace::get_text_size(TextureID font_id, const char* p_text, float scale) {
+    return draw(nullptr, font_id, p_text, 0, 0, 1.0, glm::vec4(1.0));
 }
 
-void FontFace::draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale) {
+glm::vec3 FontFace::draw(Renderable* renderable, TextureID font_id, const char* p_text, int x_start, int y_start, float scale, glm::vec4 color) {
     const uint64_t len = strlen(p_text);
-    float x = (float) x_start;
-    const float y = (float) y_start;
-    const float f_bmp_height = (float) bmp_height;
  
+    float max_y = 0.0;
+    float max_descender = 0.0;
+
+    float curr_x = (float) x_start;
     for (uint32_t i = 0; i < len; ++i) {
         const char c = p_text[i];
         const Glyph& glyph = glyphs[c];
 
-        const float x_pos = x + glyph.bearing.x * scale;
-        const float y_pos = y - (glyph.size.y - glyph.bearing.y) * scale;
-
         const float glyph_width = (float) glyph.size.x * scale;
         const float glyph_height = (float) glyph.size.y * scale;
+        const float glyph_y_bearing = (float) glyph.bearing.y * scale;
 
-        const float u0 =  glyph.offset / (float) bmp_width;
-        const float u1 = (glyph.offset + glyph.size.x) / (float) bmp_width;
+        max_y = std::max(max_y, glyph_height);
+        max_descender = std::max(max_descender, glyph_height - glyph_y_bearing);
 
-        const float v0 = 0.0;
-        const float v1 = glyph.size.y / f_bmp_height;
+        if (renderable != nullptr) {
+            const float x_pos = curr_x + glyph.bearing.x * scale;
+            const float y_pos = y_start - (glyph.size.y - glyph.bearing.y) * scale;
 
-        renderable->push_child(font(
-            Rect2D::from_bottom_left_and_size(glm::vec2(x_pos, y_pos), glm::vec2(glyph_width, glyph_height), glm::vec2(u0, v0), glm::vec2(u1, v1)),
-            font_id,
-            color
-        ));
+            const float u0 =  glyph.offset / (float) bmp_width;
+            const float u1 = (glyph.offset + glyph.size.x) / (float) bmp_width;
 
-        x += (glyph.advance >> 6) * scale;
+            const float v0 = 0.0;
+            const float v1 = glyph.size.y / (float) bmp_height;
+
+            renderable->push_child(font(
+                Rect2D::from_bottom_left_and_size(glm::vec2(x_pos, y_pos), glm::vec2(glyph_width, glyph_height), glm::vec2(u0, v0), glm::vec2(u1, v1)),
+                font_id,
+                color
+            ));
+        }
+
+        curr_x += (glyph.advance >> 6) * scale;
     }
+
+    return glm::vec3(curr_x - x_start, max_y, max_descender);
 }
