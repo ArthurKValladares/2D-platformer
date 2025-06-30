@@ -95,7 +95,9 @@ struct Game final : View {
         camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
     }
 
-    ViewDrawData draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
+    RootRenderable draw_fn(Renderer* renderer, double total_elapsed_time) {
+        Renderable renderable;
+
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
@@ -111,7 +113,7 @@ struct Game final : View {
             if (rect.intersects(camera_rect)) {
                 const TileType ty = tile.ty;
 
-                renderable->push_child(colored_quad(
+                renderable.push_child(colored_quad(
                     rect,
                     texture_id(tile_type_to_texture(ty)),
                     tile_type_to_color(ty)
@@ -119,7 +121,7 @@ struct Game final : View {
 
                 const TextureSource item_tex = tile_type_to_item_texture(ty);
                 if (item_tex != TextureSource::Count) {
-                    renderable->push_child(colored_quad(
+                    renderable.push_child(colored_quad(
                         rect,
                         texture_id(item_tex),
                         tile_type_to_color(ty)
@@ -128,16 +130,26 @@ struct Game final : View {
             }
         }
 
-        player.add_to_renderable(renderable, total_elapsed_time);
-        camera.add_to_renderable(renderable);
+        player.add_to_renderable(&renderable, total_elapsed_time);
+        camera.add_to_renderable(&renderable);
 
-        return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+        return RootRenderable {
+            renderable,
+            global_set_data.layout_id,
+            global_set_data.set_id
+        };
     }
 
-    ViewDrawData draw_ui(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
-        renderable->push_child(ui.draw(renderer, "gogaga, world!", 0, 0, glm::vec4(1.0), 1.0));
+    RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
+        Renderable renderable;
+
+        renderable.push_child(ui.draw(renderer, "gogaga, world!", 0, 0, glm::vec4(1.0), 1.0));
         // TODO: can just pass the GlobalDescriptorSetData struct instead, maybe even just a raw ptr
-        return renderable->get_draw_data(renderer, ui.global_descriptor_set.layout_id, ui.global_descriptor_set.set_id);
+        return RootRenderable {
+            renderable,
+            ui.global_descriptor_set.layout_id,
+            ui.global_descriptor_set.set_id
+        };
     }
 
     void draw_imgui(ImguiLog& logger, double total_elapsed_time) {

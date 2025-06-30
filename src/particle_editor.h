@@ -49,18 +49,29 @@ struct ParticleEditor final : View {
         load_save.load_files(PARTICLES_DIR, PARTICLES_EXTENSION);
     }
 
-    ViewDrawData draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_seconds) {
+    RootRenderable draw_fn(Renderer* renderer, double total_elapsed_seconds) {
+        Renderable renderable;
+
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        emitter.update_and_create_renderables(renderable, total_elapsed_seconds);
+        emitter.update_and_create_renderables(&renderable, total_elapsed_seconds);
 
-
-        return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+        return RootRenderable {
+            renderable,
+            global_set_data.layout_id,
+            global_set_data.set_id
+        };
     }
 
-    ViewDrawData draw_ui(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
-        return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+    RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
+        Renderable renderable;
+        
+        return RootRenderable {
+            renderable,
+            global_set_data.layout_id,
+            global_set_data.set_id
+        };
     }
     
     const char* name() const {

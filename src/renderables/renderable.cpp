@@ -74,11 +74,8 @@ void Renderable::append_draw_data(Renderer* renderer, ViewDrawData& data, Descri
     }
 }
 
-ViewDrawData Renderable::get_draw_data(Renderer* renderer, DescriptorSetLayoutID global_layout_id, DescriptorSetID global_set_id) {
-    ViewDrawData data;
-    append_draw_data(renderer, data, global_layout_id, global_set_id);
-
-    return data;
+void RootRenderable::append_draw_data(Renderer* renderer, ViewDrawData& data) const {
+    renderable.append_draw_data(renderer, data, global_layout_id, global_set_id);
 }
 
 void ViewDrawData::upload_vertex_index_data(Renderer* renderer) {

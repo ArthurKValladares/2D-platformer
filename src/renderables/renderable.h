@@ -12,7 +12,7 @@
 
 struct ViewDrawData {
     void upload_vertex_index_data(Renderer* renderer);
-    
+
     std::vector<float> vertices = {};
     std::vector<uint32_t> indices = {};
     std::vector<DrawCommand> draws = {};
@@ -43,7 +43,6 @@ struct Renderable {
     }
 
     void append_draw_data(Renderer* renderer, ViewDrawData& data, DescriptorSetLayoutID global_layout_id, DescriptorSetID global_set_id) const;
-    ViewDrawData get_draw_data(Renderer* renderer, DescriptorSetLayoutID global_layout_id, DescriptorSetID global_set_id);
 
     // TODO: I don't like this shared_ptr, make it a raw pointer later?
     // Or it could be even better if i turned this into an index and made it more of an
@@ -55,4 +54,12 @@ struct Renderable {
     bool uses_alpha_blending;
 
     std::vector<Renderable> children;
+};
+
+struct RootRenderable {
+    void append_draw_data(Renderer* renderer, ViewDrawData& data) const;
+
+    Renderable renderable;
+    DescriptorSetLayoutID global_layout_id;
+    DescriptorSetID global_set_id;
 };

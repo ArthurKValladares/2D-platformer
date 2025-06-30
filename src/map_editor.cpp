@@ -72,7 +72,9 @@ void MapEditor::cleanup(Renderer* renderer) {
     }
 }
 
-ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
+RootRenderable MapEditor::draw_fn(Renderer* renderer, double total_elapsed_time) {
+    Renderable renderable;
+    
     global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
     global_set_data.write_shader_data_to_buffer(renderer);
 
@@ -94,7 +96,7 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
                     ? glm::vec3(0.0, 0.0, 1.0)
                     : glm::vec3(1.0, 0.0, 0.0);
 
-                renderable->push_child(outline_quad(
+                renderable.push_child(outline_quad(
                     rect,
                     texture_id(tile_type_to_texture(ty)),
                     OutlinePushConstantData{
@@ -107,11 +109,21 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
         }
     }
 
-    return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+    return RootRenderable {
+        renderable,
+        global_set_data.layout_id,
+        global_set_data.set_id
+    };
 }
 
-ViewDrawData MapEditor::draw_ui(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
-    return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+RootRenderable MapEditor::draw_ui(Renderer* renderer, double total_elapsed_time) {
+    Renderable renderable;
+
+    return RootRenderable {
+        renderable,
+        global_set_data.layout_id,
+        global_set_data.set_id
+    };
 }
 
 void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {

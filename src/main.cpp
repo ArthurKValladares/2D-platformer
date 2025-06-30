@@ -68,13 +68,17 @@ struct App {
     }
 
     void render(double total_elapsed_seconds, double frame_dt) {
-        Renderable renderable;
-        ViewDrawData data = tab_items[open_tab_idx]->draw_fn(&renderer, &renderable, total_elapsed_seconds);
+        RootRenderable draw_root = tab_items[open_tab_idx]->draw_fn(&renderer, total_elapsed_seconds);
+        RootRenderable ui_root = tab_items[open_tab_idx]->draw_ui(&renderer, total_elapsed_seconds);
+
+        ViewDrawData draw_data;
+        draw_root.append_draw_data(&renderer, draw_data);
+        ui_root.append_draw_data(&renderer, draw_data);
 
         renderer.wait_for_and_reset_curr_fence();
-        data.upload_vertex_index_data(&renderer);
+        draw_data.upload_vertex_index_data(&renderer);
 
-        renderer.render(logger, window, data.draws, frame_dt);
+        renderer.render(logger, window, draw_data.draws, frame_dt);
     }
 
     void render_loop() {
