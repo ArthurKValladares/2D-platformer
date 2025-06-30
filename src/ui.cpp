@@ -16,8 +16,13 @@ UI::UI(Renderer* renderer, const Window& window)
     font.set_pixel_size(128);
     font_tex_id = renderer->request_texture();
     renderer->upload_texture(font_tex_id, font.setup_atlas());
+
+    global_descriptor_set.write_shader_data_to_buffer(renderer);
+    update_global_set(renderer, global_descriptor_set.buffer_id, global_descriptor_set.set_id);
 }
 
-void UI::draw(Renderer* renderer, Renderable* renderable, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale) {
-    font.draw(renderable, font_tex_id, p_text, x_start, y_start, color, scale);
+Renderable UI::draw(Renderer* renderer, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale) {
+    Renderable renderable;
+    font.draw(&renderable, font_tex_id, p_text, x_start, y_start, color, scale);
+    return renderable;
 }

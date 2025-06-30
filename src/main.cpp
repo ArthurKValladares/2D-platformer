@@ -69,7 +69,6 @@ struct App {
 
     void render(double total_elapsed_seconds, double frame_dt) {
         Renderable renderable;
-
         ViewDrawData data = tab_items[open_tab_idx]->draw_fn(&renderer, &renderable, total_elapsed_seconds);
 
         renderer.wait_for_and_reset_curr_fence();

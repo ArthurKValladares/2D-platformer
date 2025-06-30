@@ -110,6 +110,10 @@ ViewDrawData MapEditor::draw_fn(Renderer* renderer, Renderable* renderable, doub
     return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
 }
 
+ViewDrawData MapEditor::draw_ui(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
+    return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+}
+
 void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
     constexpr float displacement_per_second = 5.0;
     const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt, SDLK_A, SDLK_D, SDLK_W, SDLK_S);

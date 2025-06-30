@@ -131,9 +131,13 @@ struct Game final : View {
         player.add_to_renderable(renderable, total_elapsed_time);
         camera.add_to_renderable(renderable);
 
-        ui.draw(renderer, renderable, "gogaga, world!", 0, 0, glm::vec4(1.0), 0.005);
-
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+    }
+
+    ViewDrawData draw_ui(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
+        renderable->push_child(ui.draw(renderer, "gogaga, world!", 0, 0, glm::vec4(1.0), 1.0));
+        // TODO: can just pass the GlobalDescriptorSetData struct instead, maybe even just a raw ptr
+        return renderable->get_draw_data(renderer, ui.global_descriptor_set.layout_id, ui.global_descriptor_set.set_id);
     }
 
     void draw_imgui(ImguiLog& logger, double total_elapsed_time) {

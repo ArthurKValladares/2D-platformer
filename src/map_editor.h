@@ -28,6 +28,7 @@ struct MapEditor final : View {
     }
     void update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt);
     ViewDrawData draw_fn(Renderer* renderer, Renderable* renderable, double total_elapsed_time);
+    ViewDrawData draw_ui(Renderer* renderer, Renderable* renderable, double total_elapsed_time);
     void draw_imgui(ImguiLog& logger, double total_elapsed_time);
 
     void save(ImguiLog& logger);

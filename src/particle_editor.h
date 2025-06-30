@@ -58,6 +58,10 @@ struct ParticleEditor final : View {
 
         return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
     }
+
+    ViewDrawData draw_ui(Renderer* renderer, Renderable* renderable, double total_elapsed_time) {
+        return renderable->get_draw_data(renderer, global_set_data.layout_id, global_set_data.set_id);
+    }
     
     const char* name() const {
         return "Particle Editor";

@@ -8,7 +8,7 @@
 struct UI {
     UI(Renderer* renderer, const Window& window);
 
-    void draw(Renderer* renderer, Renderable* renderable, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale);
+    Renderable draw(Renderer* renderer, const char* p_text, int x_start, int y_start, glm::vec4 color, float scale);
 
     OrthographicCamera camera;
     GlobalDescriptorSetData global_descriptor_set;
