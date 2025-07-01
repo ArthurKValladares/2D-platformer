@@ -1,29 +1,17 @@
 #include <SDL3/SDL_main.h>
 #include "imgui.h"
 
-#include <iostream>
-#include <fstream>
-#include <filesystem>
-#include <chrono>
 #include <math.h> 
-#include <algorithm>
+#include <memory>
 
 #include "renderer/renderer.h"
 
-#include "assets.h"
 #include "window.h"
-#include "util.h"
-#include "image.h"
 #include "keyboard_state.h"
-#include "particle_editor.h"
-#include "map_editor.h"
-#include "global_descriptor_set.h"
 #include "view.h"
 #include "game.h"
-
-#include "renderables/includes.h"
-
-#include "map_editor/map.h"
+#include "particle_editor.h"
+#include "map_editor.h"
 
 // TODO: engine architecture
 // descriptor set number 0 will be used for engine-global resources
@@ -106,7 +94,7 @@ struct App {
 
                 if (e.type == SDL_EVENT_QUIT ) {
                     quit = true;
-                } else if (e.type = SDL_EVENT_WINDOW_RESIZED) {
+                } else if (e.type == SDL_EVENT_WINDOW_RESIZED) {
                     renderer.resize_swapchain(window);
                 }
             }
