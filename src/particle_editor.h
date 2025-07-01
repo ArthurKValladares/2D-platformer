@@ -64,9 +64,13 @@ struct ParticleEditor final : View {
         };
     }
 
+    bool should_draw_ui() const {
+        return false;
+    }
+    
     RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
         Renderable renderable;
-        
+
         return RootRenderable {
             renderable,
             global_set_data.layout_id,

@@ -29,6 +29,7 @@ struct Game final : View {
         : map_idx(0)
         , collision_grid(CollisionGrid(TILE_SIZE * 2.0, TILE_SIZE * 2.0))
         , global_set_data(GlobalDescriptorSetData(renderer, camera))
+        , should_show_ui(false)
         , ui(UI(renderer, window))
     {
         for (uint32_t i = 0; i < (uint32_t) MapSource::Count; ++i) {
@@ -82,6 +83,10 @@ struct Game final : View {
     void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
         player.update(keyboard_state, collision_grid, frame_dt, total_elapsed_seconds);
         camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
+
+        if (keyboard_state.was_just_pressed(SDLK_ESCAPE)) {
+            should_show_ui = !should_show_ui;
+        }
 
         // Test if game is won
         const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
@@ -140,6 +145,10 @@ struct Game final : View {
         };
     }
 
+    bool should_draw_ui() const {
+        return should_show_ui;
+    }
+
     RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
         Renderable renderable;
 
@@ -193,5 +202,6 @@ struct Game final : View {
 
     GlobalDescriptorSetData global_set_data;
 
+    bool should_show_ui;
     UI ui;
 };

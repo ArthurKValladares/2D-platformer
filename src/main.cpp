@@ -69,7 +69,10 @@ struct App {
 
     void render(double total_elapsed_seconds, double frame_dt) {
         RootRenderable draw_root = tab_items[open_tab_idx]->draw_fn(&renderer, total_elapsed_seconds);
-        RootRenderable ui_root = tab_items[open_tab_idx]->draw_ui(&renderer, total_elapsed_seconds);
+        RootRenderable ui_root;
+        if (tab_items[open_tab_idx]->should_draw_ui()) {
+            ui_root = tab_items[open_tab_idx]->draw_ui(&renderer, total_elapsed_seconds);
+        }
 
         ViewDrawData draw_data;
         draw_root.append_draw_data(&renderer, draw_data);
@@ -106,9 +109,6 @@ struct App {
                 } else if (e.type = SDL_EVENT_WINDOW_RESIZED) {
                     renderer.resize_swapchain(window);
                 }
-            }
-            if (keyboard_state.is_down(SDLK_ESCAPE)) {
-                quit = true;
             }
 
             const double elapsed_secounds_count = elapsed_seconds.count();

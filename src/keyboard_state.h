@@ -16,7 +16,6 @@ struct KeyState {
         ++steps;
     }
 
-    // TODO: Better to just keep track of when the key was pressed instead of this step stuff
     uint32_t steps;
 };
 
