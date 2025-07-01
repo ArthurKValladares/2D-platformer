@@ -75,8 +75,8 @@ TextureCreateInfo FontFace::setup_atlas() {
 
             std::vector<uint8_t> char_data(rows * width);
             
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < width; j++) {
+            for (uint32_t i = 0; i < rows; i++) {
+                for (uint32_t j = 0; j < width; j++) {
                     uint8_t byte = face->glyph->bitmap.buffer[i * pitch + j];
                     char_data[i * pitch + j] = byte;
                 }

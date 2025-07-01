@@ -18,9 +18,6 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
 
     std::string line;
 
-    int core_row = -1;
-    int core_col = -1;
-
     int num_cols = -1;
     int row = 0;
     while (std::getline(map_file, line)) {

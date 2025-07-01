@@ -80,8 +80,8 @@ RootRenderable MapEditor::draw_fn(Renderer* renderer, double total_elapsed_time)
 
     const Rect2D camera_rect = camera.rect();
 
-    for (uint64_t row = 0; row < height; ++row) {
-        for (uint64_t col = 0; col < width; ++col) {
+    for (uint32_t row = 0; row < height; ++row) {
+        for (uint32_t col = 0; col < width; ++col) {
             const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
 
             if (rect.intersects(camera_rect)) {

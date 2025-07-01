@@ -205,7 +205,7 @@ Renderer::Renderer(Window& window) {
         }
     };
     chk(vkCreateImageView(device, &view_ci, nullptr, &render_image_view));
-    for (auto i = 0; i < image_count; i++) {
+    for (uint32_t i = 0; i < image_count; i++) {
         view_ci.image = swapchain_images[i];
         chk(vkCreateImageView(device, &view_ci, nullptr, &swapchain_image_views[i]));
     }
@@ -327,7 +327,7 @@ Renderer::~Renderer() {
     }
     vmaDestroyImage(allocator, render_image, render_image_allocation);
     vkDestroyImageView(device, render_image_view, nullptr);
-    for (auto i = 0; i < swapchain_image_views.size(); i++) {
+    for (size_t i = 0; i < swapchain_image_views.size(); i++) {
         vkDestroyImageView(device, swapchain_image_views[i], nullptr);
     }
     for (Buffer& v_buffer : v_buffers) {
@@ -513,7 +513,7 @@ void Renderer::resize_swapchain(Window& window) {
     vmaDestroyImage(allocator, render_image, render_image_allocation);
     vkDestroyImageView(device, render_image_view, nullptr);
 
-    for (auto i = 0; i < swapchain_image_views.size(); i++) {
+    for (size_t i = 0; i < swapchain_image_views.size(); i++) {
         vkDestroyImageView(device, swapchain_image_views[i], nullptr);
     }
     swapchain_image_views.resize(image_count);
@@ -537,7 +537,7 @@ void Renderer::resize_swapchain(Window& window) {
         }
     };
     chk(vkCreateImageView(device, &viewCI, nullptr, &render_image_view));
-    for (auto i = 0; i < image_count; i++) {
+    for (uint32_t i = 0; i < image_count; i++) {
         viewCI.image = swapchain_images[i];
         chk(vkCreateImageView(device, &viewCI, nullptr, &swapchain_image_views[i]));
     }
