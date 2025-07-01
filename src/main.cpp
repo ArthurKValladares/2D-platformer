@@ -97,7 +97,7 @@ struct App {
             const std::chrono::duration<double>         frame_dt = frame_start - last_frame;
             last_frame = frame_start;
     
-            keyboard_state.reset();
+            keyboard_state.update();
             while(SDL_PollEvent(&e)) {
                 renderer.process_sdl_event(&e);
                 keyboard_state.process_sdl_event(e.key);

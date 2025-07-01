@@ -85,6 +85,7 @@ struct Game final : View {
         camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
 
         if (keyboard_state.was_just_pressed(SDLK_ESCAPE)) {
+            std::cout << "*" << std::endl;
             should_show_ui = !should_show_ui;
         }
 

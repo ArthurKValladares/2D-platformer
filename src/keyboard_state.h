@@ -33,22 +33,22 @@ struct KeyboardState {
         return just_released.contains(key);
     }
 
-    void reset() {
-        just_released.clear();
-    }
-
     void process_sdl_event(const SDL_KeyboardEvent& event) {
         const SDL_Keycode key = event.key;
         if (event.type == SDL_EVENT_KEY_DOWN) {
-            KeyState& state = keys_down[key];
+            keys_down.insert({key, KeyState{.steps = 1}});
         } else if (event.type == SDL_EVENT_KEY_UP) {
             keys_down.erase(key);
             just_released.insert(key);
         }
+    }
 
+    void update() {
         for (auto& key_pair : keys_down) {
             key_pair.second.step();
         }
+
+        just_released.clear();
     }
 
     glm::vec2 displacement_vector(float displacement_per_second, float frame_dt, SDL_Keycode left, SDL_Keycode right, SDL_Keycode up, SDL_Keycode down) const {
