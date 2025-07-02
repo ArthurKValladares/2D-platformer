@@ -11,6 +11,8 @@
 #include <vulkan/vulkan.h>
 #include <glm/vec2.hpp>
 
+#include <SDL3/SDL.h>
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
 
@@ -142,3 +144,9 @@ namespace ImGui {
         );
     }
 };
+
+inline void send_quit_event() {
+    SDL_Event event;
+    event.type = SDL_EVENT_QUIT;
+    SDL_PushEvent(&event);
+}
