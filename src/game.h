@@ -67,20 +67,39 @@ struct Game final : View {
         // button
         const char* p_text = "Button";
         const float text_scale = 1.0;
-        TextSize first_line_size = ui.get_text_size(p_text, text_scale);
-
+        const TextSize first_line_size = ui.get_text_size(p_text, text_scale);
         const float padding = first_line_size.y * 0.5;
         const float size_x = first_line_size.x + padding;
         const float size_y = first_line_size.y + padding;
+        const glm::vec2 button_size = glm::vec2(size_x, size_y);
+        const float button_distance = size_y + padding * 2;
 
-        quit_button = Button(
-            Rect2D(glm::vec2(0.0), glm::vec2(size_x, size_y)),
+        useless_button_0 = Button(
+            Rect2D(glm::vec2(0.0) - glm::vec2(0.0, button_distance), button_size),
             glm::vec4(128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0, 1.0),
             glm::vec4(199.0 / 255.0, 199.0 / 255.0, 199.0 / 255.0, 1.0),
             p_text,
             text_scale,
             glm::vec4(1.0),
+            []() {}
+        );
+        quit_button = Button(
+            Rect2D(glm::vec2(0.0), button_size),
+            glm::vec4(128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0, 1.0),
+            glm::vec4(199.0 / 255.0, 199.0 / 255.0, 199.0 / 255.0, 1.0),
+            "Quit",
+            text_scale,
+            glm::vec4(1.0),
             []() { send_quit_event(); }
+        );
+        useless_button_1 = Button(
+            Rect2D(glm::vec2(0.0) + glm::vec2(0.0, button_distance), button_size),
+            glm::vec4(128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0, 1.0),
+            glm::vec4(199.0 / 255.0, 199.0 / 255.0, 199.0 / 255.0, 1.0),
+            p_text,
+            text_scale,
+            glm::vec4(1.0),
+            []() {}
         );
 
         // collision grid
@@ -109,7 +128,9 @@ struct Game final : View {
     void update_fn(const Window& window, const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
         player.update(keyboard_state, collision_grid, frame_dt, total_elapsed_seconds);
         camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
+        useless_button_0.update(mouse_state, get_screen_pos(window, mouse_state, ui.camera));
         quit_button.update(mouse_state, get_screen_pos(window, mouse_state, ui.camera));
+        useless_button_1.update(mouse_state, get_screen_pos(window, mouse_state, ui.camera));
 
         if (keyboard_state.was_just_pressed(SDLK_ESCAPE)) {
             should_show_ui = !should_show_ui;
@@ -179,7 +200,9 @@ struct Game final : View {
     RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
         Renderable renderable;
 
+        renderable.push_child(useless_button_0.draw(renderer, ui));
         renderable.push_child(quit_button.draw(renderer, ui));
+        renderable.push_child(useless_button_1.draw(renderer, ui));
 
         // TODO: can just pass the GlobalDescriptorSetData struct instead, maybe even just a raw ptr
         return RootRenderable {
@@ -222,5 +245,7 @@ struct Game final : View {
 
     bool should_show_ui;
     UI ui;
+    Button useless_button_0;
     Button quit_button;
+    Button useless_button_1;
 };
