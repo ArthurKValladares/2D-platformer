@@ -204,7 +204,6 @@ struct Game final : View {
         renderable.push_child(quit_button.draw(renderer, ui));
         renderable.push_child(useless_button_1.draw(renderer, ui));
 
-        // TODO: can just pass the GlobalDescriptorSetData struct instead, maybe even just a raw ptr
         return RootRenderable {
             renderable,
             ui.global_descriptor_set.layout_id,
