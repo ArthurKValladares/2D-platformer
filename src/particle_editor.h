@@ -82,7 +82,7 @@ struct ParticleEditor final : View {
         return "Particle Editor";
     }
 
-    void update_fn(const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
+    void update_fn(const Window& window, const KeyboardState& keyboard_state, const MouseState& _mouse_state, double total_elapsed_seconds, double frame_dt) {
         camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
     }
 

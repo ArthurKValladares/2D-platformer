@@ -25,8 +25,6 @@ struct App {
         , window(Window())
         , renderer(window)
     {
-        mouse_state.set_window_size(window.get_size().width, window.get_size().height);
-
         open_tab_idx = 0;
         tab_items[0] = std::make_unique<Game>(window, &renderer);
         tab_items[1] = std::make_unique<ParticleEditor>(window, &renderer);
@@ -34,7 +32,7 @@ struct App {
     }
 
     void update(double total_elapsed_seconds, double frame_dt) {
-        tab_items[open_tab_idx]->update_fn(keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
+        tab_items[open_tab_idx]->update_fn(window, keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
 
         // Setup imgui
         renderer.set_imgui_fn([&]() {

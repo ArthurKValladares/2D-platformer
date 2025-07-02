@@ -8,6 +8,7 @@
 #include "stb_image.h"
 #include "json_serialization.h"
 #include "image.h"
+#include "helpers.h"
 
 #define DEFAULT_WIDTH  15
 #define DEFAULT_HEIGHT 15
@@ -126,7 +127,7 @@ RootRenderable MapEditor::draw_ui(Renderer* renderer, double total_elapsed_time)
     };
 }
 
-void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
+void MapEditor::update_fn(const Window& window, const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
     constexpr float displacement_per_second = 5.0;
     const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt, SDLK_A, SDLK_D, SDLK_W, SDLK_S);
     if (glm::length(displacement_vec) != 0.0) {
@@ -138,10 +139,8 @@ void MapEditor::update_fn(const KeyboardState& keyboard_state, const MouseState&
     // Find selected tile
     selected_tile = std::make_pair(-1, -1);
 
-    glm::vec2 world_space_pos = mouse_state.world_space_pos();
-    world_space_pos.y = -world_space_pos.y;
-    const glm::vec2 half_size = camera.get_size() / glm::vec2(2.0);
-    const glm::vec2 mouse_pos = camera.center + (world_space_pos * half_size);
+    const glm::vec2 mouse_pos = get_screen_pos(window, mouse_state, camera);
+
     for (uint32_t row = 0; row < height; ++row) {
         for (uint32_t col = 0; col < width; ++col) {
             const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
