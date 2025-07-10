@@ -127,26 +127,26 @@ RootRenderable MapEditor::draw_ui(Renderer* renderer, double total_elapsed_time)
     };
 }
 
-void MapEditor::update_fn(const Window& window, const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
+void MapEditor::update_fn(const UpdateContext& context, double total_elapsed_seconds, double frame_dt) {
     constexpr float displacement_per_second = 5.0;
-    const glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt, SDLK_A, SDLK_D, SDLK_W, SDLK_S);
+    const glm::vec2 displacement_vec = context.keyboard_state.displacement_vector(displacement_per_second, frame_dt, SDLK_A, SDLK_D, SDLK_W, SDLK_S);
     if (glm::length(displacement_vec) != 0.0) {
         camera.mark_move_to(camera.center + displacement_vec, total_elapsed_seconds);
     }
     
-    camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
+    camera.update(context.keyboard_state, frame_dt, total_elapsed_seconds);
 
     // Find selected tile
     selected_tile = std::make_pair(-1, -1);
 
-    const glm::vec2 mouse_pos = get_screen_pos(window, mouse_state, camera);
+    const glm::vec2 mouse_pos = get_screen_pos(context.window, context.mouse_state, camera);
 
     for (uint32_t row = 0; row < height; ++row) {
         for (uint32_t col = 0; col < width; ++col) {
             const Rect2D rect = Rect2D(glm::vec2(col * TILE_SIZE, row * TILE_SIZE), glm::vec2(TILE_SIZE, TILE_SIZE));
             if (rect.intersects_point(mouse_pos)) {
                 selected_tile = std::make_pair(row, col);
-                if (mouse_state.is_down(SDL_BUTTON_LEFT)) {
+                if (context.mouse_state.is_down(SDL_BUTTON_LEFT)) {
                     tiles[row][col] = tile_type_from_uint(selected_tile_type);
                     load_save.set_has_unsaved_changes(true);
                 }

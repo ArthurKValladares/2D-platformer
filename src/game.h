@@ -125,14 +125,14 @@ struct Game final : View {
         return "App";
     }
 
-    void update_fn(const Window& window, const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt) {
-        player.update(keyboard_state, collision_grid, frame_dt, total_elapsed_seconds);
-        camera.update(keyboard_state, frame_dt, total_elapsed_seconds);
-        useless_button_0.update(mouse_state, get_screen_pos(window, mouse_state, ui.camera));
-        quit_button.update(mouse_state, get_screen_pos(window, mouse_state, ui.camera));
-        useless_button_1.update(mouse_state, get_screen_pos(window, mouse_state, ui.camera));
+    void update_fn(const UpdateContext& context, double total_elapsed_seconds, double frame_dt) {
+        player.update(context.keyboard_state, collision_grid, frame_dt, total_elapsed_seconds);
+        camera.update(context.keyboard_state, frame_dt, total_elapsed_seconds);
+        useless_button_0.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
+        quit_button.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
+        useless_button_1.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
 
-        if (keyboard_state.was_just_pressed(SDLK_ESCAPE)) {
+        if (context.keyboard_state.was_just_pressed(SDLK_ESCAPE)) {
             should_show_ui = !should_show_ui;
         }
 

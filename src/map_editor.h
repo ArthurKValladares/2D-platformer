@@ -26,7 +26,7 @@ struct MapEditor final : View {
     const char* name() const {
         return "Map Editor";
     }
-    void update_fn(const Window& window, const KeyboardState& keyboard_state, const MouseState& mouse_state, double total_elapsed_seconds, double frame_dt);
+    void update_fn(const UpdateContext& context, double total_elapsed_seconds, double frame_dt);
     RootRenderable draw_fn(Renderer* renderer, double total_elapsed_time);
     bool should_draw_ui() const { return false; }
     RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time);

@@ -29,7 +29,7 @@ struct App {
         for (uint32_t i = 0; i < texture_count(); ++i) {
             renderer.reserve_texture_id(TextureID(i));
         }
-        
+
         open_tab_idx = 0;
         tab_items[0] = std::make_unique<Game>(window, &renderer);
         tab_items[1] = std::make_unique<ParticleEditor>(window, &renderer);
@@ -37,7 +37,15 @@ struct App {
     }
 
     void update(double total_elapsed_seconds, double frame_dt) {
-        tab_items[open_tab_idx]->update_fn(window, keyboard_state, mouse_state, total_elapsed_seconds, frame_dt);
+        tab_items[open_tab_idx]->update_fn(
+            UpdateContext{
+                .window = window,
+                .keyboard_state = keyboard_state,
+                .mouse_state = mouse_state
+            },
+            total_elapsed_seconds,
+            frame_dt
+        );
 
         // Setup imgui
         renderer.set_imgui_fn([&]() {
