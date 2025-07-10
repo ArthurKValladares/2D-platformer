@@ -368,12 +368,16 @@ Renderer::~Renderer() {
 }
 
 bool Renderer::contains_texture(TextureID id) const {
-    return textures.contains(id);
+    const bool t1 = textures.contains(id);
+    const bool t2 = !textures.at(id).is_empty();
+    return textures.contains(id) && !textures.at(id).is_empty();
 }
 
 void Renderer::upload_texture(TextureID id, const TextureCreateInfo& ci) {
     if (!textures.contains(id)) {
         textures.try_emplace(id, this, ci);
+    } else if (textures[id].is_empty()) {
+        textures[id] = Texture(this, ci);
     }
 }
 
@@ -809,10 +813,14 @@ BufferID Renderer::request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateF
     return id;
 }
 
-TextureID Renderer::request_texture() {
-    // TODO: This is bad in many ways, I need to guarantee it will never clash with the non-runtime textures,
-    // and I also need to gurantee I actually add this id to textures. Maybe runtime textures are separate
-    return TextureID(350);
+void Renderer::reserve_texture_id(TextureID id) {
+    textures.insert({id, Texture()});
+}
+
+TextureID Renderer::request_texture(const TextureCreateInfo& ci) {
+    const TextureID id = TextureID(textures.size());
+    upload_texture(id, ci);
+    return id;
 }
 
 Buffer& Renderer::get_buffer(BufferID id) {

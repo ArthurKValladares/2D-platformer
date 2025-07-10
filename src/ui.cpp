@@ -15,8 +15,7 @@ UI::UI(Renderer* renderer, const Window& window)
 
     font = text_renderer.load_font_face("C:/Windows/Fonts/arial.ttf");
     font.set_pixel_size(128);
-    font_tex_id = renderer->request_texture();
-    renderer->upload_texture(font_tex_id, font.setup_atlas());
+    font_tex_id = renderer->request_texture(font.setup_atlas());
 
     global_descriptor_set.write_shader_data_to_buffer(renderer);
     update_global_set(renderer, global_descriptor_set.buffer_id, global_descriptor_set.set_id);

@@ -25,6 +25,11 @@ struct App {
         , window(Window())
         , renderer(window)
     {
+        // Reserve textures
+        for (uint32_t i = 0; i < texture_count(); ++i) {
+            renderer.reserve_texture_id(TextureID(i));
+        }
+        
         open_tab_idx = 0;
         tab_items[0] = std::make_unique<Game>(window, &renderer);
         tab_items[1] = std::make_unique<ParticleEditor>(window, &renderer);

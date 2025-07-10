@@ -37,7 +37,8 @@ struct Renderer {
     void upload_vertex_data(void* data, uint64_t size_bytes);
 
     BufferID request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes);
-    TextureID request_texture();
+    void reserve_texture_id(TextureID id);
+    TextureID request_texture(const TextureCreateInfo& ci);
     
     //
     // Getters

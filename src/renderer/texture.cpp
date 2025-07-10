@@ -138,8 +138,10 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
 }
 
 void Texture::destroy(Renderer* renderer) {
-    vkDestroySampler(renderer->device, sampler, nullptr);
-    vkDestroyImageView(renderer->device, view, nullptr);
+    if (!is_empty()) {
+        vkDestroySampler(renderer->device, sampler, nullptr);
+        vkDestroyImageView(renderer->device, view, nullptr);
 
-    vmaDestroyImage(renderer->allocator, image, img_allocation);
+        vmaDestroyImage(renderer->allocator, image, img_allocation);
+    }
 }

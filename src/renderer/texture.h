@@ -21,11 +21,17 @@ struct TextureCreateInfo {
 
 struct Renderer;
 struct Texture {
-    Texture() {}
+    Texture() 
+        : image(VK_NULL_HANDLE)
+    {}
     Texture(Renderer* renderer, TextureCreateInfo ci);
 
     void destroy(Renderer* renderer);
 
+    bool is_empty() const {
+        return image == VK_NULL_HANDLE;
+    }
+    
     VmaAllocation img_allocation;
     VkImage image;
     VkImageLayout image_layout;
