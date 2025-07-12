@@ -5,9 +5,47 @@
 #include <span>
 
 namespace initializers {
-    inline VkImageCreateInfo image_create_info() {
+    inline VkImageCreateInfo image_create_info(VkFormat format, VkImageUsageFlags usage_flags, VkExtent3D extent, uint32_t mip_levels = 1) {
         return VkImageCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = format,
+            .extent = extent,
+            .mipLevels = mip_levels,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = usage_flags,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
+    }
+
+    inline VkExtent3D extent_3D(uint32_t width, uint32_t height, uint32_t depth = 1) {
+        return VkExtent3D {
+            .width = width, 
+            .height = height,
+            .depth = depth
+        };
+    }
+
+    inline VkOffset3D offset_3D(int32_t x = 0, int32_t y = 0, int32_t z = 0) {
+        return VkOffset3D {
+            .x = x, 
+            .y = y,
+            .z = z
+        };
+    }
+
+    inline VkBufferImageCopy buffer_image_copy(VkImageSubresourceLayers image_subresource_layers, VkExtent3D image_extent, VkOffset3D image_offset = VkOffset3D{0,0,0}, VkDeviceSize buffer_offset = 0) {
+        return VkBufferImageCopy {
+            .bufferOffset = buffer_offset,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = image_subresource_layers,
+            .imageOffset = image_offset,
+            .imageExtent = image_extent
         };
     }
 
@@ -156,5 +194,34 @@ namespace initializers {
             .pStencilAttachment = nullptr,
         };
     }
-    
+
+    inline VkImageSubresourceLayers image_subresource_layers(VkImageAspectFlags aspect_mask, uint32_t mip_level, uint32_t layer_count = 1) {
+        return VkImageSubresourceLayers {
+            .aspectMask = aspect_mask,
+            .mipLevel = mip_level,
+            .baseArrayLayer = 0,
+            .layerCount = layer_count,
+        };
+    }
+
+    inline VkImageSubresourceRange image_subresource_range(VkImageAspectFlags aspect_mask, uint32_t level_count = 1, uint32_t layer_count = 1) {
+        return VkImageSubresourceRange {
+            .aspectMask = aspect_mask,
+            .baseMipLevel = 0,
+            .levelCount = level_count,
+            .baseArrayLayer = 0,
+            .layerCount = layer_count,
+        };
+    }
+
+    inline VkImageViewCreateInfo image_view_create_info(VkFormat format, VkImage image, VkImageSubresourceRange subresource_range) {
+        return VkImageViewCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .image = image,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = format,
+            .subresourceRange = subresource_range
+        };
+    }
 };

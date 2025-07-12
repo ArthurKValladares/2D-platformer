@@ -22,36 +22,20 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     this->height = ci.height;
     this->mip_levels = 1;
 
-    VkImageCreateInfo image_create_info = initializers::image_create_info();
-    image_create_info.imageType = VK_IMAGE_TYPE_2D;
-    image_create_info.format = ci.format;
-    image_create_info.mipLevels = mip_levels;
-    image_create_info.arrayLayers = 1;
-    image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_create_info.extent = {
-        .width = width, 
-        .height = height,
-        .depth = 1
-    };
-    image_create_info.usage = 
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-
-    VmaAllocationCreateInfo image_alloc_ci = {
+    const VkExtent3D image_extent = initializers::extent_3D(width, height);
+    const VkImageCreateInfo image_create_info = initializers::image_create_info(
+        ci.format,
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        image_extent,
+        mip_levels
+    );
+    const VmaAllocationCreateInfo image_alloc_ci = {
         .usage = VMA_MEMORY_USAGE_AUTO
     };
     chk(vmaCreateImage(renderer->allocator, &image_create_info, &image_alloc_ci, &image, &img_allocation, nullptr));
 
+    const VkImageSubresourceRange subresource_range = initializers::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT, mip_levels);
     renderer->immediate_submit([&](VkCommandBuffer cmd) {
-        VkImageSubresourceRange subresource_range = {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = mip_levels,
-            .layerCount = 1
-        };
-
         tools::set_image_layout(
             cmd,
             image,
@@ -60,23 +44,8 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
             subresource_range
         );
 
-        VkBufferImageCopy region{
-            .bufferOffset = 0,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = 0,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
-            .imageOffset = {0, 0, 0},
-            .imageExtent = {
-                width,
-                height,
-                1
-            }
-        };
+        const VkImageSubresourceLayers layer = initializers::image_subresource_layers(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+        const VkBufferImageCopy region = initializers::buffer_image_copy(layer, image_extent);
         vkCmdCopyBufferToImage(
             cmd,
             staging_buffer.raw,
@@ -98,20 +67,7 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
    
     staging_buffer.destroy(renderer->allocator);
 
-    VkImageViewCreateInfo view_create_info = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = image,
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = ci.format,
-        .components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A },
-        .subresourceRange = { 
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = mip_levels,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        },
-    };
+    const VkImageViewCreateInfo view_create_info = initializers::image_view_create_info(ci.format, image, subresource_range);
     chk(vkCreateImageView(renderer->device, &view_create_info, nullptr, &view));
 
     VkSamplerCreateInfo sampler_create_info = initializers::sampler_create_info();
