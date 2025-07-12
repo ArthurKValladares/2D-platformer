@@ -24,7 +24,7 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     const VkExtent3D image_extent = initializers::extent_3D(width, height);
     const VkImageCreateInfo image_create_info = initializers::image_create_info(
         ci.format,
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         image_extent
     );
     const VmaAllocationCreateInfo image_alloc_ci = {
@@ -53,7 +53,7 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
             &region
         );
 
-        this->image_layout = ci.image_layout;
+        this->image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         tools::set_image_layout(
             cmd,
             image,

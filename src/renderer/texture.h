@@ -9,7 +9,6 @@ struct TextureCreateInfo {
     uint32_t height;
     VkFormat format;
     VkImageUsageFlags image_usage_flags = VK_IMAGE_USAGE_SAMPLED_BIT;
-    VkImageLayout image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     bool create_sampler = true;
     VkFilter mag_filter = VK_FILTER_LINEAR;
     VkFilter min_filter = VK_FILTER_LINEAR;
