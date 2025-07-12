@@ -33,7 +33,6 @@ struct Texture {
     }
     
     uint32_t width, height;
-    uint32_t mip_levels;
 
     VmaAllocation img_allocation;
     VkImage image;

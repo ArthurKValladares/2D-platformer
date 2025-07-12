@@ -20,21 +20,19 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
 
     this->width = ci.width;
     this->height = ci.height;
-    this->mip_levels = 1;
 
     const VkExtent3D image_extent = initializers::extent_3D(width, height);
     const VkImageCreateInfo image_create_info = initializers::image_create_info(
         ci.format,
         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        image_extent,
-        mip_levels
+        image_extent
     );
     const VmaAllocationCreateInfo image_alloc_ci = {
         .usage = VMA_MEMORY_USAGE_AUTO
     };
     chk(vmaCreateImage(renderer->allocator, &image_create_info, &image_alloc_ci, &image, &img_allocation, nullptr));
 
-    const VkImageSubresourceRange subresource_range = initializers::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT, mip_levels);
+    const VkImageSubresourceRange subresource_range = initializers::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
     renderer->immediate_submit([&](VkCommandBuffer cmd) {
         tools::set_image_layout(
             cmd,
@@ -70,19 +68,7 @@ Texture::Texture(Renderer* renderer, TextureCreateInfo ci) {
     const VkImageViewCreateInfo view_create_info = initializers::image_view_create_info(ci.format, image, subresource_range);
     chk(vkCreateImageView(renderer->device, &view_create_info, nullptr, &view));
 
-    VkSamplerCreateInfo sampler_create_info = initializers::sampler_create_info();
-    sampler_create_info.magFilter = ci.mag_filter;
-    sampler_create_info.minFilter = ci.min_filter;
-    sampler_create_info.mipmapMode = ci.mipmap_mode;
-    sampler_create_info.addressModeU = ci.address_mode_u;
-    sampler_create_info.addressModeV = ci.address_mode_v;
-    sampler_create_info.addressModeW = ci.address_mode_v;
-    sampler_create_info.mipLodBias = 0.0f;
-    sampler_create_info.compareOp = VK_COMPARE_OP_NEVER;
-    sampler_create_info.minLod = 0.0f;
-    sampler_create_info.maxLod = (float) mip_levels;
-    sampler_create_info.maxAnisotropy = renderer->properties.limits.maxSamplerAnisotropy;
-    sampler_create_info.anisotropyEnable = renderer->enabled_features.samplerAnisotropy;
+    VkSamplerCreateInfo sampler_create_info = initializers::sampler_create_info(ci.mag_filter, ci.min_filter, ci.mipmap_mode, ci.address_mode_u, ci.address_mode_v, ci.address_mode_w);    
     chk(vkCreateSampler(renderer->device, &sampler_create_info, nullptr, &sampler));
 
     descriptor.sampler = sampler;

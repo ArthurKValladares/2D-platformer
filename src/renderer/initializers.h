@@ -5,14 +5,14 @@
 #include <span>
 
 namespace initializers {
-    inline VkImageCreateInfo image_create_info(VkFormat format, VkImageUsageFlags usage_flags, VkExtent3D extent, uint32_t mip_levels = 1) {
+    inline VkImageCreateInfo image_create_info(VkFormat format, VkImageUsageFlags usage_flags, VkExtent3D extent) {
         return VkImageCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
             .imageType = VK_IMAGE_TYPE_2D,
             .format = format,
             .extent = extent,
-            .mipLevels = mip_levels,
+            .mipLevels = 1,
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
@@ -118,10 +118,17 @@ namespace initializers {
         };
     }
 
-    inline VkSamplerCreateInfo sampler_create_info() {
+    inline VkSamplerCreateInfo sampler_create_info(VkFilter mag_filter, VkFilter min_filter, VkSamplerMipmapMode mipmap_mode, VkSamplerAddressMode address_mode_u, VkSamplerAddressMode address_mode_v, VkSamplerAddressMode address_mode_w) {
         return VkSamplerCreateInfo {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .maxAnisotropy = 1.0f
+            .magFilter = mag_filter,
+            .minFilter = min_filter,
+            .mipmapMode = mipmap_mode,
+            .addressModeU = address_mode_u,
+            .addressModeV = address_mode_v,
+            .addressModeW = address_mode_w,
+            .maxAnisotropy = 1.0,
+            .compareOp = VK_COMPARE_OP_NEVER,
         };
     }
 
@@ -195,22 +202,22 @@ namespace initializers {
         };
     }
 
-    inline VkImageSubresourceLayers image_subresource_layers(VkImageAspectFlags aspect_mask, uint32_t mip_level, uint32_t layer_count = 1) {
+    inline VkImageSubresourceLayers image_subresource_layers(VkImageAspectFlags aspect_mask, uint32_t mip_level) {
         return VkImageSubresourceLayers {
             .aspectMask = aspect_mask,
             .mipLevel = mip_level,
             .baseArrayLayer = 0,
-            .layerCount = layer_count,
+            .layerCount = 1,
         };
     }
 
-    inline VkImageSubresourceRange image_subresource_range(VkImageAspectFlags aspect_mask, uint32_t level_count = 1, uint32_t layer_count = 1) {
+    inline VkImageSubresourceRange image_subresource_range(VkImageAspectFlags aspect_mask) {
         return VkImageSubresourceRange {
             .aspectMask = aspect_mask,
             .baseMipLevel = 0,
-            .levelCount = level_count,
+            .levelCount = 1,
             .baseArrayLayer = 0,
-            .layerCount = layer_count,
+            .layerCount = 1,
         };
     }
 
