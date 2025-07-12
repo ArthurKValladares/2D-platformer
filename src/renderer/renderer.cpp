@@ -220,7 +220,7 @@ Renderer::Renderer(Window& window) {
 
     // Sync objects
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VkCommandBufferAllocateInfo command_buffer_ai = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, .commandPool = command_pool, .commandBufferCount = 1 };
+        VkCommandBufferAllocateInfo command_buffer_ai = initializers::command_buffer_allocate_info(command_pool);
         chk(vkAllocateCommandBuffers(device, &command_buffer_ai, &command_buffers[i]));
         VkFenceCreateInfo fence_ci = { .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .flags = VK_FENCE_CREATE_SIGNALED_BIT };
         vkCreateFence(device, &fence_ci, nullptr, &fences[i]);
@@ -228,6 +228,11 @@ Renderer::Renderer(Window& window) {
         chk(vkCreateSemaphore(device, &semaphore_ci, nullptr, &present_semaphores[i]));
         chk(vkCreateSemaphore(device, &semaphore_ci, nullptr, &render_semaphores[i]));
     }
+
+    VkCommandBufferAllocateInfo command_buffer_ai = initializers::command_buffer_allocate_info(command_pool);
+    chk(vkAllocateCommandBuffers(device, &command_buffer_ai, &imm_command_buffer));
+    VkFenceCreateInfo fenceCreateInfo = initializers::fence_create_info(VK_FENCE_CREATE_SIGNALED_BIT);
+    chk(vkCreateFence(device, &fenceCreateInfo, nullptr, &imm_fence));
 
     // Descriptor Pool
     // TODO: This max_descriptor_count thing sucks, better dyanamic descriptor pool size stuff later,
@@ -805,6 +810,26 @@ void Renderer::flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queu
         // TODO: transfer
         vkFreeCommandBuffers(device, cmd_pool, 1, &command_buffer);
     }
+}
+
+void Renderer::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function)
+{
+    chk(vkResetFences(device, 1, &imm_fence));
+    chk(vkResetCommandBuffer(imm_command_buffer, 0));
+
+    VkCommandBufferBeginInfo cmd_begin_info = initializers::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    chk(vkBeginCommandBuffer(imm_command_buffer, &cmd_begin_info));
+
+    function(imm_command_buffer);
+
+    chk(vkEndCommandBuffer(imm_command_buffer));
+
+    VkCommandBufferSubmitInfo cmdinfo = initializers::command_buffer_submit_info(imm_command_buffer);
+    VkSubmitInfo2 submit = initializers::submit_info(&cmdinfo, nullptr, nullptr);
+
+    chk(vkQueueSubmit2(graphics_queue, 1, &submit, imm_fence));
+
+    chk(vkWaitForFences(device, 1, &imm_fence, true, DEFAULT_FENCE_TIMEOUT));
 }
 
 BufferID Renderer::request_buffer(VkBufferUsageFlags usage, VmaAllocationCreateFlags allocation_flags, VmaMemoryUsage vma_usage, uint64_t size_bytes)  {

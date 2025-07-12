@@ -20,9 +20,9 @@ namespace initializers {
     }
 
     inline VkCommandBufferAllocateInfo command_buffer_allocate_info(
-        VkCommandPool command_pool, 
-        VkCommandBufferLevel level, 
-        uint32_t buffer_count)
+        VkCommandPool command_pool,
+        VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        uint32_t buffer_count = 1)
     {
         return VkCommandBufferAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -32,9 +32,38 @@ namespace initializers {
         };
     }
 
-    inline VkCommandBufferBeginInfo command_buffer_begin_info() {
+    inline VkCommandBufferBeginInfo command_buffer_begin_info(VkCommandBufferUsageFlags flags = 0) {
         return VkCommandBufferBeginInfo {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .pNext = nullptr,
+            .flags = flags,
+            .pInheritanceInfo = nullptr
+        };
+    }
+
+    inline VkCommandBufferSubmitInfo command_buffer_submit_info(VkCommandBuffer cmd) {
+        return VkCommandBufferSubmitInfo {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+            .pNext = nullptr,
+            .commandBuffer = cmd,
+            .deviceMask = 0,
+        };        
+    }
+
+    inline VkSubmitInfo2 submit_info(
+        VkCommandBufferSubmitInfo* cmd,
+        VkSemaphoreSubmitInfo* signal_semaphore_info,
+        VkSemaphoreSubmitInfo* wait_semaphore_info
+    ) {
+        return VkSubmitInfo2 {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .pNext = nullptr,
+            .waitSemaphoreInfoCount = wait_semaphore_info == nullptr ? (uint32_t) 0 : (uint32_t) 1,
+            .pWaitSemaphoreInfos = wait_semaphore_info,
+            .commandBufferInfoCount = (uint32_t) 1,
+            .pCommandBufferInfos = cmd,
+            .signalSemaphoreInfoCount = signal_semaphore_info == nullptr ? (uint32_t) 0 : (uint32_t) 1,
+            .pSignalSemaphoreInfos = signal_semaphore_info
         };
     }
 

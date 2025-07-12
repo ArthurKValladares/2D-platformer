@@ -101,6 +101,7 @@ struct Renderer {
     //
     VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false, VkQueueFlagBits queue_ty = VK_QUEUE_GRAPHICS_BIT);
     void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true, VkQueueFlagBits queue_type = VK_QUEUE_GRAPHICS_BIT);
+    void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 
     //
     // imgui
@@ -155,6 +156,9 @@ private:
     // TODO: One command pool per frame in flight?
     VkCommandPool command_pool = VK_NULL_HANDLE;
 
+    VkFence imm_fence;
+    VkCommandBuffer imm_command_buffer;
+    
     std::vector<VkCommandBuffer> command_buffers;
     std::vector<VkFence> fences;
     std::vector<VkSemaphore> present_semaphores;
