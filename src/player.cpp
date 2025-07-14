@@ -6,10 +6,10 @@ void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& co
 
     // NOTE: We handle the y axis separately here since jumping is a special case due to gravity
     glm::vec2 displacement_vec = keyboard_state.displacement_vector(displacement_per_second, frame_dt, SDLK_A, SDLK_D, SDLK_UNKNOWN, SDLK_UNKNOWN);
-
     displacement_vec.y = movement_vec.y;
+
     if (!is_mid_jump && keyboard_state.was_just_pressed(SDLK_SPACE) && ((total_elapsed_time - last_jump) > jump_delay)) {
-        displacement_vec.y += gravity_force * jump_force_scale;
+        displacement_vec.y = gravity_force * jump_force_scale;
         is_mid_jump = true;
     }
     displacement_vec.y -= gravity_force;

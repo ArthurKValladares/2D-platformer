@@ -136,13 +136,35 @@ struct Game final : View {
             should_show_ui = !should_show_ui;
         }
 
-        // Test if game is won
-        const Rect2D end_rect = get_tile_rect(maps[map_idx].end.col, maps[map_idx].end.row);
-        if (player.rect.intersects(end_rect)) {
-            map_idx = (map_idx + 1) % maps.size();
-            setup_collision_grid();
+        // Testing if we are picking up a pickup
+        for (TilePickup& pickup : maps[map_idx].pickups) {
+            if (!pickup.is_active) continue;
 
-            player.rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
+            const Rect2D pickup_rect = get_tile_rect(pickup.pos.col, pickup.pos.row);
+
+            if (player.rect.intersects(pickup_rect)) {
+                switch (pickup.ty) {
+                    case TileType::End: {
+                        map_idx = (map_idx + 1) % maps.size();
+                        player.rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
+                        setup_collision_grid();
+
+                        break;
+                    }
+                    case TileType::DoubleJump: {
+                        player.last_jump = -player.jump_delay;
+                        player.is_mid_jump = false;
+
+                        pickup.is_active = false;
+
+                        break;
+                    }
+                    default: {
+                        assert(false && "TileType is not a pickup");
+                        break;
+                    }
+                }
+            }
         }
 
         camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
@@ -175,6 +197,8 @@ struct Game final : View {
         }
 
         for (const TilePickup& pickup : opt_map.pickups) {
+            if (!pickup.is_active) continue;
+
             Rect2D rect = get_tile_rect(pickup.pos.col, pickup.pos.row, 1, 1);
             
             const TextureSource item_tex = tile_type_to_item_texture(pickup.ty);

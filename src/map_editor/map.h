@@ -23,6 +23,7 @@ struct MergedTile {
 struct TilePickup {
     TilePosition pos;
     TileType ty;
+    bool is_active;
 };
 
 struct OptimizedMap {
