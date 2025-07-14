@@ -146,7 +146,9 @@ struct Game final : View {
                 switch (pickup.ty) {
                     case TileType::End: {
                         map_idx = (map_idx + 1) % maps.size();
-                        player.rect.pos = glm::vec2(maps[map_idx].start.col * TILE_SIZE, maps[map_idx].start.row * TILE_SIZE);
+                        player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
+                        player.movement_vec = glm::vec2(0.0);
+
                         setup_collision_grid();
 
                         break;
@@ -164,6 +166,16 @@ struct Game final : View {
                         break;
                     }
                 }
+            }
+        }
+
+        // TODO: hacky reset, should have a function for it later
+        if (context.keyboard_state.was_just_pressed(SDLK_R)) {
+            player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
+            player.movement_vec = glm::vec2(0.0);
+
+            for (TilePickup& pickup : maps[map_idx].pickups) {
+                pickup.is_active = true;
             }
         }
 
