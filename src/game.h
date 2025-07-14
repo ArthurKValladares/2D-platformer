@@ -171,16 +171,19 @@ struct Game final : View {
                     texture_id(tile_type_to_texture(ty)),
                     tile_type_to_color(ty)
                 ));
-
-                const TextureSource item_tex = tile_type_to_item_texture(ty);
-                if (item_tex != TextureSource::Count) {
-                    renderable.push_child(colored_quad(
-                        rect,
-                        texture_id(item_tex),
-                        tile_type_to_color(ty)
-                    ));
-                }
             }
+        }
+
+        for (const TilePickup& pickup : opt_map.pickups) {
+            Rect2D rect = get_tile_rect(pickup.pos.col, pickup.pos.row, 1, 1);
+            
+            const TextureSource item_tex = tile_type_to_item_texture(pickup.ty);
+            assert(item_tex != TextureSource::Count);
+            renderable.push_child(colored_quad(
+                rect,
+                texture_id(item_tex),
+                tile_type_to_color(pickup.ty)
+            ));
         }
 
         player.add_to_renderable(&renderable, total_elapsed_time);

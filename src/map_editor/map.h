@@ -19,12 +19,19 @@ struct MergedTile {
     uint32_t width;
 };
 
+// TODO: Pickup system needs to be better
+struct TilePickup {
+    TilePosition pos;
+    TileType ty;
+};
+
 struct OptimizedMap {
     std::vector<MergedTile> tiles;
     TilePosition start;
     TilePosition end;
     uint32_t width;
     uint32_t height;
+    std::vector<TilePickup> pickups;
 };
 
 struct MapLayout {
@@ -36,4 +43,5 @@ struct MapLayout {
     std::vector<std::vector<TileType>> tiles;
     TilePosition start;
     TilePosition end;
+    std::vector<TilePickup> pickups;
 };

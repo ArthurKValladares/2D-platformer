@@ -7,13 +7,14 @@
 
 #define TILE_SIZE 1.0
 
+// TODO: Right now `End` is both a special case and not. Just make it a pickup later
 /*[[[cog
 import cog
 cases = [
-    ['Path', ' ', 'Path', '', [255, 255, 255]],
-    ['Wall', '#', 'Wall', '', [255, 255, 255]],
-    ['Start', 'S', 'Path', '', [255, 255, 255]],
-    ['End', 'E', 'Path', 'End', [255, 255, 255]],
+    ['Path',       ' ', 'Path', '',        [255, 255, 255]],
+    ['Wall',       '#', 'Wall', '',        [255, 255, 255]],
+    ['Start',      'S', 'Path', '',        [255, 255, 255]],
+    ['End',        'E', 'Path', 'End',     [255, 255, 255]],
     ['DoubleJump', 'D', 'Path', 'Diamond', [255, 255, 255]]
 ]
 ]]]*/

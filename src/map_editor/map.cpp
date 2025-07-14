@@ -43,6 +43,19 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
                 end = {row, col};
             }
 
+            // TODO: Better way to handle pickups, a flag or something? Instead of havaing to check all types.
+            if (ty == TileType::End || ty == TileType::DoubleJump) {
+                pickups.push_back(
+                    TilePickup{
+                        .pos = TilePosition{
+                            .row = row,
+                            .col = col
+                        },
+                        .ty = ty
+                    }
+                );
+            }
+
             tiles_this_line.emplace_back(ty);
         }
         tiles.emplace_back(std::move(tiles_this_line));
@@ -58,6 +71,10 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
     std::reverse(tiles.begin(), tiles.end());   
     start.row = row - 1 - start.row;
     end.row = row - 1 - end.row;
+
+    for (TilePickup& pickup : pickups) {
+        pickup.pos.row = row - 1 - pickup.pos.row;
+    }
 }
 
 OptimizedMap MapLayout::optimize() const {
@@ -122,7 +139,8 @@ OptimizedMap MapLayout::optimize() const {
         .start = start,
         .end = end,
         .width = (uint32_t) tiles[0].size(),
-        .height = (uint32_t) tiles.size()
+        .height = (uint32_t) tiles.size(),
+        .pickups = pickups
     };
 
     return optimized;
