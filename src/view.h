@@ -5,8 +5,6 @@
 #include "renderer/renderer.h"
 #include "renderables/includes.h"
 
-// TODO: Context structs
-
 struct UpdateContext {
     Window& window;
     KeyboardState& keyboard_state;

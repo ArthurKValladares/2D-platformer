@@ -13,7 +13,8 @@ cases = [
     ['Path', ' ', 'Path', '', [255, 255, 255]],
     ['Wall', '#', 'Wall', '', [255, 255, 255]],
     ['Start', 'S', 'Path', '', [255, 255, 255]],
-    ['End', 'E', 'Path', 'End', [255, 255, 255]]
+    ['End', 'E', 'Path', 'End', [255, 255, 255]],
+    ['DoubleJump', 'D', 'Path', 'Diamond', [255, 255, 255]]
 ]
 ]]]*/
 //[[[end]]]
@@ -28,6 +29,7 @@ enum class TileType : unsigned char {
     Wall,
     Start,
     End,
+    DoubleJump,
     //[[[end]]]
     Count
 };
@@ -52,6 +54,7 @@ static char tile_type_to_char(TileType ty) {
         case TileType::Wall: { return '#'; }
         case TileType::Start: { return 'S'; }
         case TileType::End: { return 'E'; }
+        case TileType::DoubleJump: { return 'D'; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -72,6 +75,7 @@ static TileType char_to_tile_type(char c) {
         case '#': { return TileType::Wall; }
         case 'S': { return TileType::Start; }
         case 'E': { return TileType::End; }
+        case 'D': { return TileType::DoubleJump; }
         //[[[end]]]
         default: {
             assert(false &&"Char does not match a TileType");
@@ -92,6 +96,7 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         case TileType::Wall: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::Start: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::End: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::DoubleJump: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -112,6 +117,7 @@ static TextureSource tile_type_to_texture(TileType ty) {
         case TileType::Wall: { return TextureSource::Wall; }
         case TileType::Start: { return TextureSource::Path; }
         case TileType::End: { return TextureSource::Path; }
+        case TileType::DoubleJump: { return TextureSource::Path; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -130,6 +136,7 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
                 cog.outl("case TileType::%s: { return TextureSource::%s; }" % (tile_type, texture))
         ]]]*/
         case TileType::End: { return TextureSource::End; }
+        case TileType::DoubleJump: { return TextureSource::Diamond; }
         //[[[end]]]
         default: {
             return TextureSource::Count;

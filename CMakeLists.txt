@@ -46,6 +46,7 @@ add_executable(${PROJECT_NAME}
   src/player.cpp
   src/text_rendering.cpp
   src/ui.cpp
+  src/pickup.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp

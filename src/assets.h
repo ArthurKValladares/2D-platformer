@@ -48,6 +48,7 @@ enum class TextureSource : uint32_t {
     for texture in formatted_textures:
         cog.outl("%s," % texture)
     ]]]*/
+    Diamond,
     End,
     Go1,
     Go2,
@@ -76,6 +77,9 @@ inline const char* texture_path(TextureSource texture) {
             % (texture, texture_path, texture_file),
             dedent=True, trimblanklines=True)
         ]]]*/
+        case TextureSource::Diamond: {
+            return "assets/textures/diamond.png";
+        }
         case TextureSource::End: {
             return "assets/textures/end.png";
         }
@@ -136,6 +140,9 @@ inline const char* texture_name(TextureSource texture) {
             % (texture, texture),
             dedent=True, trimblanklines=True)
         ]]]*/
+        case TextureSource::Diamond: {
+            return "Diamond";
+        }
         case TextureSource::End: {
             return "End";
         }
@@ -196,6 +203,7 @@ inline const char** texture_names() {
     cog.outl("return names;")
     ]]]*/
     static const char* names[] = {
+        "Diamond",
         "End",
         "Go1",
         "Go2",
