@@ -146,10 +146,7 @@ struct Game final : View {
                 switch (pickup.ty) {
                     case TileType::End: {
                         map_idx = (map_idx + 1) % maps.size();
-                        player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
-                        player.movement_vec = glm::vec2(0.0);
-
-                        setup_collision_grid();
+                        reset();
 
                         break;
                     }
@@ -161,6 +158,11 @@ struct Game final : View {
 
                         break;
                     }
+                    case TileType::Spike: {
+                        reset();
+
+                        break;
+                    }
                     default: {
                         assert(false && "TileType is not a pickup");
                         break;
@@ -169,14 +171,8 @@ struct Game final : View {
             }
         }
 
-        // TODO: hacky reset, should have a function for it later
         if (context.keyboard_state.was_just_pressed(SDLK_R)) {
-            player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
-            player.movement_vec = glm::vec2(0.0);
-
-            for (TilePickup& pickup : maps[map_idx].pickups) {
-                pickup.is_active = true;
-            }
+            reset();
         }
 
         camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
@@ -265,6 +261,17 @@ struct Game final : View {
             ui.draw_imgui();
             
             ImGui::TreePop();
+        }
+    }
+
+    void reset() {
+        player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
+        player.movement_vec = glm::vec2(0.0);
+
+        setup_collision_grid();
+
+        for (TilePickup& pickup : maps[map_idx].pickups) {
+            pickup.is_active = true;
         }
     }
 

@@ -60,6 +60,7 @@ enum class TextureSource : uint32_t {
     Go8,
     Particle,
     Path,
+    Spike,
     Wall,
     //[[[end]]]
     Count
@@ -112,6 +113,9 @@ inline const char* texture_path(TextureSource texture) {
         }
         case TextureSource::Path: {
             return "assets/textures/path.jpg";
+        }
+        case TextureSource::Spike: {
+            return "assets/textures/spike.png";
         }
         case TextureSource::Wall: {
             return "assets/textures/wall.jpg";
@@ -176,6 +180,9 @@ inline const char* texture_name(TextureSource texture) {
         case TextureSource::Path: {
             return "Path";
         }
+        case TextureSource::Spike: {
+            return "Spike";
+        }
         case TextureSource::Wall: {
             return "Wall";
         }
@@ -215,6 +222,7 @@ inline const char** texture_names() {
         "Go8",
         "Particle",
         "Path",
+        "Spike",
         "Wall",
     };
     return names;
