@@ -20,6 +20,10 @@ struct Player {
         , gravity_force(0.005)
         , jump_force_scale(30.0)
         , jump_delay(0.05)
+        , already_dashed(false)
+        , last_dash(0.0)
+        , dash_force(1.0)
+        , dash_delay(0.05)
     {}
 
     void update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
@@ -52,10 +56,16 @@ struct Player {
     Rect2D rect;
     SpriteAnimation sprite;
     glm::vec2 movement_vec;
-    bool is_mid_jump;
-    double last_jump;
 
     float gravity_force;
+
+    bool is_mid_jump;
+    double last_jump;
     float jump_force_scale;
     float jump_delay;
+
+    bool already_dashed;
+    double last_dash;
+    float dash_force;
+    float dash_delay;
 };

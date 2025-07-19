@@ -12,6 +12,13 @@ void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& co
         displacement_vec.y = gravity_force * jump_force_scale;
         is_mid_jump = true;
     }
+    if (!already_dashed && keyboard_state.was_just_pressed(SDLK_LSHIFT) && ((total_elapsed_time - last_dash) > dash_delay)) {
+        const float dir = displacement_vec.x >= 0.0 
+            ? 1.0
+            : -1.0;
+        displacement_vec.x += dash_force * dir;
+        already_dashed = true;
+    }
     displacement_vec.y -= gravity_force;
 
     std::vector<CollisionGrid::CollisionData> collisions;
@@ -20,12 +27,13 @@ void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& co
     rect.pos += non_colliding_disp;
     
     // TODO: Might need to add more data to the CollisionData struct to better determine if we've hit the ground or not
+    // right now we are just resetting collisions in general
     const auto it = std::find_if(collisions.begin(), collisions.end(), [&](CollisionGrid::CollisionData data) {
         return data.rect.max_y() == rect.min_y();
     });
-    if (it != collisions.end() && is_mid_jump) {
+    if (it != collisions.end()) {
         is_mid_jump = false;
-        last_jump = total_elapsed_time;
+        already_dashed = false;
     }
 
     movement_vec = non_colliding_disp;
