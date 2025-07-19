@@ -151,3 +151,22 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
         }
     }
 }
+
+static bool is_pickup(TileType ty) {
+    switch (ty) {
+        /*[[[cog
+        for case in cases:
+            tile_type = case[0]
+            texture = case[3]
+            if texture != '':
+                cog.outl("case TileType::%s: { return true; }" % tile_type)
+        ]]]*/
+        case TileType::End: { return true; }
+        case TileType::DoubleJump: { return true; }
+        case TileType::Spike: { return true; }
+        //[[[end]]]
+        default: {
+            return false;
+        }
+    }
+}

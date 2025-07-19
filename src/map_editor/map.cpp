@@ -43,9 +43,8 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
                 end = {row, col};
             }
 
-            // TODO: Better way to handle pickups, a flag or something? Instead of havaing to check all types.
-            // Also TODO, the `is_active` thing should be in the map declaration somehow
-            if (ty == TileType::End || ty == TileType::DoubleJump || ty == TileType::Spike) {
+            // TODO: the `is_active` thing should be in the map declaration somehow
+            if (is_pickup(ty)) {
                 pickups.push_back(
                     TilePickup{
                         .pos = TilePosition{
