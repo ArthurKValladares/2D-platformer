@@ -16,7 +16,8 @@ cases = [
     ['Start',      'S', 'Path', '',        [255, 255, 255]],
     ['End',        'E', 'Path', 'End',     [255, 255, 255]],
     ['DoubleJump', 'D', 'Path', 'Diamond', [255, 255, 255]],
-    ['Spike',      '^', 'Path', 'Spike',   [255, 255, 255]]
+    ['Spike',      '^', 'Path', 'Spike',   [255, 255, 255]],
+    ['Enemy',      'B', 'Path', 'Enemy',   [255, 255, 255]],
 ]
 ]]]*/
 //[[[end]]]

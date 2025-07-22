@@ -50,6 +50,7 @@ enum class TextureSource : uint32_t {
     ]]]*/
     Diamond,
     End,
+    Enemy,
     Go1,
     Go2,
     Go3,
@@ -83,6 +84,9 @@ inline const char* texture_path(TextureSource texture) {
         }
         case TextureSource::End: {
             return "assets/textures/end.png";
+        }
+        case TextureSource::Enemy: {
+            return "assets/textures/enemy.png";
         }
         case TextureSource::Go1: {
             return "assets/textures/go_1.png";
@@ -150,6 +154,9 @@ inline const char* texture_name(TextureSource texture) {
         case TextureSource::End: {
             return "End";
         }
+        case TextureSource::Enemy: {
+            return "Enemy";
+        }
         case TextureSource::Go1: {
             return "Go1";
         }
@@ -212,6 +219,7 @@ inline const char** texture_names() {
     static const char* names[] = {
         "Diamond",
         "End",
+        "Enemy",
         "Go1",
         "Go2",
         "Go3",

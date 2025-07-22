@@ -163,6 +163,9 @@ struct Game final : View {
 
                         break;
                     }
+                    case TileType::Enemy: {
+                        break;
+                    }
                     default: {
                         assert(false && "TileType is not a pickup");
                         break;
