@@ -164,6 +164,15 @@ struct Game final : View {
                         break;
                     }
                     case TileType::Enemy: {
+                        // TODO: I'm repeating some of the collision code from above here, need to clean that up
+                        const glm::vec2 intersection = player.rect.intersection_vector(pickup_rect);
+
+                        if (intersection.y < 0.0) {
+                            pickup.is_active = false;
+                            player.jump(collision_grid, total_elapsed_seconds);
+                        } else {
+                            reset();
+                        }
                         break;
                     }
                     default: {

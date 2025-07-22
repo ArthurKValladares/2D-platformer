@@ -28,6 +28,8 @@ struct Player {
 
     void update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
 
+    void jump(const CollisionGrid& collision_grid, double total_elapsed_time);
+    
     void add_to_renderable(Renderable* renderable, double total_elapsed_time) {
         Rect2D draw_rect = rect;
         if (movement_vec.x >= 0.0) {

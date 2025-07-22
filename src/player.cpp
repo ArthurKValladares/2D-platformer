@@ -1,6 +1,21 @@
 #include "player.h"
 
 
+void Player::jump(const CollisionGrid& collision_grid, double total_elapsed_time) {
+    // TODO: Kinda sloppy, duplicated code
+    is_mid_jump = true;
+    last_jump = total_elapsed_time;
+
+    const glm::vec2 displacement_vec = glm::vec2(0.0, gravity_force * jump_force_scale);
+
+    std::vector<CollisionGrid::CollisionData> collisions;
+    const glm::vec2 non_colliding_disp = collision_grid.get_collisions(rect, displacement_vec, &collisions);
+
+    rect.pos += non_colliding_disp;
+
+    movement_vec = non_colliding_disp;
+}
+
 void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time) {
     constexpr float displacement_per_second = 5.0;
 
@@ -11,6 +26,7 @@ void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& co
     if (!is_mid_jump && keyboard_state.was_just_pressed(SDLK_SPACE) && ((total_elapsed_time - last_jump) > jump_delay)) {
         displacement_vec.y = gravity_force * jump_force_scale;
         is_mid_jump = true;
+        last_jump = total_elapsed_time;
     }
     if (!already_dashed && keyboard_state.was_just_pressed(SDLK_LSHIFT) && ((total_elapsed_time - last_dash) > dash_delay)) {
         const float dir = displacement_vec.x >= 0.0 
@@ -18,6 +34,7 @@ void Player::update(const KeyboardState& keyboard_state, const CollisionGrid& co
             : -1.0;
         displacement_vec.x += dash_force * dir;
         already_dashed = true;
+        last_dash = total_elapsed_time;
     }
     displacement_vec.y -= gravity_force;
 
