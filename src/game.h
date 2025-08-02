@@ -103,9 +103,9 @@ struct Game final : View {
             []() {}
         );
 
-        // collision grid
         setup_collision_grid();
-        
+        setup_enemies();
+
         // global ds data
         global_set_data.write_shader_data_to_buffer(renderer);
         update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
@@ -183,16 +183,14 @@ struct Game final : View {
                 }
             }
         }
-        for (TileEnemy& enemy : maps[map_idx].enemies) {
+        for (Enemy& enemy : enemies) {
             if (!enemy.is_alive) continue;
 
-            const Rect2D enemy_rect = get_tile_rect(enemy.pos.col, enemy.pos.row);
-
-            if (player.rect.intersects(enemy_rect)) {
+            if (player.rect.intersects(enemy.rect)) {
                 switch (enemy.ty) {
-                    case TileType::BasicEnemy: {
+                    case EnemyType::Basic: {
                         // TODO: I'm repeating some of the collision code from above here, need to clean that up
-                        const glm::vec2 intersection = player.rect.intersection_vector(enemy_rect);
+                        const glm::vec2 intersection = player.rect.intersection_vector(enemy.rect);
 
                         if (intersection.y < 0.0) {
                             enemy.is_alive = false;
@@ -200,10 +198,6 @@ struct Game final : View {
                         } else {
                             reset();
                         }
-                        break;
-                    }
-                    default: {
-                        assert(false && "TileType is not an enemy");
                         break;
                     }
                 }
@@ -257,17 +251,13 @@ struct Game final : View {
                 tile_type_to_color(pickup.ty)
             ));
         }
-        for (const TileEnemy& enemy : opt_map.enemies) {
+        for (const Enemy& enemy : enemies) {
             if (!enemy.is_alive) continue;
-
-            Rect2D rect = get_tile_rect(enemy.pos.col, enemy.pos.row, 1, 1);
             
-            const TextureSource item_tex = tile_type_to_item_texture(enemy.ty);
-            assert(item_tex != TextureSource::Count);
             renderable.push_child(colored_quad(
-                rect,
-                texture_id(item_tex),
-                tile_type_to_color(enemy.ty)
+                enemy.rect,
+                texture_id(enemy.tex),
+                enemy.color
             ));
         }
 
@@ -317,11 +307,43 @@ struct Game final : View {
         }
     }
 
+    void setup_enemies() {
+        enemies.clear();
+
+        for (const TileEnemy& enemy : maps[map_idx].enemies) {
+            Rect2D rect = get_tile_rect(enemy.pos.col, enemy.pos.row, 1, 1);
+
+            const TextureSource tex = tile_type_to_item_texture(enemy.ty);
+            assert(tex != TextureSource::Count);
+
+            EnemyType ty;
+            switch (enemy.ty) {
+                case TileType::BasicEnemy: {
+                    ty = EnemyType::Basic;
+                    break;
+                }
+                default: {
+                    assert(false && "Tile is not an enemy");
+                    break;
+                }
+            }
+
+            enemies.push_back(Enemy{
+                .rect = rect,
+                .ty = ty,
+                .is_alive = enemy.is_alive,
+                .tex = tex,
+                .color = tile_type_to_color(enemy.ty)
+            });
+        }
+
+    }
     void reset() {
         player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
         player.movement_vec = glm::vec2(0.0);
 
         setup_collision_grid();
+        setup_enemies();
 
         for (TilePickup& pickup : maps[map_idx].pickups) {
             pickup.is_active = true;
@@ -332,6 +354,8 @@ struct Game final : View {
 
     uint64_t map_idx;
     std::vector<OptimizedMap> maps;
+    // Actual Game data, separate from the map definition
+    std::vector<Enemy> enemies;
 
     CollisionGrid collision_grid;
 
