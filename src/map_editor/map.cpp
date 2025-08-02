@@ -43,7 +43,7 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
                 end = {row, col};
             }
 
-            // TODO: the `is_active` thing should be in the map declaration somehow
+            // TODO: the `is_active` thing should be in the map declaration somehow, different layer?
             if (is_pickup(ty)) {
                 pickups.push_back(
                     TilePickup{
@@ -55,6 +55,17 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
                         .is_active = true,
                     }
                 );
+            }
+
+            if (is_enemy(ty)) {
+                enemies.push_back(TileEnemy {
+                    .pos = TilePosition{
+                        .row = row,
+                        .col = col
+                    },
+                    .ty = ty,
+                    .is_alive = true
+                });
             }
 
             tiles_this_line.emplace_back(ty);
@@ -75,6 +86,9 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
 
     for (TilePickup& pickup : pickups) {
         pickup.pos.row = row - 1 - pickup.pos.row;
+    }
+    for (TileEnemy& enemy : enemies) {
+        enemy.pos.row = row - 1 - enemy.pos.row;
     }
 }
 
@@ -141,7 +155,8 @@ OptimizedMap MapLayout::optimize() const {
         .end = end,
         .width = (uint32_t) tiles[0].size(),
         .height = (uint32_t) tiles.size(),
-        .pickups = pickups
+        .pickups = pickups,
+        .enemies = enemies
     };
 
     return optimized;

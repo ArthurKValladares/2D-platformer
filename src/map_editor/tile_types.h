@@ -17,7 +17,17 @@ cases = [
     ['End',        'E', 'Path', 'End',     [255, 255, 255]],
     ['DoubleJump', 'D', 'Path', 'Diamond', [255, 255, 255]],
     ['Spike',      '^', 'Path', 'Spike',   [255, 255, 255]],
-    ['Enemy',      'B', 'Path', 'Enemy',   [255, 255, 255]],
+    ['BasicEnemy',      'B', 'Path', 'Enemy',   [255, 255, 255]],
+]
+
+pickups = [
+    'End',
+    'DoubleJump',
+    'Spike'
+]
+
+enemies = [
+    'BasicEnemy'
 ]
 ]]]*/
 //[[[end]]]
@@ -34,7 +44,7 @@ enum class TileType : unsigned char {
     End,
     DoubleJump,
     Spike,
-    Enemy,
+    BasicEnemy,
     //[[[end]]]
     Count
 };
@@ -61,7 +71,7 @@ static char tile_type_to_char(TileType ty) {
         case TileType::End: { return 'E'; }
         case TileType::DoubleJump: { return 'D'; }
         case TileType::Spike: { return '^'; }
-        case TileType::Enemy: { return 'B'; }
+        case TileType::BasicEnemy: { return 'B'; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -84,7 +94,7 @@ static TileType char_to_tile_type(char c) {
         case 'E': { return TileType::End; }
         case 'D': { return TileType::DoubleJump; }
         case '^': { return TileType::Spike; }
-        case 'B': { return TileType::Enemy; }
+        case 'B': { return TileType::BasicEnemy; }
         //[[[end]]]
         default: {
             assert(false &&"Char does not match a TileType");
@@ -107,7 +117,7 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         case TileType::End: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::DoubleJump: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
-        case TileType::Enemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -130,7 +140,7 @@ static TextureSource tile_type_to_texture(TileType ty) {
         case TileType::End: { return TextureSource::Path; }
         case TileType::DoubleJump: { return TextureSource::Path; }
         case TileType::Spike: { return TextureSource::Path; }
-        case TileType::Enemy: { return TextureSource::Path; }
+        case TileType::BasicEnemy: { return TextureSource::Path; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -151,7 +161,7 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
         case TileType::End: { return TextureSource::End; }
         case TileType::DoubleJump: { return TextureSource::Diamond; }
         case TileType::Spike: { return TextureSource::Spike; }
-        case TileType::Enemy: { return TextureSource::Enemy; }
+        case TileType::BasicEnemy: { return TextureSource::Enemy; }
         //[[[end]]]
         default: {
             return TextureSource::Count;
@@ -162,16 +172,26 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
 static bool is_pickup(TileType ty) {
     switch (ty) {
         /*[[[cog
-        for case in cases:
-            tile_type = case[0]
-            texture = case[3]
-            if texture != '':
-                cog.outl("case TileType::%s: { return true; }" % tile_type)
+        for pickup in pickups:
+            cog.outl("case TileType::%s: { return true; }" % pickup)
         ]]]*/
         case TileType::End: { return true; }
         case TileType::DoubleJump: { return true; }
         case TileType::Spike: { return true; }
-        case TileType::Enemy: { return true; }
+        //[[[end]]]
+        default: {
+            return false;
+        }
+    }
+}
+
+static bool is_enemy(TileType ty) {
+    switch (ty) {
+        /*[[[cog
+        for enemy in enemies:
+            cog.outl("case TileType::%s: { return true; }" % enemy)
+        ]]]*/
+        case TileType::BasicEnemy: { return true; }
         //[[[end]]]
         default: {
             return false;

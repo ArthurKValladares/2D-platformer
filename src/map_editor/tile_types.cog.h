@@ -17,7 +17,17 @@ cases = [
     ['End',        'E', 'Path', 'End',     [255, 255, 255]],
     ['DoubleJump', 'D', 'Path', 'Diamond', [255, 255, 255]],
     ['Spike',      '^', 'Path', 'Spike',   [255, 255, 255]],
-    ['Enemy',      'B', 'Path', 'Enemy',   [255, 255, 255]],
+    ['BasicEnemy',      'B', 'Path', 'Enemy',   [255, 255, 255]],
+]
+
+pickups = [
+    'End',
+    'DoubleJump',
+    'Spike'
+]
+
+enemies = [
+    'BasicEnemy'
 ]
 ]]]*/
 //[[[end]]]
@@ -123,11 +133,21 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
 static bool is_pickup(TileType ty) {
     switch (ty) {
         /*[[[cog
-        for case in cases:
-            tile_type = case[0]
-            texture = case[3]
-            if texture != '':
-                cog.outl("case TileType::%s: { return true; }" % tile_type)
+        for pickup in pickups:
+            cog.outl("case TileType::%s: { return true; }" % pickup)
+        ]]]*/
+        //[[[end]]]
+        default: {
+            return false;
+        }
+    }
+}
+
+static bool is_enemy(TileType ty) {
+    switch (ty) {
+        /*[[[cog
+        for enemy in enemies:
+            cog.outl("case TileType::%s: { return true; }" % enemy)
         ]]]*/
         //[[[end]]]
         default: {

@@ -8,6 +8,7 @@
 #include "ui.h"
 #include "button.h"
 #include "helpers.h"
+#include "enemy.h"
 
 #include "map_editor/map.h"
 
@@ -136,7 +137,7 @@ struct Game final : View {
             should_show_ui = !should_show_ui;
         }
 
-        // Testing if we are picking up a pickup
+        // TODO: Handle duplication
         for (TilePickup& pickup : maps[map_idx].pickups) {
             if (!pickup.is_active) continue;
 
@@ -163,7 +164,7 @@ struct Game final : View {
 
                         break;
                     }
-                    case TileType::Enemy: {
+                    case TileType::BasicEnemy: {
                         // TODO: I'm repeating some of the collision code from above here, need to clean that up
                         const glm::vec2 intersection = player.rect.intersection_vector(pickup_rect);
 
@@ -177,6 +178,32 @@ struct Game final : View {
                     }
                     default: {
                         assert(false && "TileType is not a pickup");
+                        break;
+                    }
+                }
+            }
+        }
+        for (TileEnemy& enemy : maps[map_idx].enemies) {
+            if (!enemy.is_alive) continue;
+
+            const Rect2D enemy_rect = get_tile_rect(enemy.pos.col, enemy.pos.row);
+
+            if (player.rect.intersects(enemy_rect)) {
+                switch (enemy.ty) {
+                    case TileType::BasicEnemy: {
+                        // TODO: I'm repeating some of the collision code from above here, need to clean that up
+                        const glm::vec2 intersection = player.rect.intersection_vector(enemy_rect);
+
+                        if (intersection.y < 0.0) {
+                            enemy.is_alive = false;
+                            player.jump(collision_grid, total_elapsed_seconds);
+                        } else {
+                            reset();
+                        }
+                        break;
+                    }
+                    default: {
+                        assert(false && "TileType is not an enemy");
                         break;
                     }
                 }
@@ -216,6 +243,7 @@ struct Game final : View {
             }
         }
 
+        // TODO: Handle duplication
         for (const TilePickup& pickup : opt_map.pickups) {
             if (!pickup.is_active) continue;
 
@@ -227,6 +255,19 @@ struct Game final : View {
                 rect,
                 texture_id(item_tex),
                 tile_type_to_color(pickup.ty)
+            ));
+        }
+        for (const TileEnemy& enemy : opt_map.enemies) {
+            if (!enemy.is_alive) continue;
+
+            Rect2D rect = get_tile_rect(enemy.pos.col, enemy.pos.row, 1, 1);
+            
+            const TextureSource item_tex = tile_type_to_item_texture(enemy.ty);
+            assert(item_tex != TextureSource::Count);
+            renderable.push_child(colored_quad(
+                rect,
+                texture_id(item_tex),
+                tile_type_to_color(enemy.ty)
             ));
         }
 

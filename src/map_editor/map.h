@@ -26,13 +26,21 @@ struct TilePickup {
     bool is_active;
 };
 
+struct TileEnemy {
+    TilePosition pos;
+    TileType ty;
+    bool is_alive;
+};
+
 struct OptimizedMap {
     std::vector<MergedTile> tiles;
     TilePosition start;
     TilePosition end;
     uint32_t width;
     uint32_t height;
+    // TODO: unecessary copy from regular map to optimized map
     std::vector<TilePickup> pickups;
+    std::vector<TileEnemy> enemies;
 };
 
 struct MapLayout {
@@ -45,4 +53,5 @@ struct MapLayout {
     TilePosition start;
     TilePosition end;
     std::vector<TilePickup> pickups;
+    std::vector<TileEnemy> enemies;
 };
