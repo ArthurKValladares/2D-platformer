@@ -185,6 +185,7 @@ struct Game final : View {
         }
         for (Enemy& enemy : enemies) {
             if (!enemy.is_alive) continue;
+            enemy.update(collision_grid, frame_dt, total_elapsed_seconds);
 
             if (player.rect.intersects(enemy.rect)) {
                 switch (enemy.ty) {
@@ -333,7 +334,8 @@ struct Game final : View {
                 .ty = ty,
                 .is_alive = enemy.is_alive,
                 .tex = tex,
-                .color = tile_type_to_color(enemy.ty)
+                .color = tile_type_to_color(enemy.ty),
+                .moving_left = true
             });
         }
 

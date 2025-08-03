@@ -1,0 +1,22 @@
+#include "enemy.h"
+
+void Enemy::update(const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time) {
+    constexpr float displacement_per_second = 3.0;
+
+    const float displacement_val = displacement_per_second * frame_dt;
+    glm::vec2 displacement_vec = moving_left 
+        ? glm::vec2(-displacement_val, 0.0) 
+        : glm::vec2(displacement_val, 0.0);
+
+    std::vector<CollisionGrid::CollisionData> collisions;
+    const glm::vec2 non_colliding_disp = collision_grid.get_collisions(rect, displacement_vec, &collisions);
+
+    rect.pos += non_colliding_disp;
+    
+    const auto it = std::find_if(collisions.begin(), collisions.end(), [&](CollisionGrid::CollisionData data) {
+        return (data.rect.min_x() == rect.max_x()) || (data.rect.max_x() == rect.min_x());
+    });
+    if (it != collisions.end()) {
+        moving_left = !moving_left;
+    }
+}
