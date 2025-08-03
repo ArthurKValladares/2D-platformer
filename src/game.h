@@ -255,11 +255,7 @@ struct Game final : View {
         for (const Enemy& enemy : enemies) {
             if (!enemy.is_alive) continue;
             
-            renderable.push_child(colored_quad(
-                enemy.rect,
-                texture_id(enemy.tex),
-                enemy.color
-            ));
+            renderable.push_child(enemy.draw());
         }
 
         player.add_to_renderable(&renderable, total_elapsed_time);

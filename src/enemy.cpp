@@ -20,3 +20,11 @@ void Enemy::update(const CollisionGrid& collision_grid, double frame_dt, double 
         moving_left = !moving_left;
     }
 }
+
+Renderable Enemy::draw() const {
+    return colored_quad(
+        rect,
+        texture_id(tex),
+        color 
+    );
+}

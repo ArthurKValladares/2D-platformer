@@ -6,12 +6,16 @@
 #include "collision_grid.h"
 #include "assets.h"
 
+#include "renderables/includes.h"
+
 enum class EnemyType {
     Basic
 };
 
 struct Enemy {
     void update(const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
+
+    Renderable draw() const;
 
     Rect2D rect;
     EnemyType ty;
