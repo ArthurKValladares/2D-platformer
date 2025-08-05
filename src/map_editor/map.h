@@ -29,7 +29,6 @@ struct TilePickup {
 struct TileEnemy {
     TilePosition pos;
     TileType ty;
-    bool is_alive;
 };
 
 struct OptimizedMap {

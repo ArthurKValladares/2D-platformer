@@ -310,29 +310,7 @@ struct Game final : View {
         for (const TileEnemy& enemy : maps[map_idx].enemies) {
             Rect2D rect = get_tile_rect(enemy.pos.col, enemy.pos.row, 1, 1);
 
-            const TextureSource tex = tile_type_to_item_texture(enemy.ty);
-            assert(tex != TextureSource::Count);
-
-            EnemyType ty;
-            switch (enemy.ty) {
-                case TileType::BasicEnemy: {
-                    ty = EnemyType::Basic;
-                    break;
-                }
-                default: {
-                    assert(false && "Tile is not an enemy");
-                    break;
-                }
-            }
-
-            enemies.push_back(Enemy{
-                .rect = rect,
-                .ty = ty,
-                .is_alive = enemy.is_alive,
-                .tex = tex,
-                .color = tile_type_to_color(enemy.ty),
-                .moving_left = true
-            });
+            enemies.push_back(Enemy(rect, enemy.ty));
         }
 
     }

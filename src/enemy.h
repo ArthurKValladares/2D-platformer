@@ -6,6 +6,8 @@
 #include "collision_grid.h"
 #include "assets.h"
 
+#include "map_editor/tile_types.h"
+
 #include "renderables/includes.h"
 
 enum class EnemyType {
@@ -13,6 +15,9 @@ enum class EnemyType {
 };
 
 struct Enemy {
+    Enemy() {}
+    Enemy(Rect2D rect, TileType tile_ty);
+
     void update(const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
 
     Renderable draw() const;

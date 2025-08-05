@@ -1,5 +1,26 @@
 #include "enemy.h"
 
+Enemy::Enemy(Rect2D rect, TileType tile_ty)
+    : rect(rect)
+    , tex(tile_type_to_item_texture(tile_ty))
+    , color(tile_type_to_color(tile_ty))
+    , is_alive(true)
+    , moving_left(true)
+{
+    assert(tex != TextureSource::Count);
+    
+    switch (tile_ty) {
+        case TileType::BasicEnemy: {
+            ty = EnemyType::Basic;
+            break;
+        }
+        default: {
+            assert(false && "Tile is not an enemy");
+            break;
+        }
+    }
+}
+
 void Enemy::update(const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time) {
     constexpr float displacement_per_second = 3.0;
 

@@ -63,8 +63,7 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
                         .row = row,
                         .col = col
                     },
-                    .ty = ty,
-                    .is_alive = true
+                    .ty = ty
                 });
             }
 
