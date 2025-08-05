@@ -19,16 +19,21 @@ struct MergedTile {
     uint32_t width;
 };
 
-// TODO: Pickup system needs to be better
+// TODO: 'Collidable' system needs to be better
 struct TilePickup {
     TilePosition pos;
     TileType ty;
     bool is_active;
 };
-
 struct TileEnemy {
     TilePosition pos;
     TileType ty;
+    bool is_active;
+};
+struct TileHazard {
+    TilePosition pos;
+    TileType ty;
+    bool is_active;
 };
 
 struct OptimizedMap {
@@ -40,6 +45,7 @@ struct OptimizedMap {
     // TODO: unecessary copy from regular map to optimized map
     std::vector<TilePickup> pickups;
     std::vector<TileEnemy> enemies;
+    std::vector<TileHazard> hazards;
 };
 
 struct MapLayout {
@@ -51,6 +57,8 @@ struct MapLayout {
     std::vector<std::vector<TileType>> tiles;
     TilePosition start;
     TilePosition end;
+    // TODO: unecessary copy from regular map to optimized map
     std::vector<TilePickup> pickups;
     std::vector<TileEnemy> enemies;
+    std::vector<TileHazard> hazards;
 };

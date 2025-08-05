@@ -56,14 +56,24 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
                     }
                 );
             }
-
             if (is_enemy(ty)) {
                 enemies.push_back(TileEnemy {
                     .pos = TilePosition{
                         .row = row,
                         .col = col
                     },
-                    .ty = ty
+                    .ty = ty,
+                    .is_active = true
+                });
+            }
+            if (is_hazard(ty)) {
+                hazards.push_back(TileHazard {
+                    .pos = TilePosition{
+                        .row = row,
+                        .col = col
+                    },
+                    .ty = ty,
+                    .is_active = true
                 });
             }
 
@@ -88,6 +98,9 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
     }
     for (TileEnemy& enemy : enemies) {
         enemy.pos.row = row - 1 - enemy.pos.row;
+    }
+    for (TileHazard& hazard : hazards) {
+        hazard.pos.row = row - 1 - hazard.pos.row;
     }
 }
 
@@ -155,7 +168,8 @@ OptimizedMap MapLayout::optimize() const {
         .width = (uint32_t) tiles[0].size(),
         .height = (uint32_t) tiles.size(),
         .pickups = pickups,
-        .enemies = enemies
+        .enemies = enemies,
+        .hazards = hazards
     };
 
     return optimized;

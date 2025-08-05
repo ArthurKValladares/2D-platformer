@@ -16,7 +16,7 @@ enum class EnemyType {
 
 struct Enemy {
     Enemy() {}
-    Enemy(Rect2D rect, TileType tile_ty);
+    Enemy(Rect2D rect, TileType tile_ty, bool is_alive);
 
     void update(const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time);
 

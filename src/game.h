@@ -127,15 +127,18 @@ struct Game final : View {
     }
 
     void update_fn(const UpdateContext& context, double total_elapsed_seconds, double frame_dt) {
+        if (context.keyboard_state.was_just_pressed(SDLK_R)) {
+            reset();
+        }
+        if (context.keyboard_state.was_just_pressed(SDLK_ESCAPE)) {
+            should_show_ui = !should_show_ui;
+        }
+
         player.update(context.keyboard_state, collision_grid, frame_dt, total_elapsed_seconds);
         camera.update(context.keyboard_state, frame_dt, total_elapsed_seconds);
         useless_button_0.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
         quit_button.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
         useless_button_1.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
-
-        if (context.keyboard_state.was_just_pressed(SDLK_ESCAPE)) {
-            should_show_ui = !should_show_ui;
-        }
 
         // TODO: Handle duplication
         for (TilePickup& pickup : maps[map_idx].pickups) {
@@ -159,21 +162,23 @@ struct Game final : View {
 
                         break;
                     }
+                    default: {
+                        assert(false && "TileType is not a pickup");
+                        break;
+                    }
+                }
+            }
+        }
+        for (TileHazard& hazard : maps[map_idx].hazards) {
+            if (!hazard.is_active) continue;
+
+            const Rect2D hazard_rect = get_tile_rect(hazard.pos.col, hazard.pos.row);
+
+            if (player.rect.intersects(hazard_rect)) {
+                switch (hazard.ty) {
                     case TileType::Spike: {
                         reset();
 
-                        break;
-                    }
-                    case TileType::BasicEnemy: {
-                        // TODO: I'm repeating some of the collision code from above here, need to clean that up
-                        const glm::vec2 intersection = player.rect.intersection_vector(pickup_rect);
-
-                        if (intersection.y < 0.0) {
-                            pickup.is_active = false;
-                            player.jump(collision_grid, total_elapsed_seconds);
-                        } else {
-                            reset();
-                        }
                         break;
                     }
                     default: {
@@ -203,10 +208,6 @@ struct Game final : View {
                     }
                 }
             }
-        }
-
-        if (context.keyboard_state.was_just_pressed(SDLK_R)) {
-            reset();
         }
 
         camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
@@ -250,6 +251,20 @@ struct Game final : View {
                 rect,
                 texture_id(item_tex),
                 tile_type_to_color(pickup.ty)
+            ));
+        }
+        for (const TileHazard& hazard : opt_map.hazards) {
+            if (!hazard.is_active) continue;
+
+            Rect2D rect = get_tile_rect(hazard.pos.col, hazard.pos.row, 1, 1);
+            
+            const TextureSource item_tex = tile_type_to_item_texture(hazard.ty);
+            assert(item_tex != TextureSource::Count);
+
+            renderable.push_child(colored_quad(
+                rect,
+                texture_id(item_tex),
+                tile_type_to_color(hazard.ty)
             ));
         }
         for (const Enemy& enemy : enemies) {
@@ -310,7 +325,7 @@ struct Game final : View {
         for (const TileEnemy& enemy : maps[map_idx].enemies) {
             Rect2D rect = get_tile_rect(enemy.pos.col, enemy.pos.row, 1, 1);
 
-            enemies.push_back(Enemy(rect, enemy.ty));
+            enemies.push_back(Enemy(rect, enemy.ty, enemy.is_active));
         }
 
     }
@@ -321,8 +336,12 @@ struct Game final : View {
         setup_collision_grid();
         setup_enemies();
 
+        // TODO: Not really a full reset, need to separate the map definition from the game definition
         for (TilePickup& pickup : maps[map_idx].pickups) {
             pickup.is_active = true;
+        }
+        for (TileHazard& hazard : maps[map_idx].hazards) {
+            hazard.is_active = true;
         }
     }
 

@@ -1,14 +1,14 @@
 #include "enemy.h"
 
-Enemy::Enemy(Rect2D rect, TileType tile_ty)
+Enemy::Enemy(Rect2D rect, TileType tile_ty, bool is_alive)
     : rect(rect)
     , tex(tile_type_to_item_texture(tile_ty))
     , color(tile_type_to_color(tile_ty))
-    , is_alive(true)
+    , is_alive(is_alive)
     , moving_left(true)
 {
     assert(tex != TextureSource::Count);
-    
+
     switch (tile_ty) {
         case TileType::BasicEnemy: {
             ty = EnemyType::Basic;
@@ -22,6 +22,8 @@ Enemy::Enemy(Rect2D rect, TileType tile_ty)
 }
 
 void Enemy::update(const CollisionGrid& collision_grid, double frame_dt, double total_elapsed_time) {
+    if (!is_alive) return;
+    
     constexpr float displacement_per_second = 3.0;
 
     const float displacement_val = displacement_per_second * frame_dt;

@@ -22,12 +22,13 @@ cases = [
 
 pickups = [
     'End',
-    'DoubleJump',
-    'Spike'
+    'DoubleJump'
 ]
-
 enemies = [
     'BasicEnemy'
+]
+hazards = [
+    'Spike'
 ]
 ]]]*/
 //[[[end]]]
@@ -142,12 +143,23 @@ static bool is_pickup(TileType ty) {
         }
     }
 }
-
 static bool is_enemy(TileType ty) {
     switch (ty) {
         /*[[[cog
         for enemy in enemies:
             cog.outl("case TileType::%s: { return true; }" % enemy)
+        ]]]*/
+        //[[[end]]]
+        default: {
+            return false;
+        }
+    }
+}
+static bool is_hazard(TileType ty) {
+    switch (ty) {
+        /*[[[cog
+        for hazard in hazards:
+            cog.outl("case TileType::%s: { return true; }" % hazard)
         ]]]*/
         //[[[end]]]
         default: {
