@@ -9,6 +9,7 @@
 #include "button.h"
 #include "helpers.h"
 #include "enemy.h"
+#include "pickup.h"
 
 #include "map_editor/map.h"
 
@@ -105,6 +106,7 @@ struct Game final : View {
 
         setup_collision_grid();
         setup_enemies();
+        setup_pickups();
 
         // global ds data
         global_set_data.write_shader_data_to_buffer(renderer);
@@ -141,29 +143,23 @@ struct Game final : View {
         useless_button_1.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
 
         // TODO: Handle duplication
-        for (TilePickup& pickup : maps[map_idx].pickups) {
+        for (Pickup& pickup : pickups) {
             if (!pickup.is_active) continue;
 
-            const Rect2D pickup_rect = get_tile_rect(pickup.pos.col, pickup.pos.row);
-
-            if (player.rect.intersects(pickup_rect)) {
+            if (player.rect.intersects(pickup.rect)) {
                 switch (pickup.ty) {
-                    case TileType::End: {
+                    case PickupType::End: {
                         map_idx = (map_idx + 1) % maps.size();
                         reset();
 
                         break;
                     }
-                    case TileType::DoubleJump: {
+                    case PickupType::DoubleJump: {
                         player.last_jump = -player.jump_delay;
                         player.is_mid_jump = false;
 
                         pickup.is_active = false;
 
-                        break;
-                    }
-                    default: {
-                        assert(false && "TileType is not a pickup");
                         break;
                     }
                 }
@@ -190,6 +186,7 @@ struct Game final : View {
         }
         for (Enemy& enemy : enemies) {
             if (!enemy.is_alive) continue;
+
             enemy.update(collision_grid, frame_dt, total_elapsed_seconds);
 
             if (player.rect.intersects(enemy.rect)) {
@@ -240,18 +237,10 @@ struct Game final : View {
         }
 
         // TODO: Handle duplication
-        for (const TilePickup& pickup : opt_map.pickups) {
+        for (const Pickup& pickup : pickups) {
             if (!pickup.is_active) continue;
 
-            Rect2D rect = get_tile_rect(pickup.pos.col, pickup.pos.row, 1, 1);
-            
-            const TextureSource item_tex = tile_type_to_item_texture(pickup.ty);
-            assert(item_tex != TextureSource::Count);
-            renderable.push_child(colored_quad(
-                rect,
-                texture_id(item_tex),
-                tile_type_to_color(pickup.ty)
-            ));
+            renderable.push_child(pickup.draw());
         }
         for (const TileHazard& hazard : opt_map.hazards) {
             if (!hazard.is_active) continue;
@@ -329,17 +318,25 @@ struct Game final : View {
         }
 
     }
+    void setup_pickups() {
+        pickups.clear();
+
+        for (const TilePickup& pickup : maps[map_idx].pickups) {
+            Rect2D rect = get_tile_rect(pickup.pos.col, pickup.pos.row, 1, 1);
+
+            pickups.push_back(Pickup(rect, pickup.ty, pickup.is_active));
+        }
+    }
+
     void reset() {
         player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
         player.movement_vec = glm::vec2(0.0);
 
         setup_collision_grid();
         setup_enemies();
+        setup_pickups();
 
         // TODO: Not really a full reset, need to separate the map definition from the game definition
-        for (TilePickup& pickup : maps[map_idx].pickups) {
-            pickup.is_active = true;
-        }
         for (TileHazard& hazard : maps[map_idx].hazards) {
             hazard.is_active = true;
         }
@@ -351,6 +348,7 @@ struct Game final : View {
     std::vector<OptimizedMap> maps;
     // Actual Game data, separate from the map definition
     std::vector<Enemy> enemies;
+    std::vector<Pickup> pickups;
 
     CollisionGrid collision_grid;
 

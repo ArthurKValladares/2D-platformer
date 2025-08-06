@@ -1,17 +1,27 @@
 #pragma once
 
-#include <functional>
-
 #include "rect.h"
-#include "renderables/includes.h"
+#include "collision_grid.h"
 #include "assets.h"
+
+#include "map_editor/tile_types.h"
+
+#include "renderables/includes.h"
+
+enum class PickupType {
+    DoubleJump,
+    End
+};
 
 struct Pickup {
     Pickup() {}
+    Pickup(Rect2D rect, TileType tile_ty, bool is_active);
 
-    Renderable draw();
+    Renderable draw() const;
 
-    Rect2D location;
+    Rect2D rect;
+    PickupType ty;
     TextureSource texture;
-    glm::vec4 color;
+    glm::vec3 color;
+    bool is_active;
 };
