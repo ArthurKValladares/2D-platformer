@@ -61,6 +61,8 @@ enum class TextureSource : uint32_t {
     Go8,
     Particle,
     Path,
+    Saw,
+    SawShooter,
     Spike,
     Wall,
     //[[[end]]]
@@ -117,6 +119,12 @@ inline const char* texture_path(TextureSource texture) {
         }
         case TextureSource::Path: {
             return "assets/textures/path.jpg";
+        }
+        case TextureSource::Saw: {
+            return "assets/textures/saw.png";
+        }
+        case TextureSource::SawShooter: {
+            return "assets/textures/saw_shooter.png";
         }
         case TextureSource::Spike: {
             return "assets/textures/spike.png";
@@ -187,6 +195,12 @@ inline const char* texture_name(TextureSource texture) {
         case TextureSource::Path: {
             return "Path";
         }
+        case TextureSource::Saw: {
+            return "Saw";
+        }
+        case TextureSource::SawShooter: {
+            return "SawShooter";
+        }
         case TextureSource::Spike: {
             return "Spike";
         }
@@ -230,6 +244,8 @@ inline const char** texture_names() {
         "Go8",
         "Particle",
         "Path",
+        "Saw",
+        "SawShooter",
         "Spike",
         "Wall",
     };
