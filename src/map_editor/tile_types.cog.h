@@ -11,13 +11,14 @@
 /*[[[cog
 import cog
 cases = [
-    ['Path',       ' ', 'Path', '',        [255, 255, 255]],
-    ['Wall',       '#', 'Wall', '',        [255, 255, 255]],
-    ['Start',      'S', 'Path', '',        [255, 255, 255]],
-    ['End',        'E', 'Path', 'End',     [255, 255, 255]],
-    ['DoubleJump', 'D', 'Path', 'Diamond', [255, 255, 255]],
-    ['Spike',      '^', 'Path', 'Spike',   [255, 255, 255]],
-    ['BasicEnemy',      'B', 'Path', 'Enemy',   [255, 255, 255]],
+    ['Path',       ' ', 'Path', '',           [255, 255, 255]],
+    ['Wall',       '#', 'Wall', '',           [255, 255, 255]],
+    ['Start',      'S', 'Path', '',           [255, 255, 255]],
+    ['End',        'E', 'Path', 'End',        [255, 255, 255]],
+    ['DoubleJump', 'D', 'Path', 'Diamond',    [255, 255, 255]],
+    ['Spike',      '^', 'Path', 'Spike',      [255, 255, 255]],
+    ['BasicEnemy', 'B', 'Path', 'Enemy',      [255, 255, 255]],
+    ['SawShooter', 'U', 'Path', 'SawShooter', [255, 255, 255]],
 ]
 
 pickups = [
@@ -28,7 +29,8 @@ enemies = [
     'BasicEnemy'
 ]
 hazards = [
-    'Spike'
+    'Spike',
+    'SawShooter'
 ]
 ]]]*/
 //[[[end]]]

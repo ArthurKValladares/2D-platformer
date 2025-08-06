@@ -11,13 +11,14 @@
 /*[[[cog
 import cog
 cases = [
-    ['Path',       ' ', 'Path', '',        [255, 255, 255]],
-    ['Wall',       '#', 'Wall', '',        [255, 255, 255]],
-    ['Start',      'S', 'Path', '',        [255, 255, 255]],
-    ['End',        'E', 'Path', 'End',     [255, 255, 255]],
-    ['DoubleJump', 'D', 'Path', 'Diamond', [255, 255, 255]],
-    ['Spike',      '^', 'Path', 'Spike',   [255, 255, 255]],
-    ['BasicEnemy',      'B', 'Path', 'Enemy',   [255, 255, 255]],
+    ['Path',       ' ', 'Path', '',           [255, 255, 255]],
+    ['Wall',       '#', 'Wall', '',           [255, 255, 255]],
+    ['Start',      'S', 'Path', '',           [255, 255, 255]],
+    ['End',        'E', 'Path', 'End',        [255, 255, 255]],
+    ['DoubleJump', 'D', 'Path', 'Diamond',    [255, 255, 255]],
+    ['Spike',      '^', 'Path', 'Spike',      [255, 255, 255]],
+    ['BasicEnemy', 'B', 'Path', 'Enemy',      [255, 255, 255]],
+    ['SawShooter', 'U', 'Path', 'SawShooter', [255, 255, 255]],
 ]
 
 pickups = [
@@ -28,7 +29,8 @@ enemies = [
     'BasicEnemy'
 ]
 hazards = [
-    'Spike'
+    'Spike',
+    'SawShooter'
 ]
 ]]]*/
 //[[[end]]]
@@ -46,6 +48,7 @@ enum class TileType : unsigned char {
     DoubleJump,
     Spike,
     BasicEnemy,
+    SawShooter,
     //[[[end]]]
     Count
 };
@@ -73,6 +76,7 @@ static char tile_type_to_char(TileType ty) {
         case TileType::DoubleJump: { return 'D'; }
         case TileType::Spike: { return '^'; }
         case TileType::BasicEnemy: { return 'B'; }
+        case TileType::SawShooter: { return 'U'; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -96,6 +100,7 @@ static TileType char_to_tile_type(char c) {
         case 'D': { return TileType::DoubleJump; }
         case '^': { return TileType::Spike; }
         case 'B': { return TileType::BasicEnemy; }
+        case 'U': { return TileType::SawShooter; }
         //[[[end]]]
         default: {
             assert(false &&"Char does not match a TileType");
@@ -119,6 +124,7 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         case TileType::DoubleJump: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::SawShooter: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -142,6 +148,7 @@ static TextureSource tile_type_to_texture(TileType ty) {
         case TileType::DoubleJump: { return TextureSource::Path; }
         case TileType::Spike: { return TextureSource::Path; }
         case TileType::BasicEnemy: { return TextureSource::Path; }
+        case TileType::SawShooter: { return TextureSource::Path; }
         //[[[end]]]
         default: {
             assert(false && "Tile type not supported");
@@ -163,6 +170,7 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
         case TileType::DoubleJump: { return TextureSource::Diamond; }
         case TileType::Spike: { return TextureSource::Spike; }
         case TileType::BasicEnemy: { return TextureSource::Enemy; }
+        case TileType::SawShooter: { return TextureSource::SawShooter; }
         //[[[end]]]
         default: {
             return TextureSource::Count;
@@ -204,6 +212,7 @@ static bool is_hazard(TileType ty) {
             cog.outl("case TileType::%s: { return true; }" % hazard)
         ]]]*/
         case TileType::Spike: { return true; }
+        case TileType::SawShooter: { return true; }
         //[[[end]]]
         default: {
             return false;

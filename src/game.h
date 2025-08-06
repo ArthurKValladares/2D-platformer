@@ -170,16 +170,62 @@ struct Game final : View {
         for (Hazard& hazard : hazards) {
             if (!hazard.is_active) continue;
 
-            if (player.rect.intersects(hazard.rect)) {
-                switch (hazard.ty) {
-                    case HazardType::Spike: {
+            switch (hazard.ty) {
+                case HazardType::Spike: {
+                    if (player.rect.intersects(hazard.rect)) {
                         reset();
-
-                        break;
                     }
+
+                    break;
+                }
+                case HazardType::SawShooter: {
+                    if ((total_elapsed_seconds - hazard.last_fired) > hazard.firing_delay) {
+                        hazard.last_fired = total_elapsed_seconds;
+
+                        // TODO: a bunch of hard-coded stuff
+                        Hazard new_hazard = Hazard();
+                        new_hazard.rect = hazard.rect;
+                        new_hazard.ty = HazardType::Saw;
+                        new_hazard.texture = TextureSource::Saw;
+                        new_hazard.color = glm::vec3(1.0);
+                        new_hazard.is_active = true;
+                        new_hazard.movement_dir = hazard.shooting_dir;
+                        new_hazard.speed = 2.0;
+
+                        hazards.push_back(new_hazard);
+                    }
+
+                    break;
+                }
+                case HazardType::Saw: {
+                    std::vector<CollisionGrid::CollisionData> collisions;
+                    collision_grid.get_collisions(hazard.rect, glm::vec2(0.0), &collisions);
+                    if (!collisions.empty()) {
+                        // TODO: Will need to actually delete the hazard from the vector later
+                        hazard.is_active = false;
+                    }
+
+                    const glm::vec2 disp_vec = hazard.movement_dir * glm::vec2(hazard.speed * frame_dt);
+                    hazard.rect.pos += disp_vec;
+
+                    if (player.rect.intersects(hazard.rect)) {
+                        reset();
+                    }
+
+                    break;
                 }
             }
         }
+        hazards.erase(
+            std::remove_if(
+                hazards.begin(), 
+                hazards.end(),
+                [](const Hazard& hazard) { 
+                    return hazard.ty == HazardType::Saw && !hazard.is_active;
+                }
+            ),
+            hazards.end()
+        );
         for (Enemy& enemy : enemies) {
             if (!enemy.is_alive) continue;
 
