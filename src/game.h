@@ -10,6 +10,7 @@
 #include "helpers.h"
 #include "enemy.h"
 #include "pickup.h"
+#include "hazard.h"
 
 #include "map_editor/map.h"
 
@@ -107,6 +108,7 @@ struct Game final : View {
         setup_collision_grid();
         setup_enemies();
         setup_pickups();
+        setup_hazards();
 
         // global ds data
         global_set_data.write_shader_data_to_buffer(renderer);
@@ -165,20 +167,14 @@ struct Game final : View {
                 }
             }
         }
-        for (TileHazard& hazard : maps[map_idx].hazards) {
+        for (Hazard& hazard : hazards) {
             if (!hazard.is_active) continue;
 
-            const Rect2D hazard_rect = get_tile_rect(hazard.pos.col, hazard.pos.row);
-
-            if (player.rect.intersects(hazard_rect)) {
+            if (player.rect.intersects(hazard.rect)) {
                 switch (hazard.ty) {
-                    case TileType::Spike: {
+                    case HazardType::Spike: {
                         reset();
 
-                        break;
-                    }
-                    default: {
-                        assert(false && "TileType is not a pickup");
                         break;
                     }
                 }
@@ -242,19 +238,10 @@ struct Game final : View {
 
             renderable.push_child(pickup.draw());
         }
-        for (const TileHazard& hazard : opt_map.hazards) {
+        for (const Hazard& hazard : hazards) {
             if (!hazard.is_active) continue;
 
-            Rect2D rect = get_tile_rect(hazard.pos.col, hazard.pos.row, 1, 1);
-            
-            const TextureSource item_tex = tile_type_to_item_texture(hazard.ty);
-            assert(item_tex != TextureSource::Count);
-
-            renderable.push_child(colored_quad(
-                rect,
-                texture_id(item_tex),
-                tile_type_to_color(hazard.ty)
-            ));
+            renderable.push_child(hazard.draw());
         }
         for (const Enemy& enemy : enemies) {
             if (!enemy.is_alive) continue;
@@ -327,6 +314,15 @@ struct Game final : View {
             pickups.push_back(Pickup(rect, pickup.ty, pickup.is_active));
         }
     }
+    void setup_hazards() {
+        hazards.clear();
+
+        for (const TileHazard& hazard : maps[map_idx].hazards) {
+            Rect2D rect = get_tile_rect(hazard.pos.col, hazard.pos.row, 1, 1);
+
+            hazards.push_back(Hazard(rect, hazard.ty, hazard.is_active));
+        }
+    }
 
     void reset() {
         player.rect.pos = get_tile_rect(maps[map_idx].start.col, maps[map_idx].start.row).pos;
@@ -335,6 +331,7 @@ struct Game final : View {
         setup_collision_grid();
         setup_enemies();
         setup_pickups();
+        setup_hazards();
 
         // TODO: Not really a full reset, need to separate the map definition from the game definition
         for (TileHazard& hazard : maps[map_idx].hazards) {
@@ -349,6 +346,7 @@ struct Game final : View {
     // Actual Game data, separate from the map definition
     std::vector<Enemy> enemies;
     std::vector<Pickup> pickups;
+    std::vector<Hazard> hazards;
 
     CollisionGrid collision_grid;
 
