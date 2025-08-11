@@ -39,6 +39,7 @@ struct Player {
         renderable->push_child(moving_quad(
             draw_rect,
             glm::vec2(0.0, 0.0),
+            0.0,
             texture_id(sprite.texture_at(total_elapsed_time))
         ));
     }

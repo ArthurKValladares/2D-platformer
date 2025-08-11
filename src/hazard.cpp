@@ -1,5 +1,7 @@
 #include "hazard.h"
 
+#include <glm/gtx/vector_angle.hpp>
+
 Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
     : rect(rect)
     , texture(tile_type_to_item_texture(tile_ty))
@@ -31,9 +33,18 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
 }
 
 Renderable Hazard::draw() const {
-    return colored_quad(
-        rect,
-        texture_id(texture),
-        color
+    float rotation = 0.0;
+    if (ty == HazardType::SawShooter) {
+        const glm::vec2 default_saw_shooter_angle = glm::vec2(-1.0, 0.0);
+        rotation = glm::angle(shooting_dir, default_saw_shooter_angle) - glm::pi<float>();
+    }
+
+    const glm::vec2 translation = rect.pos;
+    return moving_quad(
+        Rect2D(glm::vec2(0.0), rect.size()),
+        translation,
+        rotation,
+        texture_id(texture)
+        //color
     );
 }

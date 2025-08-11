@@ -66,11 +66,13 @@ static RenderableRect flat_color_quad(Rect2D rect, glm::vec4 color) {
     );
 }
 
-static RenderableRect moving_quad(Rect2D rect, glm::vec2 offset, TextureID texture) {
+static RenderableRect moving_quad(Rect2D rect, glm::vec2 offset, float rotation_radians, TextureID texture) {
+    const glm::mat4 rotate_mat = glm::rotate(glm::mat4(1.0), rotation_radians, glm::vec3(0, 0, 1));
+
     return RenderableRect(
         rect,
         ShaderPair(
-            TriangleTransformVert(glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, offset.y, 0.0))),
+            TriangleTransformVert(glm::translate(glm::mat4(1.0), glm::vec3(offset.x, offset.y, 0.0)) * rotate_mat),
             TriangleFrag(texture)
         )
     );
