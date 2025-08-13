@@ -60,6 +60,9 @@ struct Rect2D {
 
     bool is_zero_sized() const;
 
+    bool intersects_x_plane(const Rect2D& other) const;
+    bool intersects_y_plane(const Rect2D& other) const;
+    
     bool intersects_point(glm::vec2 point) const;
     bool intersects(const Rect2D& other) const;
     glm::vec2 intersection_vector(const Rect2D& other) const;

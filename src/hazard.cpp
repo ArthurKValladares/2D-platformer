@@ -15,10 +15,20 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
             ty = HazardType::Spike;
             break;
         }
+        case TileType::MovingSpike: {
+            ty = HazardType::MovingSpike;
+
+            movement_dir = glm::vec2(0.0, -1.0);
+            speed = 2.0;
+            is_moving = false;
+            break;
+        }
         case TileType::SawShooter: {
             ty = HazardType::SawShooter;
 
-            // TODO: This is bad, I probably need separate constructors for each type, but this will do for now
+            // TODO: This is bad, I probably need separate constructors for each type, but this will do for now.
+            // Also, shooting dir needs to not be hard-coded, get it automatically from wall the shooter is attached to,
+            // just like i will do for the moving spike
             firing_delay = 3.0;
             last_fired = 0.0;
             shooting_dir = glm::vec2(0.0, 1.0);
@@ -37,6 +47,10 @@ Renderable Hazard::draw() const {
     if (ty == HazardType::SawShooter) {
         const glm::vec2 default_saw_shooter_angle = glm::vec2(-1.0, 0.0);
         rotation = glm::angle(shooting_dir, default_saw_shooter_angle) - glm::pi<float>();
+    }
+    if (ty == HazardType::MovingSpike) {
+        const glm::vec2 default_spike_angle = glm::vec2(0.0, 1.0);
+        rotation = glm::angle(movement_dir, default_spike_angle);
     }
 
     const glm::vec2 translation = rect.pos;

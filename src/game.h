@@ -178,6 +178,31 @@ struct Game final : View {
 
                     break;
                 }
+                case HazardType::MovingSpike: {
+                    // TODO: Duplicated code
+                    std::vector<CollisionGrid::CollisionData> collisions;
+                    collision_grid.get_collisions(hazard.rect, glm::vec2(0.0), &collisions);
+                    if (!collisions.empty()) {
+                        hazard.is_active = false;
+                    }
+
+                    if (!hazard.is_moving) {
+                        const bool should_move_in_x_plane = hazard.movement_dir.x != 0.0 && player.rect.intersects_y_plane(hazard.rect);
+                        const bool should_move_in_y_plane = hazard.movement_dir.y != 0.0 && player.rect.intersects_x_plane(hazard.rect);
+                        if (should_move_in_x_plane || should_move_in_y_plane) {
+                            hazard.is_moving = true;
+                        }
+                    } else {
+                        const glm::vec2 disp_vec = hazard.movement_dir * glm::vec2(hazard.speed * frame_dt);
+                        hazard.rect.pos += disp_vec;
+                    }
+
+                    if (player.rect.intersects(hazard.rect)) {
+                        reset();
+                    }
+
+                    break;
+                }
                 case HazardType::SawShooter: {
                     if ((total_elapsed_seconds - hazard.last_fired) > hazard.firing_delay) {
                         hazard.last_fired = total_elapsed_seconds;
@@ -201,7 +226,6 @@ struct Game final : View {
                     std::vector<CollisionGrid::CollisionData> collisions;
                     collision_grid.get_collisions(hazard.rect, glm::vec2(0.0), &collisions);
                     if (!collisions.empty()) {
-                        // TODO: Will need to actually delete the hazard from the vector later
                         hazard.is_active = false;
                     }
 
@@ -221,7 +245,8 @@ struct Game final : View {
                 hazards.begin(), 
                 hazards.end(),
                 [](const Hazard& hazard) { 
-                    return hazard.ty == HazardType::Saw && !hazard.is_active;
+                    // TODO: need a 'temporary' field in hazard
+                    return (hazard.ty == HazardType::Saw || hazard.ty == HazardType::MovingSpike) && !hazard.is_active;
                 }
             ),
             hazards.end()

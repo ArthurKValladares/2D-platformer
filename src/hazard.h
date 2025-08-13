@@ -10,6 +10,7 @@
 
 enum class HazardType {
     Spike,
+    MovingSpike,
     SawShooter,
     Saw
 };
@@ -26,12 +27,15 @@ struct Hazard {
     glm::vec3 color;
     bool is_active;
 
+    // TODO: Rotation should likely be its own separate/generic thing, a lot of hazards make sense to be rotated
     // TODO: type specific stuff, make into a union later.
     // saw-shooter
     double firing_delay;
     double last_fired;
     glm::vec2 shooting_dir;
-    // saw
+    // saw/moving spike
     glm::vec2 movement_dir;
     float speed;
+    // moving spike exclusive
+    bool is_moving;
 };

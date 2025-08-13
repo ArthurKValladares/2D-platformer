@@ -11,14 +11,15 @@
 /*[[[cog
 import cog
 cases = [
-    ['Path',       ' ', 'Path', '',           [255, 255, 255]],
-    ['Wall',       '#', 'Wall', '',           [255, 255, 255]],
-    ['Start',      'S', 'Path', '',           [255, 255, 255]],
-    ['End',        'E', 'Path', 'End',        [255, 255, 255]],
-    ['DoubleJump', 'D', 'Path', 'Diamond',    [255, 255, 255]],
-    ['Spike',      '^', 'Path', 'Spike',      [255, 255, 255]],
-    ['BasicEnemy', 'B', 'Path', 'Enemy',      [255, 255, 255]],
-    ['SawShooter', 'U', 'Path', 'SawShooter', [255, 255, 255]],
+    ['Path',        ' ', 'Path', '',           [255, 255, 255]],
+    ['Wall',        '#', 'Wall', '',           [255, 255, 255]],
+    ['Start',       'S', 'Path', '',           [255, 255, 255]],
+    ['End',         'E', 'Path', 'End',        [255, 255, 255]],
+    ['DoubleJump',  'D', 'Path', 'Diamond',    [255, 255, 255]],
+    ['Spike',       '^', 'Path', 'Spike',      [255, 255, 255]],
+    ['MovingSpike', 'V', 'Path', 'Spike',      [128, 128, 128]],
+    ['BasicEnemy',  'B', 'Path', 'Enemy',      [255, 255, 255]],
+    ['SawShooter',  'U', 'Path', 'SawShooter', [255, 255, 255]],
 ]
 
 pickups = [
@@ -30,6 +31,7 @@ enemies = [
 ]
 hazards = [
     'Spike',
+    'MovingSpike',
     'SawShooter'
 ]
 ]]]*/
@@ -47,6 +49,7 @@ enum class TileType : unsigned char {
     End,
     DoubleJump,
     Spike,
+    MovingSpike,
     BasicEnemy,
     SawShooter,
     //[[[end]]]
@@ -75,6 +78,7 @@ static char tile_type_to_char(TileType ty) {
         case TileType::End: { return 'E'; }
         case TileType::DoubleJump: { return 'D'; }
         case TileType::Spike: { return '^'; }
+        case TileType::MovingSpike: { return 'V'; }
         case TileType::BasicEnemy: { return 'B'; }
         case TileType::SawShooter: { return 'U'; }
         //[[[end]]]
@@ -99,6 +103,7 @@ static TileType char_to_tile_type(char c) {
         case 'E': { return TileType::End; }
         case 'D': { return TileType::DoubleJump; }
         case '^': { return TileType::Spike; }
+        case 'V': { return TileType::MovingSpike; }
         case 'B': { return TileType::BasicEnemy; }
         case 'U': { return TileType::SawShooter; }
         //[[[end]]]
@@ -123,6 +128,7 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         case TileType::End: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::DoubleJump: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::MovingSpike: { return glm::vec3(128 / 255., 128 / 255., 128 / 255.); }
         case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::SawShooter: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         //[[[end]]]
@@ -147,6 +153,7 @@ static TextureSource tile_type_to_texture(TileType ty) {
         case TileType::End: { return TextureSource::Path; }
         case TileType::DoubleJump: { return TextureSource::Path; }
         case TileType::Spike: { return TextureSource::Path; }
+        case TileType::MovingSpike: { return TextureSource::Path; }
         case TileType::BasicEnemy: { return TextureSource::Path; }
         case TileType::SawShooter: { return TextureSource::Path; }
         //[[[end]]]
@@ -169,6 +176,7 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
         case TileType::End: { return TextureSource::End; }
         case TileType::DoubleJump: { return TextureSource::Diamond; }
         case TileType::Spike: { return TextureSource::Spike; }
+        case TileType::MovingSpike: { return TextureSource::Spike; }
         case TileType::BasicEnemy: { return TextureSource::Enemy; }
         case TileType::SawShooter: { return TextureSource::SawShooter; }
         //[[[end]]]
@@ -212,6 +220,7 @@ static bool is_hazard(TileType ty) {
             cog.outl("case TileType::%s: { return true; }" % hazard)
         ]]]*/
         case TileType::Spike: { return true; }
+        case TileType::MovingSpike: { return true; }
         case TileType::SawShooter: { return true; }
         //[[[end]]]
         default: {
