@@ -187,11 +187,25 @@ struct Game final : View {
                     }
 
                     if (!hazard.is_moving) {
-                        // TODO: Not actually right, need to basically shoot a 'ray' from hazard dir and see if the first collision is the player
-                        const bool should_move_in_x_plane = hazard.dir.x != 0.0 && player.rect.intersects_y_plane(hazard.rect);
-                        const bool should_move_in_y_plane = hazard.dir.y != 0.0 && player.rect.intersects_x_plane(hazard.rect);
-                        if (should_move_in_x_plane || should_move_in_y_plane) {
-                            hazard.is_moving = true;
+                        const float distance = glm::distance(player.rect.pos, hazard.rect.pos);
+
+                        const bool should_check_in_x_plane =
+                            (hazard.dir.x == 1.0  && (player.rect.pos.x > hazard.rect.pos.x) && player.rect.intersects_y_plane(hazard.rect)) ||
+                            (hazard.dir.x == -1.0 && (player.rect.pos.x < hazard.rect.pos.x) && player.rect.intersects_y_plane(hazard.rect));
+
+                        const bool should_check_in_y_plane = 
+                            (hazard.dir.y == 1.0  && (player.rect.pos.y > hazard.rect.pos.y) && player.rect.intersects_x_plane(hazard.rect)) ||
+                            (hazard.dir.y == -1.0 && (player.rect.pos.y < hazard.rect.pos.y) && player.rect.intersects_x_plane(hazard.rect));
+
+                        if (should_check_in_x_plane || should_check_in_y_plane) {
+                            glm::vec2 ray = should_check_in_x_plane
+                                ? glm::vec2(hazard.dir.x * distance, 0.0)
+                                : glm::vec2(0.0, hazard.dir.y * distance);
+                            collision_grid.get_collisions(hazard.rect, ray, &collisions);
+                            // TODO: Empty means there is nothing in between the hazard and the player, i.e. the hazard can "see" the player
+                            if (collisions.empty()) {
+                                hazard.is_moving = true;
+                            }
                         }
                     } else {
                         const glm::vec2 disp_vec = hazard.dir * glm::vec2(hazard.speed * frame_dt);

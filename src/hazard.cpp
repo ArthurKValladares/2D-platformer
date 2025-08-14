@@ -10,7 +10,8 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active, glm::vec2 dir)
     , dir(dir)
 {
     assert(texture != TextureSource::Count);
-
+    assert(glm::length(dir) == 1.0);
+    
     switch (tile_ty) {
         case TileType::Spike: {
             ty = HazardType::Spike;
