@@ -10,13 +10,25 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
 	map_file.open(path, std::ios::in);
 	if (!map_file) {
 		std::print("Could not open file at: {}\n", path.string());
+        exit(-1);
 	}
     std::print("Loaded map at: {}\n", path.string());
+
+    std::filesystem::path hazard_path = path;
+    hazard_path.replace_extension("hazards");
+    std::fstream hazard_file;
+    hazard_file.open(hazard_path, std::ios::in);
+	if (!hazard_file) {
+		std::print("Could not open file at: {}\n", hazard_path.string());
+        exit(-1);
+	}
+    std::print("Loaded hazard file at: {}\n", hazard_path.string());
 
     start = {-1, -1};
     end = {-1, -1};
 
     std::string line;
+    std::string hazard_line;
 
     int num_cols = -1;
     int row = 0;
@@ -67,13 +79,31 @@ MapLayout::MapLayout(const std::filesystem::path& path) {
                 });
             }
             if (is_hazard(ty)) {
+                std::getline(hazard_file, hazard_line);
+
+                glm::vec2 dir;
+                if (hazard_line == "U")
+                {
+                    dir = glm::vec2(0.0, 1.0);
+                } else if (hazard_line == "D") {
+                    dir = glm::vec2(0.0, -1.0);
+                } else if (hazard_line == "L") {
+                    dir = glm::vec2(-1.0, 0.0);
+                } else if (hazard_line == "R") {
+                    dir = glm::vec2(1.0, 0.0);
+                } else {
+                    assert(false && "Invalid Hazard direction! Needs to be one of U, D, L, R");
+                    exit(-1);
+                }
+
                 hazards.push_back(TileHazard {
                     .pos = TilePosition{
                         .row = row,
                         .col = col
                     },
                     .ty = ty,
-                    .is_active = true
+                    .is_active = true,
+                    .dir = dir
                 });
             }
 

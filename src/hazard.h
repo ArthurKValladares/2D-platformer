@@ -17,7 +17,7 @@ enum class HazardType {
 
 struct Hazard {
     Hazard() {}
-    Hazard(Rect2D rect, TileType tile_ty, bool is_active);
+    Hazard(Rect2D rect, TileType tile_ty, bool is_active, glm::vec2 dir);
 
     Renderable draw() const;
 
@@ -26,15 +26,13 @@ struct Hazard {
     TextureSource texture;
     glm::vec3 color;
     bool is_active;
+    glm::vec2 dir;
 
-    // TODO: Rotation should likely be its own separate/generic thing, a lot of hazards make sense to be rotated
     // TODO: type specific stuff, make into a union later.
     // saw-shooter
     double firing_delay;
     double last_fired;
-    glm::vec2 shooting_dir;
     // saw/moving spike
-    glm::vec2 movement_dir;
     float speed;
     // moving spike exclusive
     bool is_moving;

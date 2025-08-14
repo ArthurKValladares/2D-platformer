@@ -34,6 +34,7 @@ struct TileHazard {
     TilePosition pos;
     TileType ty;
     bool is_active;
+    glm::vec2 dir;
 };
 
 struct OptimizedMap {

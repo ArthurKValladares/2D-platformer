@@ -187,13 +187,14 @@ struct Game final : View {
                     }
 
                     if (!hazard.is_moving) {
-                        const bool should_move_in_x_plane = hazard.movement_dir.x != 0.0 && player.rect.intersects_y_plane(hazard.rect);
-                        const bool should_move_in_y_plane = hazard.movement_dir.y != 0.0 && player.rect.intersects_x_plane(hazard.rect);
+                        // TODO: Not actually right, need to basically shoot a 'ray' from hazard dir and see if the first collision is the player
+                        const bool should_move_in_x_plane = hazard.dir.x != 0.0 && player.rect.intersects_y_plane(hazard.rect);
+                        const bool should_move_in_y_plane = hazard.dir.y != 0.0 && player.rect.intersects_x_plane(hazard.rect);
                         if (should_move_in_x_plane || should_move_in_y_plane) {
                             hazard.is_moving = true;
                         }
                     } else {
-                        const glm::vec2 disp_vec = hazard.movement_dir * glm::vec2(hazard.speed * frame_dt);
+                        const glm::vec2 disp_vec = hazard.dir * glm::vec2(hazard.speed * frame_dt);
                         hazard.rect.pos += disp_vec;
                     }
 
@@ -214,7 +215,7 @@ struct Game final : View {
                         new_hazard.texture = TextureSource::Saw;
                         new_hazard.color = glm::vec3(1.0);
                         new_hazard.is_active = true;
-                        new_hazard.movement_dir = hazard.shooting_dir;
+                        new_hazard.dir = hazard.dir;
                         new_hazard.speed = 2.0;
 
                         hazards.push_back(new_hazard);
@@ -229,7 +230,7 @@ struct Game final : View {
                         hazard.is_active = false;
                     }
 
-                    const glm::vec2 disp_vec = hazard.movement_dir * glm::vec2(hazard.speed * frame_dt);
+                    const glm::vec2 disp_vec = hazard.dir * glm::vec2(hazard.speed * frame_dt);
                     hazard.rect.pos += disp_vec;
 
                     if (player.rect.intersects(hazard.rect)) {
@@ -391,7 +392,7 @@ struct Game final : View {
         for (const TileHazard& hazard : maps[map_idx].hazards) {
             Rect2D rect = get_tile_rect(hazard.pos.col, hazard.pos.row, 1, 1);
 
-            hazards.push_back(Hazard(rect, hazard.ty, hazard.is_active));
+            hazards.push_back(Hazard(rect, hazard.ty, hazard.is_active, hazard.dir));
         }
     }
 

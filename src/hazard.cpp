@@ -2,11 +2,12 @@
 
 #include <glm/gtx/vector_angle.hpp>
 
-Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
+Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active, glm::vec2 dir)
     : rect(rect)
     , texture(tile_type_to_item_texture(tile_ty))
     , color(tile_type_to_color(tile_ty))
     , is_active(is_active)
+    , dir(dir)
 {
     assert(texture != TextureSource::Count);
 
@@ -18,9 +19,9 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
         case TileType::MovingSpike: {
             ty = HazardType::MovingSpike;
 
-            movement_dir = glm::vec2(0.0, -1.0);
             speed = 2.0;
             is_moving = false;
+
             break;
         }
         case TileType::SawShooter: {
@@ -31,7 +32,6 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
             // just like i will do for the moving spike
             firing_delay = 3.0;
             last_fired = 0.0;
-            shooting_dir = glm::vec2(0.0, 1.0);
 
             break;
         }
@@ -43,15 +43,8 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
 }
 
 Renderable Hazard::draw() const {
-    float rotation = 0.0;
-    if (ty == HazardType::SawShooter) {
-        const glm::vec2 default_saw_shooter_angle = glm::vec2(0.0, 1.0);
-        rotation = glm::angle(shooting_dir, default_saw_shooter_angle);
-    }
-    if (ty == HazardType::MovingSpike) {
-        const glm::vec2 default_spike_angle = glm::vec2(0.0, 1.0);
-        rotation = glm::angle(movement_dir, default_spike_angle);
-    }
+    const glm::vec2 default_hazard_angle = glm::vec2(0.0, 1.0);
+    const float rotation = glm::angle(dir, default_hazard_angle);
 
     const glm::vec2 translation = rect.pos;
     return moving_quad(

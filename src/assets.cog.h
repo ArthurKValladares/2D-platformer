@@ -13,16 +13,15 @@ import re
 from os import listdir
 from os.path import isfile, join
 
-filters = ["png", "jpg", "map"]
-
 shader_path = "shaders"
 texture_path = "assets/textures"
 maps_path = "assets/maps"
 
-def get_file_names(dir):
-    return [f for f in listdir(dir) if isfile(join(dir, f))]
+def get_file_names(dir, filter = ""):
+    all_files = [f for f in listdir(dir) if isfile(join(dir, f))]
+    return [f for f in all_files if f.endswith(filter)]
 
-def get_formatted_names(file_names):
+def get_formatted_names(file_names, filters = [""]):
     file_splits = [re.split(r'[_.]+', file_name) for file_name in file_names]
     capitalized_splits = [[section.capitalize() for section in split if filters.count(section) == 0] for split in file_splits]
     return [''.join(split) for split in capitalized_splits]
@@ -31,10 +30,10 @@ shader_files = get_file_names(shader_path)
 formatted_shaders = get_formatted_names(shader_files)
 
 texture_files = get_file_names(texture_path)
-formatted_textures = get_formatted_names(texture_files)
+formatted_textures = get_formatted_names(texture_files, ["png", "jpg"])
 
-map_files = get_file_names(maps_path)
-formatted_maps = get_formatted_names(map_files)
+map_files = get_file_names(maps_path, "map")
+formatted_maps = get_formatted_names(map_files, ["map"])
 
 ]]]*/
 //[[[end]]]
