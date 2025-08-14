@@ -45,8 +45,8 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active)
 Renderable Hazard::draw() const {
     float rotation = 0.0;
     if (ty == HazardType::SawShooter) {
-        const glm::vec2 default_saw_shooter_angle = glm::vec2(-1.0, 0.0);
-        rotation = glm::angle(shooting_dir, default_saw_shooter_angle) - glm::pi<float>();
+        const glm::vec2 default_saw_shooter_angle = glm::vec2(0.0, 1.0);
+        rotation = glm::angle(shooting_dir, default_saw_shooter_angle);
     }
     if (ty == HazardType::MovingSpike) {
         const glm::vec2 default_spike_angle = glm::vec2(0.0, 1.0);
