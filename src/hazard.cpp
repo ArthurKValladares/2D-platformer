@@ -44,7 +44,10 @@ Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active, glm::vec2 dir)
 
 Renderable Hazard::draw() const {
     const glm::vec2 default_hazard_angle = glm::vec2(0.0, 1.0);
-    const float rotation = glm::angle(dir, default_hazard_angle);
+    float rotation = glm::angle(dir, default_hazard_angle);
+    if (dir.x > 0.0) {
+        rotation -= glm::pi<float>();
+    }
 
     const glm::vec2 translation = rect.pos;
     return moving_quad(
