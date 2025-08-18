@@ -403,7 +403,37 @@ struct Game final : View {
         for (const TileHazard& hazard : maps[map_idx].hazards) {
             Rect2D rect = get_tile_rect(hazard.pos.col, hazard.pos.row, 1, 1);
 
-            hazards.push_back(Hazard(rect, hazard.ty, hazard.is_active, hazard.dir));
+            Hazard new_hazard = Hazard();
+            new_hazard.rect = rect;
+            new_hazard.texture = tile_type_to_item_texture(hazard.ty);
+            new_hazard.color = tile_type_to_item_color(hazard.ty);
+            new_hazard.is_active = hazard.is_active;
+            new_hazard.is_child = false;
+            new_hazard.dir = hazard.dir;
+            switch (hazard.ty) {
+                case TileType::Spike: {
+                    new_hazard.ty = HazardType::Spike;
+                    break;
+                }
+                case TileType::MovingSpike: {
+                    new_hazard.ty = HazardType::MovingSpike;
+                    new_hazard.speed = 2.0;
+                    new_hazard.is_moving = false;
+                    break;
+                }
+                case TileType::SawShooter: {
+                    new_hazard.ty = HazardType::SawShooter;
+                    new_hazard.firing_delay = 3.0;
+                    new_hazard.last_fired = 0.0;
+                    break;
+                }
+                default: {
+                    assert(false && "Tile is not a hazard");
+                    break;
+                }
+            }
+
+            hazards.push_back(new_hazard);
         }
     }
 

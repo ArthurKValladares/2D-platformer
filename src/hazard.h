@@ -17,7 +17,6 @@ enum class HazardType {
 
 struct Hazard {
     Hazard() {}
-    Hazard(Rect2D rect, TileType tile_ty, bool is_active, glm::vec2 dir);
 
     Renderable draw() const;
 
