@@ -179,7 +179,6 @@ struct Game final : View {
                     break;
                 }
                 case HazardType::MovingSpike: {
-                    // TODO: Duplicated code
                     std::vector<CollisionGrid::CollisionData> collisions;
                     collision_grid.get_collisions(hazard.rect, glm::vec2(0.0), &collisions);
                     if (!collisions.empty()) {
@@ -229,6 +228,7 @@ struct Game final : View {
                         new_hazard.texture = TextureSource::Saw;
                         new_hazard.color = glm::vec3(1.0);
                         new_hazard.is_active = true;
+                        new_hazard.is_child = true;
                         new_hazard.dir = hazard.dir;
                         new_hazard.speed = 2.0;
 
@@ -260,8 +260,7 @@ struct Game final : View {
                 hazards.begin(), 
                 hazards.end(),
                 [](const Hazard& hazard) { 
-                    // TODO: need a 'temporary' field in hazard
-                    return (hazard.ty == HazardType::Saw || hazard.ty == HazardType::MovingSpike) && !hazard.is_active;
+                    return hazard.is_child && !hazard.is_active;
                 }
             ),
             hazards.end()
@@ -271,12 +270,10 @@ struct Game final : View {
 
             enemy.update(collision_grid, frame_dt, total_elapsed_seconds);
 
-            if (player.rect.intersects(enemy.rect)) {
+            const glm::vec2 intersection = player.rect.intersection_vector(enemy.rect); 
+            if (intersection != glm::vec2(0.0)) {
                 switch (enemy.ty) {
                     case EnemyType::Basic: {
-                        // TODO: I'm repeating some of the collision code from above here, need to clean that up
-                        const glm::vec2 intersection = player.rect.intersection_vector(enemy.rect);
-
                         if (intersection.y < 0.0) {
                             enemy.is_alive = false;
                             player.jump(collision_grid, total_elapsed_seconds);

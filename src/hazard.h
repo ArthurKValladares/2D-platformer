@@ -26,6 +26,7 @@ struct Hazard {
     TextureSource texture;
     glm::vec3 color;
     bool is_active;
+    bool is_child;
     glm::vec2 dir;
 
     // TODO: type specific stuff, make into a union later.

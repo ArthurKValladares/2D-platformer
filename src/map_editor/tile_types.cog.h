@@ -7,7 +7,6 @@
 
 #define TILE_SIZE 1.0
 
-// TODO: Right now `End` is both a special case and not. Just make it a pickup later
 /*[[[cog
 import cog
 cases = [
