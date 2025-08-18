@@ -471,6 +471,8 @@ struct Game final : View {
 
     bool should_show_ui;
     UI ui;
+
+    // TODO: UI "page" abstraction
     Button useless_button_0;
     Button quit_button;
     Button useless_button_1;
