@@ -3,7 +3,7 @@
 Enemy::Enemy(Rect2D rect, TileType tile_ty, bool is_alive)
     : rect(rect)
     , tex(tile_type_to_item_texture(tile_ty))
-    , color(tile_type_to_color(tile_ty))
+    , color(tile_type_to_item_color(tile_ty))
     , is_alive(is_alive)
     , moving_left(true)
 {

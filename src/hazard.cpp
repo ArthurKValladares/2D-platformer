@@ -5,7 +5,7 @@
 Hazard::Hazard(Rect2D rect, TileType tile_ty, bool is_active, glm::vec2 dir)
     : rect(rect)
     , texture(tile_type_to_item_texture(tile_ty))
-    , color(tile_type_to_color(tile_ty))
+    , color(tile_type_to_item_color(tile_ty))
     , is_active(is_active)
     , dir(dir)
 {

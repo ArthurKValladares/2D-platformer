@@ -7,19 +7,18 @@
 
 #define TILE_SIZE 1.0
 
-// TODO: Right now `End` is both a special case and not. Just make it a pickup later
 /*[[[cog
 import cog
 cases = [
-    ['Path',        ' ', 'Path', '',           [255, 255, 255]],
-    ['Wall',        '#', 'Wall', '',           [255, 255, 255]],
-    ['Start',       'S', 'Path', '',           [255, 255, 255]],
-    ['End',         'E', 'Path', 'End',        [255, 255, 255]],
-    ['DoubleJump',  'D', 'Path', 'Diamond',    [255, 255, 255]],
-    ['Spike',       '^', 'Path', 'Spike',      [255, 255, 255]],
-    ['MovingSpike', 'V', 'Path', 'Spike',      [128, 128, 128]],
-    ['BasicEnemy',  'B', 'Path', 'Enemy',      [255, 255, 255]],
-    ['SawShooter',  'U', 'Path', 'SawShooter', [255, 255, 255]],
+    ['Path',        ' ', 'Path', '',           [255, 255, 255], [255, 255, 255]],
+    ['Wall',        '#', 'Wall', '',           [255, 255, 255], [255, 255, 255]],
+    ['Start',       'S', 'Path', '',           [255, 255, 255], [255, 255, 255]],
+    ['End',         'E', 'Path', 'End',        [255, 255, 255], [255, 255, 255]],
+    ['DoubleJump',  'D', 'Path', 'Diamond',    [255, 255, 255], [255, 255, 255]],
+    ['Spike',       '^', 'Path', 'Spike',      [255, 255, 255], [255, 255, 255]],
+    ['MovingSpike', 'V', 'Path', 'Spike',      [255, 255, 255], [128, 128, 128]],
+    ['BasicEnemy',  'B', 'Path', 'Enemy',      [255, 255, 255], [255, 255, 255]],
+    ['SawShooter',  'U', 'Path', 'SawShooter', [255, 255, 255], [255, 255, 255]],
 ]
 
 pickups = [
@@ -120,6 +119,31 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         for case in cases:
             tile_type = case[0]
             rgb = case[4]
+            cog.outl("case TileType::%s: { return glm::vec3(%d / 255., %d / 255., %d / 255.); }" % (tile_type, rgb[0], rgb[1], rgb[2]))
+        ]]]*/
+        case TileType::Path: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::Wall: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::Start: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::End: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::DoubleJump: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::MovingSpike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::SawShooter: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        //[[[end]]]
+        default: {
+            assert(false && "Tile type not supported");
+            return glm::vec3(1.0, 0.0, 1.0);
+        }
+    }
+}
+
+static glm::vec3 tile_type_to_item_color(TileType ty) {
+    switch (ty) {
+        /*[[[cog
+        for case in cases:
+            tile_type = case[0]
+            rgb = case[5]
             cog.outl("case TileType::%s: { return glm::vec3(%d / 255., %d / 255., %d / 255.); }" % (tile_type, rgb[0], rgb[1], rgb[2]))
         ]]]*/
         case TileType::Path: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
