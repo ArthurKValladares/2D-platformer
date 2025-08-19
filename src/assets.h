@@ -63,6 +63,7 @@ enum class TextureSource : uint32_t {
     Saw,
     SawShooter,
     Spike,
+    SpikyEnemy,
     Wall,
     //[[[end]]]
     Count
@@ -127,6 +128,9 @@ inline const char* texture_path(TextureSource texture) {
         }
         case TextureSource::Spike: {
             return "assets/textures/spike.png";
+        }
+        case TextureSource::SpikyEnemy: {
+            return "assets/textures/spiky_enemy.png";
         }
         case TextureSource::Wall: {
             return "assets/textures/wall.jpg";
@@ -203,6 +207,9 @@ inline const char* texture_name(TextureSource texture) {
         case TextureSource::Spike: {
             return "Spike";
         }
+        case TextureSource::SpikyEnemy: {
+            return "SpikyEnemy";
+        }
         case TextureSource::Wall: {
             return "Wall";
         }
@@ -246,6 +253,7 @@ inline const char** texture_names() {
         "Saw",
         "SawShooter",
         "Spike",
+        "SpikyEnemy",
         "Wall",
     };
     return names;

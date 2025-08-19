@@ -282,6 +282,10 @@ struct Game final : View {
                         }
                         break;
                     }
+                    case EnemyType::Spiky: {
+                        reset();
+                        break;
+                    }
                 }
             }
         }

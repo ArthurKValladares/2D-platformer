@@ -18,6 +18,7 @@ cases = [
     ['Spike',       '^', 'Path', 'Spike',      [255, 255, 255], [255, 255, 255]],
     ['MovingSpike', 'V', 'Path', 'Spike',      [255, 255, 255], [128, 128, 128]],
     ['BasicEnemy',  'B', 'Path', 'Enemy',      [255, 255, 255], [255, 255, 255]],
+    ['SpikyEnemy',  'T', 'Path', 'SpikyEnemy', [255, 255, 255], [255, 255, 255]],
     ['SawShooter',  'U', 'Path', 'SawShooter', [255, 255, 255], [255, 255, 255]],
 ]
 
@@ -26,7 +27,8 @@ pickups = [
     'DoubleJump'
 ]
 enemies = [
-    'BasicEnemy'
+    'BasicEnemy',
+    'SpikyEnemy'
 ]
 hazards = [
     'Spike',

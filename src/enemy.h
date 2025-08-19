@@ -11,7 +11,8 @@
 #include "renderables/includes.h"
 
 enum class EnemyType {
-    Basic
+    Basic,
+    Spiky
 };
 
 struct Enemy {

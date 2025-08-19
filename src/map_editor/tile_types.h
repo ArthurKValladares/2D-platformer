@@ -18,6 +18,7 @@ cases = [
     ['Spike',       '^', 'Path', 'Spike',      [255, 255, 255], [255, 255, 255]],
     ['MovingSpike', 'V', 'Path', 'Spike',      [255, 255, 255], [128, 128, 128]],
     ['BasicEnemy',  'B', 'Path', 'Enemy',      [255, 255, 255], [255, 255, 255]],
+    ['SpikyEnemy',  'T', 'Path', 'SpikyEnemy', [255, 255, 255], [255, 255, 255]],
     ['SawShooter',  'U', 'Path', 'SawShooter', [255, 255, 255], [255, 255, 255]],
 ]
 
@@ -26,7 +27,8 @@ pickups = [
     'DoubleJump'
 ]
 enemies = [
-    'BasicEnemy'
+    'BasicEnemy',
+    'SpikyEnemy'
 ]
 hazards = [
     'Spike',
@@ -50,6 +52,7 @@ enum class TileType : unsigned char {
     Spike,
     MovingSpike,
     BasicEnemy,
+    SpikyEnemy,
     SawShooter,
     //[[[end]]]
     Count
@@ -79,6 +82,7 @@ static char tile_type_to_char(TileType ty) {
         case TileType::Spike: { return '^'; }
         case TileType::MovingSpike: { return 'V'; }
         case TileType::BasicEnemy: { return 'B'; }
+        case TileType::SpikyEnemy: { return 'T'; }
         case TileType::SawShooter: { return 'U'; }
         //[[[end]]]
         default: {
@@ -104,6 +108,7 @@ static TileType char_to_tile_type(char c) {
         case '^': { return TileType::Spike; }
         case 'V': { return TileType::MovingSpike; }
         case 'B': { return TileType::BasicEnemy; }
+        case 'T': { return TileType::SpikyEnemy; }
         case 'U': { return TileType::SawShooter; }
         //[[[end]]]
         default: {
@@ -129,6 +134,7 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::MovingSpike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::SpikyEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::SawShooter: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         //[[[end]]]
         default: {
@@ -154,6 +160,7 @@ static glm::vec3 tile_type_to_item_color(TileType ty) {
         case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::MovingSpike: { return glm::vec3(128 / 255., 128 / 255., 128 / 255.); }
         case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::SpikyEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::SawShooter: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         //[[[end]]]
         default: {
@@ -179,6 +186,7 @@ static TextureSource tile_type_to_texture(TileType ty) {
         case TileType::Spike: { return TextureSource::Path; }
         case TileType::MovingSpike: { return TextureSource::Path; }
         case TileType::BasicEnemy: { return TextureSource::Path; }
+        case TileType::SpikyEnemy: { return TextureSource::Path; }
         case TileType::SawShooter: { return TextureSource::Path; }
         //[[[end]]]
         default: {
@@ -202,6 +210,7 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
         case TileType::Spike: { return TextureSource::Spike; }
         case TileType::MovingSpike: { return TextureSource::Spike; }
         case TileType::BasicEnemy: { return TextureSource::Enemy; }
+        case TileType::SpikyEnemy: { return TextureSource::SpikyEnemy; }
         case TileType::SawShooter: { return TextureSource::SawShooter; }
         //[[[end]]]
         default: {
@@ -231,6 +240,7 @@ static bool is_enemy(TileType ty) {
             cog.outl("case TileType::%s: { return true; }" % enemy)
         ]]]*/
         case TileType::BasicEnemy: { return true; }
+        case TileType::SpikyEnemy: { return true; }
         //[[[end]]]
         default: {
             return false;

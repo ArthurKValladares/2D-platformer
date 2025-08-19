@@ -1,5 +1,6 @@
 #include "enemy.h"
 
+// TODO: This constructor is also bad
 Enemy::Enemy(Rect2D rect, TileType tile_ty, bool is_alive)
     : rect(rect)
     , tex(tile_type_to_item_texture(tile_ty))
@@ -12,6 +13,10 @@ Enemy::Enemy(Rect2D rect, TileType tile_ty, bool is_alive)
     switch (tile_ty) {
         case TileType::BasicEnemy: {
             ty = EnemyType::Basic;
+            break;
+        }
+        case TileType::SpikyEnemy: {
+            ty = EnemyType::Spiky;
             break;
         }
         default: {
