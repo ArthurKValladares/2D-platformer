@@ -157,8 +157,16 @@ struct Game final : View {
                         break;
                     }
                     case PickupType::DoubleJump: {
-                        player.last_jump = -player.jump_delay;
                         player.is_mid_jump = false;
+                        player.last_jump = -player.jump_delay;
+
+                        pickup.is_active = false;
+
+                        break;
+                    }
+                    case PickupType::DoubleDash: {
+                        player.already_dashed = false;
+                        player.last_dash = -player.dash_delay;
 
                         pickup.is_active = false;
 

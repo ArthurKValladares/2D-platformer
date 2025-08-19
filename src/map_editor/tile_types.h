@@ -15,6 +15,7 @@ cases = [
     ['Start',       'S', 'Path', '',           [255, 255, 255], [255, 255, 255]],
     ['End',         'E', 'Path', 'End',        [255, 255, 255], [255, 255, 255]],
     ['DoubleJump',  'D', 'Path', 'Diamond',    [255, 255, 255], [255, 255, 255]],
+    ['DoubleDash',  'F', 'Path', 'Pentagon',   [255, 255, 255], [255, 255, 255]],
     ['Spike',       '^', 'Path', 'Spike',      [255, 255, 255], [255, 255, 255]],
     ['MovingSpike', 'V', 'Path', 'Spike',      [255, 255, 255], [128, 128, 128]],
     ['BasicEnemy',  'B', 'Path', 'Enemy',      [255, 255, 255], [255, 255, 255]],
@@ -24,7 +25,8 @@ cases = [
 
 pickups = [
     'End',
-    'DoubleJump'
+    'DoubleJump',
+    'DoubleDash'
 ]
 enemies = [
     'BasicEnemy',
@@ -49,6 +51,7 @@ enum class TileType : unsigned char {
     Start,
     End,
     DoubleJump,
+    DoubleDash,
     Spike,
     MovingSpike,
     BasicEnemy,
@@ -79,6 +82,7 @@ static char tile_type_to_char(TileType ty) {
         case TileType::Start: { return 'S'; }
         case TileType::End: { return 'E'; }
         case TileType::DoubleJump: { return 'D'; }
+        case TileType::DoubleDash: { return 'F'; }
         case TileType::Spike: { return '^'; }
         case TileType::MovingSpike: { return 'V'; }
         case TileType::BasicEnemy: { return 'B'; }
@@ -105,6 +109,7 @@ static TileType char_to_tile_type(char c) {
         case 'S': { return TileType::Start; }
         case 'E': { return TileType::End; }
         case 'D': { return TileType::DoubleJump; }
+        case 'F': { return TileType::DoubleDash; }
         case '^': { return TileType::Spike; }
         case 'V': { return TileType::MovingSpike; }
         case 'B': { return TileType::BasicEnemy; }
@@ -131,6 +136,7 @@ static glm::vec3 tile_type_to_color(TileType ty) {
         case TileType::Start: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::End: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::DoubleJump: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::DoubleDash: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::MovingSpike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
@@ -157,6 +163,7 @@ static glm::vec3 tile_type_to_item_color(TileType ty) {
         case TileType::Start: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::End: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::DoubleJump: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
+        case TileType::DoubleDash: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::Spike: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
         case TileType::MovingSpike: { return glm::vec3(128 / 255., 128 / 255., 128 / 255.); }
         case TileType::BasicEnemy: { return glm::vec3(255 / 255., 255 / 255., 255 / 255.); }
@@ -183,6 +190,7 @@ static TextureSource tile_type_to_texture(TileType ty) {
         case TileType::Start: { return TextureSource::Path; }
         case TileType::End: { return TextureSource::Path; }
         case TileType::DoubleJump: { return TextureSource::Path; }
+        case TileType::DoubleDash: { return TextureSource::Path; }
         case TileType::Spike: { return TextureSource::Path; }
         case TileType::MovingSpike: { return TextureSource::Path; }
         case TileType::BasicEnemy: { return TextureSource::Path; }
@@ -207,6 +215,7 @@ static TextureSource tile_type_to_item_texture(TileType ty) {
         ]]]*/
         case TileType::End: { return TextureSource::End; }
         case TileType::DoubleJump: { return TextureSource::Diamond; }
+        case TileType::DoubleDash: { return TextureSource::Pentagon; }
         case TileType::Spike: { return TextureSource::Spike; }
         case TileType::MovingSpike: { return TextureSource::Spike; }
         case TileType::BasicEnemy: { return TextureSource::Enemy; }
@@ -227,6 +236,7 @@ static bool is_pickup(TileType ty) {
         ]]]*/
         case TileType::End: { return true; }
         case TileType::DoubleJump: { return true; }
+        case TileType::DoubleDash: { return true; }
         //[[[end]]]
         default: {
             return false;

@@ -10,6 +10,7 @@
 
 enum class PickupType {
     DoubleJump,
+    DoubleDash,
     End
 };
 

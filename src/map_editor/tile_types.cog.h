@@ -15,6 +15,7 @@ cases = [
     ['Start',       'S', 'Path', '',           [255, 255, 255], [255, 255, 255]],
     ['End',         'E', 'Path', 'End',        [255, 255, 255], [255, 255, 255]],
     ['DoubleJump',  'D', 'Path', 'Diamond',    [255, 255, 255], [255, 255, 255]],
+    ['DoubleDash',  'F', 'Path', 'Pentagon',   [255, 255, 255], [255, 255, 255]],
     ['Spike',       '^', 'Path', 'Spike',      [255, 255, 255], [255, 255, 255]],
     ['MovingSpike', 'V', 'Path', 'Spike',      [255, 255, 255], [128, 128, 128]],
     ['BasicEnemy',  'B', 'Path', 'Enemy',      [255, 255, 255], [255, 255, 255]],
@@ -24,7 +25,8 @@ cases = [
 
 pickups = [
     'End',
-    'DoubleJump'
+    'DoubleJump',
+    'DoubleDash'
 ]
 enemies = [
     'BasicEnemy',

@@ -1,9 +1,10 @@
 #include "pickup.h"
 
+// TODO: Also need to do away with this constructor
 Pickup::Pickup(Rect2D rect, TileType tile_ty, bool is_active)
     : rect(rect)
     , texture(tile_type_to_item_texture(tile_ty))
-    , color(tile_type_to_color(tile_ty))
+    , color(tile_type_to_item_color(tile_ty))
     , is_active(is_active)
 {
     assert(texture != TextureSource::Count);
@@ -11,6 +12,10 @@ Pickup::Pickup(Rect2D rect, TileType tile_ty, bool is_active)
     switch (tile_ty) {
         case TileType::DoubleJump: {
             ty = PickupType::DoubleJump;
+            break;
+        }
+        case TileType::DoubleDash: {
+            ty = PickupType::DoubleDash;
             break;
         }
         case TileType::End: {
