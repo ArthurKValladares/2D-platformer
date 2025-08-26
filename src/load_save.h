@@ -31,9 +31,10 @@ struct LoadSave {
     };
     ImguiResult imgui_node();
 
-    void save(ImguiLog& logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
-    void load(ImguiLog& logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
+    void save(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
+    void load(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
 
+    // TODO: This vector should be outside this abstraction
     int selected_file;
     std::vector<std::string> files;
 

@@ -238,9 +238,14 @@ struct ParticleEmitter {
     {}
 
     bool is_alive_at(double curr_time) const {
+        if (lifetime.is_infinite()) return true;
         return (curr_time - start_time) <= lifetime.val;
     }
 
+    bool all_particles_dead() const {
+        return particles.empty();
+    }
+    
     void update(double curr_time) {
         particles.erase(
             std::remove_if(particles.begin(), particles.end(), 
@@ -250,9 +255,8 @@ struct ParticleEmitter {
             particles.end()
         );
 
-        if (texture != TextureSource::Count &&
-            (lifetime.is_infinite() || is_alive_at(curr_time))
-        ) {
+        if (texture != TextureSource::Count && is_alive_at(curr_time))
+        {
             const float c_emission_delay = get_variable_float_val(emission_delay);
             if (curr_time - last_updated > c_emission_delay) {
                 const glm::vec2 c_start_offset      = get_variable_vec2_val_independent(start_offset);
@@ -283,7 +287,7 @@ struct ParticleEmitter {
         bool has_changed = false;
 
         has_changed |= ImGui::DragFloat("lifetime", &lifetime.val);
-        
+
         if (ImGui::BeginTable("Values", 3)) {
 
             ImGui::TableSetupColumn("Field");

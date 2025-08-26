@@ -185,6 +185,20 @@ void Game::update_fn(const UpdateContext& context, double total_elapsed_seconds,
         }
     }
 
+    for (ParticleEmitter& emitter : particle_emitters) {
+        emitter.update(total_elapsed_seconds);
+    }
+    particle_emitters.erase(
+        std::remove_if(
+            particle_emitters.begin(), 
+            particle_emitters.end(),
+            [&](const ParticleEmitter& emitter) { 
+                return !emitter.is_alive_at(total_elapsed_seconds) && emitter.all_particles_dead();
+            }
+        ),
+        particle_emitters.end()
+    );
+
     camera.mark_move_to(player.rect.center(), total_elapsed_seconds);
 }
 
