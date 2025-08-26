@@ -26,7 +26,17 @@ void Game::update_fn(const UpdateContext& context, double total_elapsed_seconds,
         should_show_ui = !should_show_ui;
     }
 
+    const glm::vec2 player_bottom_pos = player.rect.bottom_center(); 
     player.update(context.keyboard_state, collision_grid, frame_dt, total_elapsed_seconds);
+    // TODO: Also sloppy, need a big cleanup pass
+    if (player.is_mid_jump && player.last_jump == total_elapsed_seconds) {
+        // TODO: duplicated code
+        ParticleEmitter jump_particle;
+        // TODO: Bad to load from json everytime, need to just "reset" and duplicate it
+        particle_loader.load_from(nullptr, jump_particle, "test_2", total_elapsed_seconds);
+        jump_particle.center = player_bottom_pos;
+        particle_emitters.push_back(jump_particle);
+    }
     camera.update(context.keyboard_state, frame_dt, total_elapsed_seconds);
     useless_button_0.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
     quit_button.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
@@ -171,6 +181,14 @@ void Game::update_fn(const UpdateContext& context, double total_elapsed_seconds,
                 case EnemyType::Basic: {
                     if (intersection.y < 0.0) {
                         enemy.is_alive = false;
+
+                        // TODO: duplicated code
+                        ParticleEmitter jump_particle;
+                        // TODO: Bad to load from json everytime, need to just "reset" and duplicate it
+                        particle_loader.load_from(nullptr, jump_particle, "test_2", total_elapsed_seconds);
+                        jump_particle.center = player.rect.bottom_center();
+                        particle_emitters.push_back(jump_particle);
+                        
                         player.jump(collision_grid, total_elapsed_seconds);
                     } else {
                         reset();

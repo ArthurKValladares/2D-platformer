@@ -33,8 +33,10 @@ struct LoadSave {
 
     void save(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
     void load(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
+    void load_from(ImguiLog* logger, const char* dir, const char* extension, const char* file, std::function<void(nlohmann::json&)> load_fn);
 
     // TODO: This vector should be outside this abstraction
+    // This whole abstraction as a whole is messy
     int selected_file;
     std::vector<std::string> files;
 

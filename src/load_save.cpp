@@ -52,7 +52,11 @@ void LoadSave::save(ImguiLog* logger, const char* dir, const char* extension, st
 
 void LoadSave::load(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn) {
     const std::string& path_str = files[selected_file];
-    const std::filesystem::path curr_path = get_curr_file_path(dir, extension, path_str.c_str());
+    load_from(logger, dir, extension, path_str.c_str(), load_fn);
+}
+
+void LoadSave::load_from(ImguiLog* logger, const char* dir, const char* extension, const char* file, std::function<void(nlohmann::json&)> load_fn) {
+    const std::filesystem::path curr_path = get_curr_file_path(dir, extension, file);
     std::ifstream in_file(curr_path);
     if (in_file.is_open()) {
         nlohmann::json root;

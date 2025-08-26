@@ -2,7 +2,8 @@
 
 
 void Player::jump(const CollisionGrid& collision_grid, double total_elapsed_time) {
-    // TODO: Kinda sloppy, duplicated code
+    // TODO: Kinda sloppy, duplicated code with the update below, need to separate it out.
+    // and handle jumping in Game and not player
     is_mid_jump = true;
     last_jump = total_elapsed_time;
 

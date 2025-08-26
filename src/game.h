@@ -11,7 +11,7 @@
 #include "enemy.h"
 #include "pickup.h"
 #include "hazard.h"
-#include "particles.h"
+#include "particle_loader.h"
 
 #include "map_editor/map.h"
 
@@ -176,6 +176,10 @@ struct Game final : View {
             renderable.push_child(enemy.draw());
         }
 
+        for (const ParticleEmitter& emitter : particle_emitters) {
+            renderable.push_child(emitter.draw(total_elapsed_time));
+        }
+
         player.add_to_renderable(&renderable, total_elapsed_time);
         camera.add_to_renderable(&renderable);
 
@@ -246,6 +250,7 @@ struct Game final : View {
     std::vector<Pickup> pickups;
     std::vector<Hazard> hazards;
 
+    ParticleLoader particle_loader;
     std::vector<ParticleEmitter> particle_emitters;
 
     CollisionGrid collision_grid;
