@@ -238,10 +238,10 @@ struct ParticleEmitter {
     {}
 
     bool is_alive_at(double curr_time) const {
-        return (curr_time - start_time) > lifetime.val;
+        return (curr_time - start_time) <= lifetime.val;
     }
 
-    void update_and_create_renderables(Renderable* root_renderable, double curr_time) {
+    void update(double curr_time) {
         particles.erase(
             std::remove_if(particles.begin(), particles.end(), 
             [curr_time](Particle& p) {
@@ -269,15 +269,21 @@ struct ParticleEmitter {
                 last_updated = curr_time;
             }
         }
+    }
 
+    Renderable draw(double curr_time) const {
+        Renderable root;
         for (const Particle& particle : particles) {
-            root_renderable->push_child(Renderable(particle.get_quad(curr_time, texture)));
+            root.push_child(Renderable(particle.get_quad(curr_time, texture)));
         }
+        return root;
     }
 
     bool imgui_node() {
         bool has_changed = false;
 
+        has_changed |= ImGui::DragFloat("lifetime", &lifetime.val);
+        
         if (ImGui::BeginTable("Values", 3)) {
 
             ImGui::TableSetupColumn("Field");

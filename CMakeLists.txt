@@ -49,6 +49,7 @@ add_executable(${PROJECT_NAME}
   src/pickup.cpp
   src/enemy.cpp
   src/hazard.cpp
+  src/game.cpp
   ### third-party
   # Adding SPIRV-Reflect directly to project
   third-party/SPIRV-Reflect-vulkan-sdk/spirv_reflect.cpp

@@ -50,12 +50,10 @@ struct ParticleEditor final : View {
     }
 
     RootRenderable draw_fn(Renderer* renderer, double total_elapsed_seconds) {
-        Renderable renderable;
-
         global_set_data.shader_data.proj_matrix = camera.get_proj_matrix();
         global_set_data.write_shader_data_to_buffer(renderer);
 
-        emitter.update_and_create_renderables(&renderable, total_elapsed_seconds);
+        Renderable renderable = emitter.draw(total_elapsed_seconds);
 
         return RootRenderable {
             renderable,
@@ -84,6 +82,7 @@ struct ParticleEditor final : View {
 
     void update_fn(const UpdateContext& context, double total_elapsed_seconds, double frame_dt) {
         camera.update(context.keyboard_state, frame_dt, total_elapsed_seconds);
+        emitter.update(total_elapsed_seconds);
     }
 
     void draw_imgui(ImguiLog& logger, double total_elapsed_seconds) {
@@ -132,10 +131,8 @@ private:
 
     void load(ImguiLog& logger, double total_elapsed_seconds) {
         load_save.load(logger, PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
-            const double old_start_time = emitter.start_time;
-
             emitter = ParticleEmitter(
-                old_start_time,
+                total_elapsed_seconds,
                 EmitterLifetime(get_serialized_float(root, "lifetime")),
                 get_serialized_vec2(root, "center"),
                 VariableField<glm::vec2>(
