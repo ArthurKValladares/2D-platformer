@@ -11,7 +11,8 @@
 #include "enemy.h"
 #include "pickup.h"
 #include "hazard.h"
-#include "particle_loader.h"
+#include "particles.h"
+#include "load_save.h"
 
 #include "map_editor/map.h"
 
@@ -250,7 +251,7 @@ struct Game final : View {
     std::vector<Pickup> pickups;
     std::vector<Hazard> hazards;
 
-    ParticleLoader particle_loader;
+    LoadSave load_save;
     std::vector<ParticleEmitter> particle_emitters;
 
     CollisionGrid collision_grid;

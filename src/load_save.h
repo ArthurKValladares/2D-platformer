@@ -15,15 +15,20 @@
 #define PARTICLES_EXTENSION ".json"
 
 struct LoadSave {
-    LoadSave();
+    LoadSave() {}
+
+    void save(ImguiLog* logger, const char* dir, const char* extension, const char* file_name, std::function<void(nlohmann::json&)> save_fn);
+    void load(ImguiLog* logger, const char* dir, const char* extension, const char* file_name, std::function<void(nlohmann::json&)> load_fn);
+};
+
+struct LoadSaveDir {
+    LoadSaveDir();
 
     void load_files(const char* dir, const char* extension);
-    std::filesystem::path get_curr_file_path(const char* dir, const char* extension, const char* file_name);
 
-    void set_has_unsaved_changes(bool val) {
-        has_unsaved_changes = val;
-    }
-    
+    void save(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
+    void load(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
+
     enum class ImguiResult {
         Noop,
         ShouldSave,
@@ -31,12 +36,6 @@ struct LoadSave {
     };
     ImguiResult imgui_node();
 
-    void save(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> save_fn);
-    void load(ImguiLog* logger, const char* dir, const char* extension, std::function<void(nlohmann::json&)> load_fn);
-    void load_from(ImguiLog* logger, const char* dir, const char* extension, const char* file, std::function<void(nlohmann::json&)> load_fn);
-
-    // TODO: This vector should be outside this abstraction
-    // This whole abstraction as a whole is messy
     int selected_file;
     std::vector<std::string> files;
 
@@ -45,4 +44,6 @@ struct LoadSave {
 
     bool has_unsaved_changes;
     bool show_confirm_load_popup;
+
+    LoadSave load_save;
 };

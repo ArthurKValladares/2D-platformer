@@ -45,7 +45,7 @@ struct ParticleEditor final : View {
         update_global_set(renderer, global_set_data.buffer_id, global_set_data.set_id);
 
         
-        loader.load_save.load_files(PARTICLES_DIR, PARTICLES_EXTENSION);
+        load_save.load_files(PARTICLES_DIR, PARTICLES_EXTENSION);
     }
 
     RootRenderable draw_fn(Renderer* renderer, double total_elapsed_seconds) {
@@ -87,38 +87,39 @@ struct ParticleEditor final : View {
     void draw_imgui(ImguiLog& logger, double total_elapsed_seconds) {
         ImGui::Text("Settings File");
 
-        LoadSave::ImguiResult res = loader.load_save.imgui_node();
-        if (res == LoadSave::ImguiResult::ShouldSave) {
+        LoadSaveDir::ImguiResult res = load_save.imgui_node();
+        if (res == LoadSaveDir::ImguiResult::ShouldSave) {
             save(logger);
-        } else if (res == LoadSave::ImguiResult::ShouldLoad) {
+        } else if (res == LoadSaveDir::ImguiResult::ShouldLoad) {
             load(logger, total_elapsed_seconds);
         }
         
         const bool has_changed = emitter.imgui_node();
         if (has_changed) {
-            loader.load_save.set_has_unsaved_changes(true);
+            load_save.has_unsaved_changes = true;
         }
     }
 
     void cleanup(Renderer* renderer) {}
 private:
     void save(ImguiLog& logger) {
-        loader.save(&logger, emitter);
+        load_save.save(&logger, PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
+            save_particle_fn(emitter, root);
+        });
     }
 
     void load(ImguiLog& logger, double total_elapsed_seconds) {
-        loader.load(&logger, emitter, total_elapsed_seconds);
+        load_save.load(&logger, PARTICLES_DIR, PARTICLES_EXTENSION, [&](nlohmann::json& root) {
+            load_particle_fn(emitter, root, total_elapsed_seconds);
+        });
     }
 
     ParticleEmitter emitter;
 
     static constexpr float DEFAULT_SIZE_SCALE = 10.0;
 
-    ParticleLoader loader;
+    LoadSaveDir load_save;
 public:
     OrthographicCamera camera;
     GlobalDescriptorSetData global_set_data;
 };
-
-// TODO: TODO: TODO:
-// This whole thing is still super messy, LoadSave is a very weird and leaky abstraction, need to clean it up later

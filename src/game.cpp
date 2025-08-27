@@ -1,4 +1,5 @@
 #include "game.h"
+#include "particle_loader.h"
 
 namespace {
     struct SawShooterSettings {
@@ -31,11 +32,15 @@ void Game::update_fn(const UpdateContext& context, double total_elapsed_seconds,
     // TODO: Also sloppy, need a big cleanup pass
     if (player.is_mid_jump && player.last_jump == total_elapsed_seconds) {
         // TODO: duplicated code
-        ParticleEmitter jump_particle;
         // TODO: Bad to load from json everytime, need to just "reset" and duplicate it
-        particle_loader.load_from(nullptr, jump_particle, "test_2", total_elapsed_seconds);
+        ParticleEmitter jump_particle;
+        load_save.load(nullptr, PARTICLES_DIR, PARTICLES_EXTENSION, "test_2", [&](nlohmann::json& root) {
+            load_particle_fn(jump_particle, root, total_elapsed_seconds);
+        });
         jump_particle.center = player_bottom_pos;
         particle_emitters.push_back(jump_particle);
+        //
+        //
     }
     camera.update(context.keyboard_state, frame_dt, total_elapsed_seconds);
     useless_button_0.update(context.mouse_state, get_screen_pos(context.window, context.mouse_state, ui.camera));
@@ -183,11 +188,15 @@ void Game::update_fn(const UpdateContext& context, double total_elapsed_seconds,
                         enemy.is_alive = false;
 
                         // TODO: duplicated code
-                        ParticleEmitter jump_particle;
                         // TODO: Bad to load from json everytime, need to just "reset" and duplicate it
-                        particle_loader.load_from(nullptr, jump_particle, "test_2", total_elapsed_seconds);
+                        ParticleEmitter jump_particle;
+                        load_save.load(nullptr, PARTICLES_DIR, PARTICLES_EXTENSION, "test_2", [&](nlohmann::json& root) {
+                            load_particle_fn(jump_particle, root, total_elapsed_seconds);
+                        });
                         jump_particle.center = player.rect.bottom_center();
                         particle_emitters.push_back(jump_particle);
+                        //
+                        //
                         
                         player.jump(collision_grid, total_elapsed_seconds);
                     } else {

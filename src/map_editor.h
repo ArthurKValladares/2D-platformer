@@ -48,5 +48,5 @@ struct MapEditor final : View {
     OrthographicCamera camera;
     GlobalDescriptorSetData global_set_data;
 
-    LoadSave load_save;
+    LoadSaveDir load_save;
 };

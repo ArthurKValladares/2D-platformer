@@ -148,7 +148,7 @@ void MapEditor::update_fn(const UpdateContext& context, double total_elapsed_sec
                 selected_tile = std::make_pair(row, col);
                 if (context.mouse_state.is_down(SDL_BUTTON_LEFT)) {
                     tiles[row][col] = tile_type_from_uint(selected_tile_type);
-                    load_save.set_has_unsaved_changes(true);
+                    load_save.has_unsaved_changes = true;
                 }
             }
         }
@@ -165,10 +165,10 @@ void MapEditor::resize() {
 void MapEditor::draw_imgui(ImguiLog& logger, double total_elapsed_time) {
     constexpr uint32_t textures_per_line = 4;
 
-    LoadSave::ImguiResult res = load_save.imgui_node();
-    if (res == LoadSave::ImguiResult::ShouldSave) {
+    LoadSaveDir::ImguiResult res = load_save.imgui_node();
+    if (res == LoadSaveDir::ImguiResult::ShouldSave) {
         save(logger);
-    } else if (res == LoadSave::ImguiResult::ShouldLoad) {
+    } else if (res == LoadSaveDir::ImguiResult::ShouldLoad) {
         load(logger);
     }
 
@@ -210,7 +210,7 @@ void MapEditor::draw_imgui(ImguiLog& logger, double total_elapsed_time) {
     }
 
     if (has_changed) {
-        load_save.set_has_unsaved_changes(true);
+        load_save.has_unsaved_changes = true;
     }
 }
 
