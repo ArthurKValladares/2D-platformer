@@ -24,6 +24,7 @@ struct App {
         , mouse_state(MouseState())
         , window(Window())
         , renderer(window)
+        , ui(UI(&renderer, window))
     {
         // Reserve textures
         for (uint32_t i = 0; i < texture_count(); ++i) {
@@ -31,7 +32,7 @@ struct App {
         }
 
         open_tab_idx = 0;
-        tab_items[0] = std::make_unique<Game>(window, &renderer);
+        tab_items[0] = std::make_unique<Game>(window, &renderer, ui);
         tab_items[1] = std::make_unique<ParticleEditor>(window, &renderer);
         tab_items[2] = std::make_unique<MapEditor>(window, &renderer);
     }
@@ -41,18 +42,25 @@ struct App {
             UpdateContext{
                 .window = window,
                 .keyboard_state = keyboard_state,
-                .mouse_state = mouse_state
+                .mouse_state = mouse_state,
+                .ui = ui
             },
             total_elapsed_seconds,
             frame_dt
         );
 
         // Setup imgui
+        // TODO: THis can be better and cleaner, not a lambda maybe?
         renderer.set_imgui_fn([&]() {
             ImGui::BeginTabBar("##tabs");
 
             uint32_t idx = 0;
             for (const std::unique_ptr<View>& tab : tab_items) {
+                if (ImGui::TreeNode("UI")) {
+                    ui.draw_imgui();   
+                    ImGui::TreePop();
+                }
+
                 if (ImGui::BeginTabItem(tab->name())) {
                     tab->draw_imgui(logger, total_elapsed_seconds);
                     ImGui::EndTabItem();
@@ -70,7 +78,7 @@ struct App {
         RootRenderable draw_root = tab_items[open_tab_idx]->draw_fn(&renderer, total_elapsed_seconds);
         RootRenderable ui_root;
         if (tab_items[open_tab_idx]->should_draw_ui()) {
-            ui_root = tab_items[open_tab_idx]->draw_ui(&renderer, total_elapsed_seconds);
+            ui_root = tab_items[open_tab_idx]->draw_ui(ui, &renderer, total_elapsed_seconds);
         }
 
         ViewDrawData draw_data;
@@ -134,6 +142,8 @@ struct App {
 
     uint32_t open_tab_idx;
     std::array<std::unique_ptr<View>, 3> tab_items;
+
+    UI ui;
 };
 
 int main(int argc, char *argv[]) {

@@ -65,13 +65,13 @@ struct ParticleEditor final : View {
         return false;
     }
     
-    RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
+    RootRenderable draw_ui(UI& ui, Renderer* renderer, double total_elapsed_time) {
         Renderable renderable;
 
         return RootRenderable {
             renderable,
-            global_set_data.layout_id,
-            global_set_data.set_id
+            ui.global_descriptor_set.layout_id,
+            ui.global_descriptor_set.set_id
         };
     }
     

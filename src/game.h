@@ -13,6 +13,7 @@
 #include "hazard.h"
 #include "particles.h"
 #include "load_save.h"
+#include "pause_menu.h"
 
 #include "map_editor/map.h"
 
@@ -32,7 +33,7 @@ namespace {
 };
 
 struct Game final : View {
-    Game(const Window& window, Renderer* renderer);
+    Game(const Window& window, Renderer* renderer, UI& ui);
 
     void setup_collision_grid() {
         collision_grid.cells.clear();
@@ -112,15 +113,9 @@ struct Game final : View {
         return should_show_ui;
     }
 
-    RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time) {
-        Renderable renderable;
-
-        renderable.push_child(useless_button_0.draw(renderer, ui));
-        renderable.push_child(quit_button.draw(renderer, ui));
-        renderable.push_child(useless_button_1.draw(renderer, ui));
-
+    RootRenderable draw_ui(UI& ui, Renderer* renderer, double total_elapsed_time) {
         return RootRenderable {
-            renderable,
+            pause_menu.draw(ui, renderer),
             ui.global_descriptor_set.layout_id,
             ui.global_descriptor_set.set_id
         };
@@ -181,10 +176,5 @@ struct Game final : View {
     GlobalDescriptorSetData global_set_data;
 
     bool should_show_ui;
-    UI ui;
-
-    // TODO: UI "page" abstraction
-    Button useless_button_0;
-    Button quit_button;
-    Button useless_button_1;
+    PauseMenu pause_menu;
 };

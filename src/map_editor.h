@@ -29,7 +29,7 @@ struct MapEditor final : View {
     void update_fn(const UpdateContext& context, double total_elapsed_seconds, double frame_dt);
     RootRenderable draw_fn(Renderer* renderer, double total_elapsed_time);
     bool should_draw_ui() const { return false; }
-    RootRenderable draw_ui(Renderer* renderer, double total_elapsed_time);
+    RootRenderable draw_ui(UI& ui, Renderer* renderer, double total_elapsed_time);
     void draw_imgui(ImguiLog& logger, double total_elapsed_time);
 
     void save(ImguiLog& logger);
