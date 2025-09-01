@@ -46,7 +46,12 @@ MapEditor::MapEditor(const Window& window, Renderer* renderer)
     my_textures.resize(num_tile_types);
     for (uint32_t i = 0; i < num_tile_types; ++i) {
         const TileType tile_ty = tile_type_from_uint(i);
-        const TextureSource texture_src = tile_type_to_texture(tile_ty);
+        TextureSource texture_src;
+        if (is_pickup(tile_ty) || is_enemy(tile_ty) || is_hazard(tile_ty)) {
+            texture_src = tile_type_to_item_texture(tile_ty);
+        } else {
+            texture_src = tile_type_to_texture(tile_ty);
+        }
         const TextureID tex_id = texture_id(texture_src);
 
         if (!renderer->contains_texture(tex_id)) {
@@ -106,6 +111,13 @@ RootRenderable MapEditor::draw_fn(Renderer* renderer, double total_elapsed_time)
                         .thickness = outline_thickness
                     }
                 ));
+                if (is_pickup(ty) || is_enemy(ty) || is_hazard(ty)) {
+                    renderable.push_child(colored_quad(
+                        rect,
+                        texture_id(tile_type_to_item_texture(ty)),
+                        glm::vec3(1.0)
+                    ));
+                }
             }
         }
     }
