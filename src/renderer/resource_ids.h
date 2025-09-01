@@ -33,11 +33,25 @@ struct hash<NAME ## ID>\
     }\
 };
 
-CREATE_ID(Texture)
 CREATE_ID(Buffer)
 CREATE_ID(DescriptorSetLayout)
 CREATE_ID(DescriptorSet)
 CREATE_ID(Shader)
+
+struct TextureID {
+    TextureID() {}
+    TextureID(uint32_t id, bool is_runtime = false)
+        : id(id)
+        , runtime_texture(is_runtime)
+    {}
+
+    bool operator==(const TextureID &other) const {
+        return runtime_texture == other.runtime_texture && id == other.id;
+    }
+
+    bool runtime_texture;
+    uint32_t id;
+};
 
 struct PipelineID {
     PipelineID() {}
@@ -58,11 +72,21 @@ struct PipelineID {
 
 namespace std
 {
-    CREATE_HASH_FN(Texture)
     CREATE_HASH_FN(Buffer)
     CREATE_HASH_FN(DescriptorSetLayout)
     CREATE_HASH_FN(DescriptorSet)
     CREATE_HASH_FN(Shader)
+
+    template<>
+    struct hash<TextureID>
+    {
+        size_t operator()(const TextureID& t) const
+        {
+            size_t h= make_hash(t.runtime_texture);
+            hash_combine(h, make_hash(t.id));
+            return h;
+        }
+    };
 
     template<>
     struct hash<PipelineID>

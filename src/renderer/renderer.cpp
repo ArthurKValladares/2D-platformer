@@ -798,7 +798,7 @@ void Renderer::reserve_texture_id(TextureID id) {
 }
 
 TextureID Renderer::request_texture(const TextureCreateInfo& ci) {
-    const TextureID id = TextureID(textures.size());
+    const TextureID id = TextureID(textures.size(), true);
     upload_texture(id, ci);
     return id;
 }
