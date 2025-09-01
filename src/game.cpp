@@ -70,6 +70,9 @@ Game::Game(const Window& window, Renderer* renderer, UI& ui)
     load_save.load(nullptr, PARTICLES_DIR, PARTICLES_EXTENSION, "test_2", [&](nlohmann::json& root) {
         load_particle_fn(jump_particle, root, 0.0);
     });
+    load_save.load(nullptr, PARTICLES_DIR, PARTICLES_EXTENSION, "test_3", [&](nlohmann::json& root) {
+        load_particle_fn(dash_particle, root, 0.0);
+    });
 }
 
 void Game::update_fn(const UpdateContext& context, double total_elapsed_seconds, double frame_dt) {
@@ -88,6 +91,17 @@ void Game::update_fn(const UpdateContext& context, double total_elapsed_seconds,
         new_jump_particle.start_time = total_elapsed_seconds;
         new_jump_particle.center = player_bottom_pos;
         particle_emitters.push_back(std::move(new_jump_particle));
+    }
+    if (player.already_dashed && player.last_dash == total_elapsed_seconds) {
+        ParticleEmitter new_dash_particle = dash_particle;
+        new_dash_particle.start_time = total_elapsed_seconds;
+        new_dash_particle.center = player_bottom_pos;
+
+        if (player.movement_vec.x > 0.0) {
+            new_dash_particle.emission_angle.base_val = new_dash_particle.emission_angle.base_val - Degrees(180);
+        }
+        
+        particle_emitters.push_back(std::move(new_dash_particle));
     }
     camera.update(context.keyboard_state, frame_dt, total_elapsed_seconds);
     pause_menu.update_fn(context, total_elapsed_seconds, frame_dt);

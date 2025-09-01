@@ -165,6 +165,7 @@ struct Game final : View {
 
     LoadSave load_save;
     ParticleEmitter jump_particle;
+    ParticleEmitter dash_particle;
     std::vector<ParticleEmitter> particle_emitters;
 
     CollisionGrid collision_grid;
